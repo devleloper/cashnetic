@@ -1,7 +1,6 @@
-import 'package:cashnetic/ui/widgets/floating_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'expenses_view_model.dart';
+import '../../../ui.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
@@ -11,7 +10,6 @@ class ExpensesScreen extends StatelessWidget {
     final vm = context.watch<ExpensesViewModel>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
         title: const Text('Расходы сегодня'),
         actions: [
@@ -26,7 +24,7 @@ class ExpensesScreen extends StatelessWidget {
           : Column(
               children: [
                 Container(
-                  color: const Color(0xFFD9F3DB),
+                  color: Colors.green.withOpacity(0.2),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -87,7 +85,12 @@ class ExpensesScreen extends StatelessWidget {
             ),
       floatingActionButton: MyFloatingActionButton(
         icon: Icons.add,
-        onPressesd: () {},
+        onPressesd: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TransactionAddScreen()),
+          );
+        },
       ),
     );
   }
