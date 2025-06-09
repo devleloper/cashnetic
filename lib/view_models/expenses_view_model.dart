@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../data/data.dart';
-import '../../../../models/models.dart';
+import '../data/data.dart';
+import '../models/models.dart';
 
 class ExpensesViewModel extends ChangeNotifier {
   final TransactionsRepository repository;
@@ -20,6 +20,12 @@ class ExpensesViewModel extends ChangeNotifier {
     total = await repository.fetchTodayTotal();
 
     loading = false;
+    notifyListeners();
+  }
+
+  Future<void> addTransaction(TransactionModel t) async {
+    transactions.insert(0, t);
+    total += t.amount;
     notifyListeners();
   }
 }

@@ -1,2 +1,2 @@
 export 'expenses_screen.dart';
-export 'expenses_view_model.dart';
+export '../../../../view_models/expenses_view_model.dart';

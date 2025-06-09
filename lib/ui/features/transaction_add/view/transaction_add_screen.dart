@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../models/models.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   const TransactionAddScreen({super.key});
@@ -15,6 +16,24 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   String category = 'Ремонт';
   String amount = '';
   String comment = '';
+
+  final List<String> accounts = [
+    'Сбербанк',
+    'Т-Банк',
+    'Альфа Банк',
+    'ВТБ',
+    'МТС Банк',
+    'Почта Банк',
+  ];
+  final List<String> categories = [
+    'Ремонт',
+    'Одежда',
+    'Продукты',
+    'Электроника',
+    'Развлечения',
+    'Образование',
+    'Услуги связи',
+  ];
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
@@ -65,10 +84,71 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     );
   }
 
+  Future<void> _selectFromList(
+    String title,
+    List<String> options,
+    ValueChanged<String> onSelected,
+  ) async {
+    final res = await showModalBottomSheet<String>(
+      context: context,
+      builder: (c) => ListView(
+        children: [
+          ...options.map(
+            (o) => ListTile(title: Text(o), onTap: () => Navigator.pop(c, o)),
+          ),
+          ListTile(
+            title: const Text('Введите вручную…'),
+            onTap: () => Navigator.pop(c, null),
+          ),
+        ],
+      ),
+    );
+
+    if (res != null) {
+      onSelected(res);
+    } else {
+      final input = await showDialog<String>(
+        context: context,
+        builder: (c) {
+          final ctrl = TextEditingController();
+          return AlertDialog(
+            title: Text('Новый $title'),
+            content: TextField(controller: ctrl, autofocus: true),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(c),
+                child: const Text('Отмена'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(c, ctrl.text),
+                child: const Text('Добавить'),
+              ),
+            ],
+          );
+        },
+      );
+      if (input != null && input.isNotEmpty) {
+        setState(() {
+          options.add(input);
+        });
+        onSelected(input);
+      }
+    }
+  }
+
   void _save() {
-    if (amount.isEmpty) return;
-    // TODO: сохранить данные (через репозиторий или callback)
-    Navigator.pop(context);
+    final parsedAmount = double.tryParse(amount.replaceAll(',', '.'));
+    if (parsedAmount == null) return;
+
+    final model = TransactionModel(
+      id: DateTime.now().millisecondsSinceEpoch,
+      categoryIcon: '💸',
+      categoryTitle: category,
+      amount: parsedAmount,
+      comment: comment.isEmpty ? null : comment,
+    );
+
+    Navigator.pop(context, model);
   }
 
   @override
@@ -96,8 +176,24 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          _ListTileRow(title: 'Счёт', value: account, onTap: () {}),
-          _ListTileRow(title: 'Статья', value: category, onTap: () {}),
+          _ListTileRow(
+            title: 'Счёт',
+            value: account,
+            onTap: () => _selectFromList(
+              'счёт',
+              accounts,
+              (v) => setState(() => account = v),
+            ),
+          ),
+          _ListTileRow(
+            title: 'Категория',
+            value: category,
+            onTap: () => _selectFromList(
+              'категория',
+              categories,
+              (v) => setState(() => category = v),
+            ),
+          ),
           _ListTileRow(
             title: 'Сумма',
             value: amount.isEmpty ? 'Введите' : '$amount ₽',
@@ -115,19 +211,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             ),
             maxLines: 3,
             onChanged: (v) => comment = v,
-          ),
-          const SizedBox(height: 32),
-          TextButton(
-            onPressed: () {}, // Удаление будет в режиме редактирования
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.red[400],
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-            ),
-            child: const Text('Удалить расход'),
           ),
         ],
       ),
