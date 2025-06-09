@@ -159,8 +159,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
-        backgroundColor: Colors.green,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -171,7 +169,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             onPressed: _save,
           ),
         ],
-        title: const Text('Мои расходы', style: TextStyle(color: Colors.white)),
+        title: const Text('Мои расходы'),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
