@@ -62,16 +62,16 @@ class ExpensesScreen extends StatelessWidget {
                             final e = vm.transactions[index];
                             return ListTile(
                               onTap: () async {
-                                final updated =
-                                    await Navigator.push<TransactionModel>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            TransactionEditScreen(initial: e),
-                                      ),
-                                    );
-                                // Если экран возвращает model, обновлите вручную (но мы уже делаем через vm)
+                                final e = vm.transactions[index];
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        TransactionEditScreen(transaction: e),
+                                  ),
+                                );
                               },
+
                               leading: CircleAvatar(
                                 backgroundColor: const Color(0xFFE8F5E9),
                                 child: Text(
