@@ -1,7 +1,7 @@
+import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 
 class AnalysisScreen extends StatelessWidget {
   const AnalysisScreen({super.key});
@@ -12,6 +12,7 @@ class AnalysisScreen extends StatelessWidget {
     final result = vm.result;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
         leading: const BackButton(color: Colors.white),
         title: const Text('Анализ'),
@@ -19,31 +20,93 @@ class AnalysisScreen extends StatelessWidget {
       body: vm.loading || result == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 16),
-                _PeriodRow(
-                  label: 'Период: начало',
-                  value: _formatDate(result.periodStart),
+                Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: vm.availableYears.map((yr) {
+                      final selected = yr == vm.selectedYear;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          checkmarkColor: Colors.white,
+                          elevation: 0,
+                          pressElevation: 0,
+                          label: Text('$yr'),
+                          selected: selected,
+                          selectedColor: Colors.green,
+                          backgroundColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: selected ? Colors.white : Colors.black,
+                          ),
+                          onSelected: (_) => vm.changeYear(yr),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
-                _PeriodRow(
-                  label: 'Период: конец',
-                  value: _formatDate(result.periodEnd),
+
+                // Период
+                Container(
+                  color: Colors.green.withOpacity(0.2),
+                  child: Column(
+                    children: [
+                      _PeriodRow(label: 'Период: начало', value: vm.startLabel),
+                      _PeriodRow(label: 'Период: конец', value: vm.endLabel),
+                    ],
+                  ),
                 ),
-                _PeriodRow(
-                  label: 'Сумма',
-                  value: '${result.total.toStringAsFixed(0)} ₽',
+
+                // Сумма
+                Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Всего',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '${result.total.toStringAsFixed(0)} ₽',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 48),
+
+                // График
                 if (result.total > 0)
                   SizedBox(
                     height: 200,
                     child: PieChart(
                       PieChartData(
-                        sections: result.data.map((c) {
+                        sections: result.data.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final c = entry.value;
+                          final color =
+                              vm.sectionColors[idx % vm.sectionColors.length];
                           return PieChartSectionData(
                             value: c.amount,
                             title: '${c.percent.toStringAsFixed(0)}%',
                             radius: 60,
+                            color: color,
                             titleStyle: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -58,7 +121,42 @@ class AnalysisScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                const SizedBox(height: 48),
+
+                // Цветная легенда
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 6,
+                    children: result.data.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final c = entry.value;
+                      final color =
+                          vm.sectionColors[idx % vm.sectionColors.length];
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${c.categoryTitle} (${c.percent.toStringAsFixed(0)}%)',
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
                 const SizedBox(height: 16),
+
+                // Детализация
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -66,8 +164,13 @@ class AnalysisScreen extends StatelessWidget {
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {
                       final c = result.data[i];
+                      final color =
+                          vm.sectionColors[i % vm.sectionColors.length];
                       return ListTile(
-                        leading: CircleAvatar(child: Text(c.categoryIcon)),
+                        leading: CircleAvatar(
+                          backgroundColor: color.withOpacity(0.3),
+                          child: Text(c.categoryIcon),
+                        ),
                         title: Text(c.categoryTitle),
                         subtitle: Text('${c.percent.toStringAsFixed(0)}%'),
                         trailing: Text('${c.amount.toStringAsFixed(0)} ₽'),
@@ -78,28 +181,6 @@ class AnalysisScreen extends StatelessWidget {
               ],
             ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${_monthName(date.month)} ${date.year}';
-  }
-
-  String _monthName(int month) {
-    const months = [
-      'январь',
-      'февраль',
-      'март',
-      'апрель',
-      'май',
-      'июнь',
-      'июль',
-      'август',
-      'сентябрь',
-      'октябрь',
-      'ноябрь',
-      'декабрь',
-    ];
-    return months[month - 1];
   }
 }
 
