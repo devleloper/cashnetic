@@ -1,8 +1,8 @@
+import 'package:cashnetic/ui/features/history/view/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../models/models.dart';
 import '../../../ui.dart';
-import '../../transaction_edit/transaction.dart';
+import '../../transaction_edit/transaction_edit.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
@@ -17,7 +17,12 @@ class ExpensesScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.history, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoryScreen()),
+              );
+            },
           ),
         ],
       ),
