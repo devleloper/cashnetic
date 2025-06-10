@@ -5,18 +5,24 @@ class MockTransactionsRepository implements TransactionsRepository {
   final List<TransactionModel> _mockData = [
     TransactionModel(
       id: 1,
+      dateTime: DateTime.now(),
+      account: 'Сбербанк',
       categoryIcon: '🏠',
       categoryTitle: 'Аренда квартиры',
       amount: 100000,
     ),
     TransactionModel(
       id: 2,
+      dateTime: DateTime.now(),
+      account: 'Сбербанк',
       categoryIcon: '👗',
       categoryTitle: 'Одежда',
       amount: 100000,
     ),
     TransactionModel(
       id: 3,
+      dateTime: DateTime.now(),
+      account: 'Сбербанк',
       categoryIcon: '🐶',
       categoryTitle: 'На собачку',
       comment: 'Джек',
@@ -24,6 +30,8 @@ class MockTransactionsRepository implements TransactionsRepository {
     ),
     TransactionModel(
       id: 4,
+      dateTime: DateTime.now(),
+      account: 'Сбербанк',
       categoryIcon: '🐶',
       categoryTitle: 'На собачку',
       comment: 'Энни',

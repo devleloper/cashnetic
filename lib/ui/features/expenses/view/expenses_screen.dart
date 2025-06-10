@@ -1,8 +1,11 @@
 import 'package:cashnetic/ui/features/history/view/history_screen.dart';
+import 'package:cashnetic/ui/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/ui/features/transaction_edit/view/transaction_edit_screen.dart';
+import 'package:cashnetic/ui/widgets/floating_action_button.dart';
+import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../ui.dart';
-import '../../transaction_edit/transaction_edit.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
@@ -65,9 +68,11 @@ class ExpensesScreen extends StatelessWidget {
                           separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (_, index) {
                             final e = vm.transactions[index];
+                            final bgColor = colorFor(
+                              e.categoryTitle,
+                            ).withOpacity(0.3);
                             return ListTile(
                               onTap: () async {
-                                final e = vm.transactions[index];
                                 await Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -76,9 +81,8 @@ class ExpensesScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-
                               leading: CircleAvatar(
-                                backgroundColor: const Color(0xFFE8F5E9),
+                                backgroundColor: bgColor,
                                 child: Text(
                                   e.categoryIcon,
                                   style: const TextStyle(fontSize: 18),
@@ -88,11 +92,21 @@ class ExpensesScreen extends StatelessWidget {
                               subtitle: e.comment != null
                                   ? Text(e.comment!)
                                   : null,
-                              trailing: Text(
-                                '${e.amount.toStringAsFixed(0)} ₽',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${e.amount.toStringAsFixed(0)} ₽',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.grey,
+                                  ),
+                                ],
                               ),
                             );
                           },

@@ -1,9 +1,9 @@
+import 'package:cashnetic/ui/features/analysis/view/analysis_screen.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
+import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../analysis/analysis.dart';
-import '../../expenses/expenses.dart';
+import 'package:intl/intl.dart';
 import '../../transaction_edit/transaction_edit.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -46,8 +46,7 @@ class HistoryScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.white),
             onPressed: () async {
-              final vm = context.read<AnalysisViewModel>();
-              await vm.load();
+              await context.read<AnalysisViewModel>().load();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AnalysisScreen()),
@@ -73,54 +72,57 @@ class HistoryScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: vm.loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    itemCount: transactions.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final e = transactions[index];
-                      return ListTile(
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  TransactionEditScreen(transaction: e),
-                            ),
-                          );
-                        },
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFE8F5E9),
-                          child: Text(e.categoryIcon),
-                        ),
-                        title: Text(e.categoryTitle),
-                        subtitle: e.comment != null ? Text(e.comment!) : null,
-                        trailing: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '${e.amount.toStringAsFixed(0)} ₽',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              DateFormat('HH:mm').format(
-                                DateTime.fromMillisecondsSinceEpoch(e.id),
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: transactions.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final e = transactions[index];
+                final time = DateFormat(
+                  'HH:mm',
+                ).format(DateTime.fromMillisecondsSinceEpoch(e.id));
+                return ListTile(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TransactionEditScreen(transaction: e),
+                      ),
+                    );
+                  },
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFFE8F5E9),
+                    child: Text(e.categoryIcon),
                   ),
+                  title: Text(e.categoryTitle),
+                  subtitle: e.comment != null ? Text(e.comment!) : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${e.amount.toStringAsFixed(0)} ₽',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            time,
+                            style: const TextStyle(
+                              color: Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -129,8 +131,7 @@ class HistoryScreen extends StatelessWidget {
 }
 
 class _HistoryPeriodRow extends StatelessWidget {
-  final String label;
-  final String value;
+  final String label, value;
 
   const _HistoryPeriodRow({required this.label, required this.value});
 

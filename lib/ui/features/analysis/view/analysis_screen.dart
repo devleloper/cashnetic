@@ -12,7 +12,6 @@ class AnalysisScreen extends StatelessWidget {
     final result = vm.result;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
         leading: const BackButton(color: Colors.white),
         title: const Text('Анализ'),
@@ -96,6 +95,8 @@ class AnalysisScreen extends StatelessWidget {
                   SizedBox(
                     height: 200,
                     child: PieChart(
+                      swapAnimationCurve: Curves.linear,
+                      swapAnimationDuration: Duration(milliseconds: 1500),
                       PieChartData(
                         sections: result.data.asMap().entries.map((entry) {
                           final idx = entry.key;

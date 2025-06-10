@@ -1,3 +1,4 @@
+import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -42,11 +43,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   @override
   void initState() {
     super.initState();
-    account = 'Сбербанк';
+    account = widget.transaction.account;
     category = widget.transaction.categoryTitle;
     amount = widget.transaction.amount.toString();
     comment = widget.transaction.comment ?? '';
-    selectedDate = DateTime.fromMillisecondsSinceEpoch(widget.transaction.id);
+    selectedDate = widget.transaction.dateTime;
     selectedTime = TimeOfDay.fromDateTime(selectedDate);
   }
 
@@ -155,12 +156,22 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final parsedAmount = double.tryParse(amount.replaceAll(',', '.'));
     if (parsedAmount == null) return;
 
+    final updatedDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
     final updated = TransactionModel(
       id: widget.transaction.id,
-      categoryIcon: '💸',
+      account: account,
+      categoryIcon: selectedIconFor(category),
       categoryTitle: category,
       amount: parsedAmount,
       comment: comment.isEmpty ? null : comment,
+      dateTime: updatedDateTime,
     );
 
     context.read<ExpensesViewModel>().updateTransaction(updated);

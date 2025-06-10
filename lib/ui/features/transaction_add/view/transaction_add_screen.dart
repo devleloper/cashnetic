@@ -1,3 +1,4 @@
+import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -142,12 +143,21 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final parsedAmount = double.tryParse(amount.replaceAll(',', '.'));
     if (parsedAmount == null) return;
 
+    final now = DateTime.now();
     final model = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
-      categoryIcon: '💸',
+      account: account,
+      categoryIcon: selectedIconFor(category), // эмоджи + цвет в UI ниже
       categoryTitle: category,
       amount: parsedAmount,
       comment: comment.isEmpty ? null : comment,
+      dateTime: DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      ),
     );
 
     final vm = context.read<ExpensesViewModel>();
