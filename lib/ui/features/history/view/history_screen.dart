@@ -1,4 +1,5 @@
 import 'package:cashnetic/ui/features/analysis/view/analysis_screen.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
 import 'package:flutter/material.dart';
@@ -33,11 +34,8 @@ class HistoryScreen extends StatelessWidget {
     final total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
-        backgroundColor: Colors.green,
-        elevation: 0,
-        title: const Text('Моя история', style: TextStyle(color: Colors.white)),
+        title: const Text('Моя история'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -90,8 +88,13 @@ class HistoryScreen extends StatelessWidget {
                       ),
                     );
                   },
+
                   leading: CircleAvatar(
-                    backgroundColor: const Color(0xFFE8F5E9),
+                    backgroundColor: colorFor(
+                      e.categoryTitle,
+                      vm.sectionColors,
+                    ).withOpacity(0.3),
+
                     child: Text(e.categoryIcon),
                   ),
                   title: Text(e.categoryTitle),

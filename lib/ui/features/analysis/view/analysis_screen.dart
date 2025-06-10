@@ -1,3 +1,4 @@
+import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -165,8 +166,11 @@ class AnalysisScreen extends StatelessWidget {
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {
                       final c = result.data[i];
-                      final color =
-                          vm.sectionColors[i % vm.sectionColors.length];
+                      final color = colorFor(
+                        c.categoryTitle,
+                        vm.sectionColors,
+                      ).withOpacity(0.3);
+
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: color.withOpacity(0.3),

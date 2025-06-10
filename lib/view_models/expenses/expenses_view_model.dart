@@ -7,6 +7,18 @@ class ExpensesViewModel extends ChangeNotifier {
 
   ExpensesViewModel({required this.repository});
 
+  List<Color> sectionColors = const [
+    Colors.green,
+    Colors.blue,
+    Colors.orange,
+    Colors.red,
+    Colors.purple,
+    Colors.teal,
+    Color(0xFFFDD835), // жёлтый
+    Color(0xFF8D6E63), // коричневый
+    Color(0xFF64B5F6), // голубой
+  ];
+
   List<TransactionModel> transactions = [];
   double total = 0;
   bool loading = true;
