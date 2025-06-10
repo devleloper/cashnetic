@@ -7,6 +7,7 @@ abstract class TransactionsRepository {
   Future<List<TransactionModel>> loadTransactions();
   Future<void> addTransaction(TransactionModel transaction);
   Future<void> deleteTransaction(int id);
+  Future<void> updateTransaction(TransactionModel transaction);
 }
 
 class TransactionsRepositoryImpl implements TransactionsRepository {
@@ -50,5 +51,14 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(_cache.map((e) => e.toJson()).toList());
     await prefs.setString(_storageKey, json);
+  }
+
+  @override
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    final index = _cache.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _cache[index] = transaction;
+      await _saveToStorage();
+    }
   }
 }

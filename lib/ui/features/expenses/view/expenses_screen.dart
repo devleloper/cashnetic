@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../models/models.dart';
 import '../../../ui.dart';
+import '../../transaction_edit/transaction.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
@@ -59,6 +61,17 @@ class ExpensesScreen extends StatelessWidget {
                           itemBuilder: (_, index) {
                             final e = vm.transactions[index];
                             return ListTile(
+                              onTap: () async {
+                                final updated =
+                                    await Navigator.push<TransactionModel>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            TransactionEditScreen(initial: e),
+                                      ),
+                                    );
+                                // Если экран возвращает model, обновлите вручную (но мы уже делаем через vm)
+                              },
                               leading: CircleAvatar(
                                 backgroundColor: const Color(0xFFE8F5E9),
                                 child: Text(
@@ -76,7 +89,6 @@ class ExpensesScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              onTap: () {},
                             );
                           },
                         ),

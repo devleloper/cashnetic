@@ -46,4 +46,12 @@ class MockTransactionsRepository implements TransactionsRepository {
   Future<void> deleteTransaction(int id) async {
     _mockData.removeWhere((t) => t.id == id);
   }
+
+  @override
+  Future<void> updateTransaction(TransactionModel transaction) async {
+    final index = _mockData.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _mockData[index] = transaction;
+    }
+  }
 }
