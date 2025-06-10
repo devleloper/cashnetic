@@ -1,4 +1,4 @@
-import '../models/transaction_model.dart';
+import '../models/transactions/transaction_model.dart';
 
 abstract class TransactionsRepository {
   Future<List<TransactionModel>> fetchTodayTransactions();
