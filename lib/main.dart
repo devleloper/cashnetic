@@ -1,7 +1,9 @@
-import 'package:cashnetic/repositories/transactions/transactions_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'repositories/transactions/transactions_repository.dart';
+import 'repositories/analysis/analysis_repository.dart';
+import 'view_models/analysis/analysis_view_model.dart';
 import 'ui/ui.dart';
 
 void main() {
@@ -13,10 +15,20 @@ class CashneticApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) =>
-          ExpensesViewModel(repository: TransactionsRepositoryImpl())..load(),
+    final transactionsRepo = TransactionsRepositoryImpl();
 
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) =>
+              ExpensesViewModel(repository: transactionsRepo)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AnalysisViewModel(
+            repo: AnalysisRepositoryImpl(transactionsRepo: transactionsRepo),
+          )..load(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: themeData(),

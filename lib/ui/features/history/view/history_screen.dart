@@ -1,3 +1,4 @@
+import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -44,7 +45,9 @@ class HistoryScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.white),
-            onPressed: () {
+            onPressed: () async {
+              final vm = context.read<AnalysisViewModel>();
+              await vm.load();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AnalysisScreen()),
