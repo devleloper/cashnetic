@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../../models/models.dart';
+import '../../../../view_models/view_models.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   const TransactionAddScreen({super.key});
@@ -148,7 +150,9 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       comment: comment.isEmpty ? null : comment,
     );
 
-    Navigator.pop(context, model);
+    final vm = context.read<ExpensesViewModel>();
+    vm.addTransaction(model);
+    Navigator.pop(context);
   }
 
   @override
@@ -157,7 +161,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final timeStr = selectedTime.format(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F5F6),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),

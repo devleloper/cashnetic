@@ -1,6 +1,7 @@
+import 'package:cashnetic/repositories/transactions/transactions_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'data/mock_transactions_repository.dart';
+
 import 'ui/ui.dart';
 
 void main() {
@@ -14,7 +15,8 @@ class CashneticApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) =>
-          ExpensesViewModel(repository: MockTransactionsRepository())..load(),
+          ExpensesViewModel(repository: TransactionsRepositoryImpl())..load(),
+
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: themeData(),

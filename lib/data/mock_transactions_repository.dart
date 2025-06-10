@@ -1,12 +1,8 @@
-import '../models/transactions/transaction_model.dart';
-
-abstract class TransactionsRepository {
-  Future<List<TransactionModel>> fetchTodayTransactions();
-  Future<double> fetchTodayTotal();
-}
+import 'package:cashnetic/repositories/transactions/transactions_repository.dart';
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 
 class MockTransactionsRepository implements TransactionsRepository {
-  final _mockData = [
+  final List<TransactionModel> _mockData = [
     TransactionModel(
       id: 1,
       categoryIcon: '🏠',
@@ -36,14 +32,18 @@ class MockTransactionsRepository implements TransactionsRepository {
   ];
 
   @override
-  Future<List<TransactionModel>> fetchTodayTransactions() async {
+  Future<List<TransactionModel>> loadTransactions() async {
     await Future.delayed(const Duration(milliseconds: 300));
     return _mockData;
   }
 
   @override
-  Future<double> fetchTodayTotal() async {
-    await Future.delayed(const Duration(milliseconds: 100));
-    return _mockData.fold<double>(0, (sum, item) => sum + item.amount);
+  Future<void> addTransaction(TransactionModel transaction) async {
+    _mockData.insert(0, transaction);
+  }
+
+  @override
+  Future<void> deleteTransaction(int id) async {
+    _mockData.removeWhere((t) => t.id == id);
   }
 }
