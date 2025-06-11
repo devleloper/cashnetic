@@ -13,7 +13,7 @@ class AppRouter extends RootStackRouter {
       initial: true,
       children: [
         AutoRoute(page: ExpensesRoute.page, path: 'expenses', initial: true),
-        AutoRoute(page: IncomeRoute.page, path: 'income'),
+        AutoRoute(page: IncomesRoute.page, path: 'income'),
         AutoRoute(page: AccountRoute.page, path: 'account'),
         AutoRoute(page: ArticlesRoute.page, path: 'articles'),
         AutoRoute(page: SettingsRoute.page, path: 'settings'),

@@ -42,6 +42,7 @@ dependencies:
   fl_chart: ^1.0.0
   google_nav_bar: ^5.0.7
   auto_route: ^10.1.0+1
+  
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +59,7 @@ dev_dependencies:
   json_serializable: ^6.9.5
   build_runner: ^2.4.15
   auto_route_generator: ^10.2.3
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -71,8 +73,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/images/brand/logo.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -100,3 +102,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  adaptive_icon_background: "#4CAF50"
+  adaptive_icon_foreground: "assets/images/brand/logo.png"
+  min_sdk_android: 23
+  android: true
+  ios: true
+  image_path_android: "assets/images/brand/logo.png"
+  image_path_ios: "assets/images/brand/logo.png"
+  remove_alpha_ios: true

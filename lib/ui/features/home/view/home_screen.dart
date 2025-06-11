@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return AutoTabsRouter(
       routes: const [
         ExpensesRoute(),
-        IncomeRoute(),
+        IncomesRoute(),
         AccountRoute(),
         ArticlesRoute(),
         SettingsRoute(),

@@ -4,7 +4,7 @@ export 'transaction_add/transaction_add.dart';
 export 'transaction_edit/transaction_edit.dart';
 export 'history/history.dart';
 export 'analysis/analysis.dart';
-export 'income/income.dart';
+export 'incomes/incomes.dart';
 export 'account/account.dart';
 export 'articles/articles.dart';
 export 'settings/settings.dart';

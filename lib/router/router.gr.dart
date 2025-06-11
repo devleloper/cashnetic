@@ -75,17 +75,17 @@ class HomeRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [IncomeScreen]
-class IncomeRoute extends PageRouteInfo<void> {
-  const IncomeRoute({List<PageRouteInfo>? children})
-    : super(IncomeRoute.name, initialChildren: children);
+/// [IncomesScreen]
+class IncomesRoute extends PageRouteInfo<void> {
+  const IncomesRoute({List<PageRouteInfo>? children})
+    : super(IncomesRoute.name, initialChildren: children);
 
   static const String name = 'IncomeRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const IncomeScreen();
+      return const IncomesScreen();
     },
   );
 }
