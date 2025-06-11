@@ -15,7 +15,7 @@ class AnalysisScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(color: Colors.white),
-        title: const Text('Анализ'),
+        title: const Text('Анализ за год'),
       ),
       body: vm.loading || result == null
           ? const Center(child: CircularProgressIndicator())

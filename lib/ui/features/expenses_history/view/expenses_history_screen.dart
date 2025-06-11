@@ -3,40 +3,46 @@ import 'package:cashnetic/ui/features/analysis/view/analysis_screen.dart';
 import 'package:cashnetic/ui/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
-import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
+import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key});
+class ExpensesHistoryScreen extends StatelessWidget {
+  const ExpensesHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<ExpensesViewModel>();
-    final transactions = vm.transactions;
+    final vm = context.watch<TransactionsViewModel>();
 
-    final start = transactions.isNotEmpty
+    final now = DateTime.now();
+    final monthAgo = now.subtract(const Duration(days: 30));
+
+    // Filter only expenses within last 30 days:
+    final all = vm.expenses
+        .where((t) => t.dateTime.isAfter(monthAgo) && t.dateTime.isBefore(now))
+        .toList();
+
+    // Sort descending by date
+    all.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    final start = all.isNotEmpty
         ? DateFormat('dd.MM.yyyy').format(
-            DateTime.fromMillisecondsSinceEpoch(
-              transactions.reduce((a, b) => a.id < b.id ? a : b).id,
-            ),
+            all.last.dateTime, // oldest
           )
         : '—';
 
-    final end = transactions.isNotEmpty
+    final end = all.isNotEmpty
         ? DateFormat('dd.MM.yyyy').format(
-            DateTime.fromMillisecondsSinceEpoch(
-              transactions.reduce((a, b) => a.id > b.id ? a : b).id,
-            ),
+            all.first.dateTime, // newest
           )
         : '—';
 
-    final total = transactions.fold<double>(0, (sum, t) => sum + t.amount);
+    final total = all.fold<double>(0, (sum, t) => sum + t.amount);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Моя история'),
+        title: const Text('Расходы за месяц'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -71,16 +77,20 @@ class HistoryScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              itemCount: transactions.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final e = transactions[index];
-                final bgColor = colorFor(e.categoryTitle).withOpacity(0.2);
-                return MyItemListTile(e: e, bgColor: bgColor);
-              },
-            ),
+            child: all.isEmpty
+                ? const Center(child: Text('Нет расходов за последний месяц'))
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    itemCount: all.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final e = all[index];
+                      final bgColor = colorFor(
+                        e.categoryTitle,
+                      ).withOpacity(0.2);
+                      return MyItemListTile(e: e, bgColor: bgColor);
+                    },
+                  ),
           ),
         ],
       ),
