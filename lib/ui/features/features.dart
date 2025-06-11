@@ -6,5 +6,5 @@ export 'history/history.dart';
 export 'analysis/analysis.dart';
 export 'incomes/incomes.dart';
 export 'account/account.dart';
-export 'articles/articles.dart';
+export 'categories/categories.dart';
 export 'settings/settings.dart';
