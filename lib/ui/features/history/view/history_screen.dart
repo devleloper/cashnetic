@@ -1,11 +1,12 @@
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/ui/features/analysis/view/analysis_screen.dart';
+import 'package:cashnetic/ui/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../transaction_edit/transaction_edit.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -76,54 +77,8 @@ class HistoryScreen extends StatelessWidget {
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final e = transactions[index];
-                final time = DateFormat(
-                  'HH:mm',
-                ).format(DateTime.fromMillisecondsSinceEpoch(e.id));
-                return ListTile(
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TransactionEditScreen(transaction: e),
-                      ),
-                    );
-                  },
-
-                  leading: CircleAvatar(
-                    backgroundColor: colorFor(
-                      e.categoryTitle,
-                      vm.sectionColors,
-                    ).withOpacity(0.3),
-
-                    child: Text(e.categoryIcon),
-                  ),
-                  title: Text(e.categoryTitle),
-                  subtitle: e.comment != null ? Text(e.comment!) : null,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${e.amount.toStringAsFixed(0)} ₽',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            time,
-                            style: const TextStyle(
-                              color: Colors.black54,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
-                );
+                final bgColor = colorFor(e.categoryTitle).withOpacity(0.2);
+                return MyItemListTile(e: e, bgColor: bgColor);
               },
             ),
           ),

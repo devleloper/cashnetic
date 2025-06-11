@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 ThemeData themeData() {
   return ThemeData(
+    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.green),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.green,
       elevation: 0,

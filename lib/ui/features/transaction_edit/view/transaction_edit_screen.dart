@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/models.dart';
-import '../../../../view_models/view_models.dart';
+import '../../../ui.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -205,7 +205,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
-          _ListTileRow(
+          MyListTileRow(
             title: 'Счёт',
             value: account,
             onTap: () => _selectFromList(
@@ -214,7 +214,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               (v) => setState(() => account = v),
             ),
           ),
-          _ListTileRow(
+          MyListTileRow(
             title: 'Категория',
             value: category,
             onTap: () => _selectFromList(
@@ -223,13 +223,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               (v) => setState(() => category = v),
             ),
           ),
-          _ListTileRow(
+          MyListTileRow(
             title: 'Сумма',
             value: amount.isEmpty ? 'Введите' : '$amount ₽',
             onTap: _selectAmount,
           ),
-          _ListTileRow(title: 'Дата', value: dateStr, onTap: _selectDate),
-          _ListTileRow(title: 'Время', value: timeStr, onTap: _selectTime),
+          MyListTileRow(title: 'Дата', value: dateStr, onTap: _selectDate),
+          MyListTileRow(title: 'Время', value: timeStr, onTap: _selectTime),
           const SizedBox(height: 16),
           TextField(
             controller: TextEditingController(text: comment),
@@ -254,33 +254,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ListTileRow extends StatelessWidget {
-  final String title;
-  final String value;
-  final VoidCallback onTap;
-
-  const _ListTileRow({
-    required this.title,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(title),
-          trailing: Text(value),
-          onTap: onTap,
-        ),
-        const Divider(height: 1),
-      ],
     );
   }
 }

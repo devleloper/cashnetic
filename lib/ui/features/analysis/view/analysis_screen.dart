@@ -173,7 +173,7 @@ class AnalysisScreen extends StatelessWidget {
 
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: color.withOpacity(0.3),
+                          backgroundColor: color.withOpacity(0.2),
                           child: Text(c.categoryIcon),
                         ),
                         title: Text(c.categoryTitle),
