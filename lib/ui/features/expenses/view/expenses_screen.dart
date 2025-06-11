@@ -69,7 +69,7 @@ class ExpensesScreen extends StatelessWidget {
                             final e = vm.transactions[index];
                             final bgColor = colorFor(
                               e.categoryTitle,
-                            ).withOpacity(0.3);
+                            ).withOpacity(0.2);
                             return MyItemListTile(e: e, bgColor: bgColor);
                           },
                         ),
