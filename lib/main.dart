@@ -1,4 +1,5 @@
 import 'package:cashnetic/router/router.dart';
+import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,7 @@ class CashneticApp extends StatefulWidget {
 
 class _CashneticAppState extends State<CashneticApp> {
   final _router = AppRouter();
+
   @override
   Widget build(BuildContext context) {
     final transactionsRepo = TransactionsRepositoryImpl();
@@ -39,6 +41,10 @@ class _CashneticAppState extends State<CashneticApp> {
         ChangeNotifierProvider(
           create: (_) =>
               ExpensesViewModel(repository: transactionsRepo)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              TransactionsViewModel(transactionsRepo)..loadTransactions(),
         ),
         ChangeNotifierProvider(
           create: (_) => AnalysisViewModel(

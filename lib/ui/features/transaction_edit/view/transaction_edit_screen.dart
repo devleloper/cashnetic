@@ -1,8 +1,9 @@
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../../models/models.dart';
+import '../../../../view_models/shared/transactions_view_model.dart';
 import '../../../ui.dart';
 
 class TransactionEditScreen extends StatefulWidget {
@@ -30,15 +31,19 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     'МТС Банк',
     'Почта Банк',
   ];
-  final List<String> categories = [
-    'Ремонт',
-    'Одежда',
-    'Продукты',
-    'Электроника',
-    'Развлечения',
-    'Образование',
-    'Услуги связи',
-  ];
+
+  List<String> get categories =>
+      widget.transaction.type == TransactionType.expense
+      ? [
+          'Ремонт',
+          'Одежда',
+          'Продукты',
+          'Электроника',
+          'Развлечения',
+          'Образование',
+          'Услуги связи',
+        ]
+      : ['Зарплата', 'Подработка'];
 
   @override
   void initState() {
@@ -172,14 +177,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       amount: parsedAmount,
       comment: comment.isEmpty ? null : comment,
       dateTime: updatedDateTime,
+      type: widget.transaction.type,
     );
 
-    context.read<ExpensesViewModel>().updateTransaction(updated);
+    context.read<TransactionsViewModel>().updateTransaction(updated);
     Navigator.pop(context);
   }
 
   void _delete() {
-    context.read<ExpensesViewModel>().deleteTransaction(widget.transaction.id);
+    context.read<TransactionsViewModel>().deleteTransaction(
+      widget.transaction.id,
+    );
     Navigator.pop(context);
   }
 
@@ -187,6 +195,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget build(BuildContext context) {
     final dateStr = DateFormat('dd.MM.yyyy').format(selectedDate);
     final timeStr = selectedTime.format(context);
+
+    final title = widget.transaction.type == TransactionType.income
+        ? 'Редактировать доход'
+        : 'Редактировать расход';
 
     return Scaffold(
       appBar: AppBar(
@@ -200,7 +212,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             onPressed: _save,
           ),
         ],
-        title: const Text('Редактировать расход'),
+        title: Text(title),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -245,7 +257,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(height: 16),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              fixedSize: Size.fromHeight(50),
+              fixedSize: const Size.fromHeight(50),
               backgroundColor: Colors.red,
               elevation: 0,
             ),

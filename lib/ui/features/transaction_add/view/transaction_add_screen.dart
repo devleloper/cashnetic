@@ -1,12 +1,16 @@
+import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../../models/models.dart';
+import '../../../../view_models/shared/transactions_view_model.dart';
 import '../../../ui.dart';
 
 class TransactionAddScreen extends StatefulWidget {
-  const TransactionAddScreen({super.key});
+  final TransactionType type;
+
+  const TransactionAddScreen({super.key, required this.type});
 
   @override
   State<TransactionAddScreen> createState() => _TransactionAddScreenState();
@@ -16,27 +20,36 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
   String account = 'Сбербанк';
-  String category = 'Ремонт';
+  String category = '';
   String amount = '';
   String comment = '';
 
   final List<String> accounts = [
     'Сбербанк',
-    'Т-Банк',
+    'Т‑Банк',
     'Альфа Банк',
     'ВТБ',
     'МТС Банк',
     'Почта Банк',
   ];
-  final List<String> categories = [
-    'Ремонт',
-    'Одежда',
-    'Продукты',
-    'Электроника',
-    'Развлечения',
-    'Образование',
-    'Услуги связи',
-  ];
+
+  List<String> get categories => widget.type == TransactionType.expense
+      ? [
+          'Ремонт',
+          'Одежда',
+          'Продукты',
+          'Электроника',
+          'Развлечения',
+          'Образование',
+          'Услуги связи',
+        ]
+      : ['Зарплата', 'Подработка'];
+
+  @override
+  void initState() {
+    super.initState();
+    category = categories.first;
+  }
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
@@ -140,27 +153,29 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   }
 
   void _save() {
-    final parsedAmount = double.tryParse(amount.replaceAll(',', '.'));
-    if (parsedAmount == null) return;
+    final parsed = double.tryParse(amount.replaceAll(',', '.'));
+    if (parsed == null) return;
 
-    final now = DateTime.now();
+    final dt = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+
     final model = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
       account: account,
-      categoryIcon: selectedIconFor(category), // эмоджи + цвет в UI ниже
+      categoryIcon: selectedIconFor(category),
       categoryTitle: category,
-      amount: parsedAmount,
+      amount: parsed,
       comment: comment.isEmpty ? null : comment,
-      dateTime: DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        selectedTime.hour,
-        selectedTime.minute,
-      ),
+      dateTime: dt,
+      type: widget.type,
     );
 
-    final vm = context.read<ExpensesViewModel>();
+    final vm = context.read<TransactionsViewModel>();
     vm.addTransaction(model);
     Navigator.pop(context);
   }
@@ -169,6 +184,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   Widget build(BuildContext context) {
     final dateStr = DateFormat('dd.MM.yyyy').format(selectedDate);
     final timeStr = selectedTime.format(context);
+
+    final title = widget.type == TransactionType.income
+        ? 'Добавить доход'
+        : 'Добавить расход';
 
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +201,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             onPressed: _save,
           ),
         ],
-        title: const Text('Мои расходы'),
+        title: Text(title),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

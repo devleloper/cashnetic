@@ -10,6 +10,7 @@ class MockTransactionsRepository implements TransactionsRepository {
       categoryIcon: '🏠',
       categoryTitle: 'Аренда квартиры',
       amount: 100000,
+      type: TransactionType.expense,
     ),
     TransactionModel(
       id: 2,
@@ -18,6 +19,7 @@ class MockTransactionsRepository implements TransactionsRepository {
       categoryIcon: '👗',
       categoryTitle: 'Одежда',
       amount: 100000,
+      type: TransactionType.expense,
     ),
     TransactionModel(
       id: 3,
@@ -27,6 +29,7 @@ class MockTransactionsRepository implements TransactionsRepository {
       categoryTitle: 'На собачку',
       comment: 'Джек',
       amount: 100000,
+      type: TransactionType.expense,
     ),
     TransactionModel(
       id: 4,
@@ -36,6 +39,7 @@ class MockTransactionsRepository implements TransactionsRepository {
       categoryTitle: 'На собачку',
       comment: 'Энни',
       amount: 100000,
+      type: TransactionType.expense,
     ),
   ];
 

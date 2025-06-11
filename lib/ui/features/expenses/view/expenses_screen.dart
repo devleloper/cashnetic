@@ -1,4 +1,5 @@
 import 'package:auto_route/annotations.dart';
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -81,7 +82,10 @@ class ExpensesScreen extends StatelessWidget {
         onPressesd: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const TransactionAddScreen()),
+            MaterialPageRoute(
+              builder: (_) =>
+                  const TransactionAddScreen(type: TransactionType.expense),
+            ),
           );
         },
       ),

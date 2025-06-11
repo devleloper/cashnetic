@@ -80,7 +80,7 @@ class IncomesRoute extends PageRouteInfo<void> {
   const IncomesRoute({List<PageRouteInfo>? children})
     : super(IncomesRoute.name, initialChildren: children);
 
-  static const String name = 'IncomeRoute';
+  static const String name = 'IncomesRoute';
 
   static PageInfo page = PageInfo(
     name,
