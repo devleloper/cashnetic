@@ -1,9 +1,11 @@
+import 'package:auto_route/annotations.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../ui.dart';
 
+@RoutePage()
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
 

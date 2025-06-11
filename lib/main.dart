@@ -1,3 +1,4 @@
+import 'package:cashnetic/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,9 +21,15 @@ void main() {
   runApp(const CashneticApp());
 }
 
-class CashneticApp extends StatelessWidget {
+class CashneticApp extends StatefulWidget {
   const CashneticApp({super.key});
 
+  @override
+  State<CashneticApp> createState() => _CashneticAppState();
+}
+
+class _CashneticAppState extends State<CashneticApp> {
+  final _router = AppRouter();
   @override
   Widget build(BuildContext context) {
     final transactionsRepo = TransactionsRepositoryImpl();
@@ -39,10 +46,10 @@ class CashneticApp extends StatelessWidget {
           )..load(),
         ),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         theme: themeData(),
-        home: const HomeScreen(),
+        routerConfig: _router.config(),
       ),
     );
   }
