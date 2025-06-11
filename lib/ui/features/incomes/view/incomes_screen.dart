@@ -1,10 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/models/transactions/transaction_model.dart';
+import 'package:cashnetic/ui/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/ui/features/transaction_edit/view/transaction_edit_screen.dart';
 import 'package:cashnetic/utils/format_currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../view_models/shared/transactions_view_model.dart';
-import '../../../ui.dart';
 
 @RoutePage()
 class IncomesScreen extends StatelessWidget {
@@ -13,15 +14,21 @@ class IncomesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TransactionsViewModel>();
-    final todayIncomes = vm.transactions
-        .where(
-          (t) =>
-              t.dateTime.day == DateTime.now().day &&
-              t.dateTime.month == DateTime.now().month &&
-              t.dateTime.year == DateTime.now().year &&
-              t.amount > 0,
-        )
+
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final end = DateTime(today.year, today.month, today.day, 23, 59, 59);
+
+    var todayIncomes = vm.incomes
+        .where((t) => t.dateTime.isAfter(start) && t.dateTime.isBefore(end))
         .toList();
+
+    // Удаляем дубликаты по ID
+    final unique = <int>{};
+    todayIncomes = todayIncomes.where((t) => unique.add(t.id)).toList();
+
+    // Сортируем по дате — новые сверху
+    todayIncomes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     final total = todayIncomes.fold<double>(0, (sum, t) => sum + t.amount);
 
@@ -66,43 +73,57 @@ class IncomesScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              itemCount: todayIncomes.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final t = todayIncomes[index];
-                return ListTile(
-                  title: Text(t.categoryTitle),
-                  trailing: Text(
-                    '${formatCurrency(t.amount)} ₽',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+            child: todayIncomes.isEmpty
+                ? const Center(child: Text('Нет доходов за сегодня'))
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    itemCount: todayIncomes.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final t = todayIncomes[index];
+                      return ListTile(
+                        title: Text(t.categoryTitle),
+                        subtitle: t.comment?.isNotEmpty == true
+                            ? Text(
+                                t.comment!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : null,
+                        trailing: Text(
+                          '${formatCurrency(t.amount)} ₽',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  TransactionEditScreen(transaction: t),
+                            ),
+                          );
+                          context
+                              .read<TransactionsViewModel>()
+                              .loadTransactions();
+                        },
+                      );
+                    },
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TransactionEditScreen(transaction: t),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'income_fab',
         backgroundColor: Colors.green,
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) =>
                   const TransactionAddScreen(type: TransactionType.income),
             ),
           );
+          context.read<TransactionsViewModel>().loadTransactions();
         },
         child: const Icon(Icons.add, size: 32, color: Colors.white),
       ),

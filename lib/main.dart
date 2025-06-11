@@ -1,13 +1,13 @@
-import 'package:cashnetic/router/router.dart';
-import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'router/router.dart';
+import 'ui/ui.dart';
 import 'repositories/transactions/transactions_repository.dart';
 import 'repositories/analysis/analysis_repository.dart';
+import 'view_models/shared/transactions_view_model.dart';
 import 'view_models/analysis/analysis_view_model.dart';
-import 'ui/ui.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -40,11 +40,11 @@ class _CashneticAppState extends State<CashneticApp> {
       providers: [
         ChangeNotifierProvider(
           create: (_) =>
-              ExpensesViewModel(repository: transactionsRepo)..load(),
+              TransactionsViewModel(transactionsRepo)..loadTransactions(),
         ),
         ChangeNotifierProvider(
           create: (_) =>
-              TransactionsViewModel(transactionsRepo)..loadTransactions(),
+              ExpensesViewModel(repository: transactionsRepo)..load(),
         ),
         ChangeNotifierProvider(
           create: (_) => AnalysisViewModel(

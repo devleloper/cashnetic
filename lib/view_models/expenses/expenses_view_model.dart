@@ -33,12 +33,11 @@ class ExpensesViewModel extends ChangeNotifier {
     final todayStart = DateTime(now.year, now.month, now.day);
     final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-    transactions = all
-        .where(
-          (t) =>
-              t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd),
-        )
-        .toList();
+    transactions = all.where((t) {
+      final isToday =
+          t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd);
+      return isToday && t.type == TransactionType.expense;
+    }).toList();
 
     total = transactions.fold(0.0, (sum, t) => sum + t.amount);
 
