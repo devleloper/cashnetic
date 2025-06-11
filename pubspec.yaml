@@ -40,6 +40,7 @@ dependencies:
   json_annotation: ^4.9.0
   freezed_annotation: ^3.0.0
   fl_chart: ^1.0.0
+  google_nav_bar: ^5.0.7
 
 dev_dependencies:
   flutter_test:

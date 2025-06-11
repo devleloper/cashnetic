@@ -97,7 +97,7 @@ class AnalysisScreen extends StatelessWidget {
                     height: 200,
                     child: PieChart(
                       swapAnimationCurve: Curves.linear,
-                      swapAnimationDuration: Duration(milliseconds: 1500),
+                      swapAnimationDuration: Duration(seconds: 3),
                       PieChartData(
                         sections: result.data.asMap().entries.map((entry) {
                           final idx = entry.key;
