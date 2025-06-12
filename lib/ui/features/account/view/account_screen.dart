@@ -1,4 +1,3 @@
-// account_screen.dart
 import 'package:cashnetic/models/account/account_model.dart';
 import 'package:cashnetic/ui/features/account_edit/account_edit.dart';
 import 'package:cashnetic/view_models/account/account_view_model.dart';
@@ -30,7 +29,6 @@ class AccountScreen extends StatelessWidget {
                   ),
                 );
                 if (updated != null) {
-                  // обновляем аккаунт и график
                   await vm.updateAccountAndRebuild(updated);
                 }
               },
@@ -53,8 +51,10 @@ class AccountScreen extends StatelessWidget {
                       _optionRow(
                         icon: Icons.account_balance_wallet,
                         label: 'Баланс',
-                        value:
-                            '${NumberFormat.currency(symbol: account!.currency, decimalDigits: 0).format(account.balance)}',
+                        value: NumberFormat.currency(
+                          symbol: account!.currency,
+                          decimalDigits: 0,
+                        ).format(vm.computedBalance),
                         onTap: () async {
                           final updated = await Navigator.push<AccountModel>(
                             context,

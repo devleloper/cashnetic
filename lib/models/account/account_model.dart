@@ -1,26 +1,26 @@
 class AccountModel {
   final int id;
   final String name;
-  final double balance;
+  final double initialBalance;
   final String currency;
 
-  AccountModel({
+  const AccountModel({
     required this.id,
     required this.name,
-    required this.balance,
+    required this.initialBalance,
     required this.currency,
   });
 
   AccountModel copyWith({
     int? id,
     String? name,
-    double? balance,
+    double? initialBalance,
     String? currency,
   }) {
     return AccountModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      balance: balance ?? this.balance,
+      initialBalance: initialBalance ?? this.initialBalance,
       currency: currency ?? this.currency,
     );
   }

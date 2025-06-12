@@ -14,7 +14,7 @@ class AccountsRepositoryImpl extends AccountRepository {
     _cached ??= AccountModel(
       id: 1,
       name: 'Мой счёт',
-      balance: 0,
+      initialBalance: 0,
       currency: '₽',
     );
     return _cached!;

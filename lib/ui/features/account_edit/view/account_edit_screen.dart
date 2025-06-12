@@ -17,14 +17,14 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   @override
   void initState() {
     super.initState();
-    _balance = widget.account.balance;
+    _balance = widget.account.initialBalance;
     _controller = TextEditingController(text: _balance.toStringAsFixed(0));
   }
 
   void _save() {
     final value = double.tryParse(_controller.text.replaceAll(',', '.'));
     if (value != null) {
-      Navigator.pop(context, widget.account.copyWith(balance: value));
+      Navigator.pop(context, widget.account.copyWith(initialBalance: value));
     }
   }
 

@@ -1,4 +1,3 @@
-import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
 import '../../models/account/account_model.dart';
 import '../../models/transactions/transaction_model.dart';
@@ -26,48 +25,42 @@ class AccountViewModel extends ChangeNotifier {
   bool get loading => _loading;
   List<DailyBalancePoint> get dailyPoints => _dailyPoints;
 
+  double get computedBalance {
+    final income = _dailyPoints.fold<double>(0, (sum, p) => sum + p.income);
+    final expense = _dailyPoints.fold<double>(0, (sum, p) => sum + p.expense);
+    return (_account?.initialBalance ?? 0) + income - expense;
+  }
+
   Future<void> load() async {
     _loading = true;
     notifyListeners();
 
     _account = await repo.fetchAccount();
     await _buildDailyPoints();
-    _recalculateBalance();
 
     _loading = false;
     notifyListeners();
   }
 
-  void _recalculateBalance() {
-    final totIncome = _dailyPoints.fold<double>(0, (sum, p) => sum + p.income);
-    final totExpense = _dailyPoints.fold<double>(
-      0,
-      (sum, p) => sum + p.expense,
-    );
-    final newBalance = (_account?.balance ?? 0) + totIncome - totExpense;
-
-    if (_account != null && _account!.balance != newBalance) {
-      _account = _account!.copyWith(balance: newBalance);
-      repo.updateAccount(_account!);
-    }
-  }
-
   Future<void> _buildDailyPoints() async {
-    final originalTxns = await transactionsRepo.loadTransactions();
-    if (originalTxns.isEmpty) return;
+    final transactions = await transactionsRepo.loadTransactions();
+    if (transactions.isEmpty) {
+      _dailyPoints = [];
+      return;
+    }
 
-    final txns = List<TransactionModel>.from(originalTxns)
+    final sorted = List<TransactionModel>.from(transactions)
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     final start = DateTime(
-      txns.first.dateTime.year,
-      txns.first.dateTime.month,
-      txns.first.dateTime.day,
+      sorted.first.dateTime.year,
+      sorted.first.dateTime.month,
+      sorted.first.dateTime.day,
     );
     final end = DateTime(
-      txns.last.dateTime.year,
-      txns.last.dateTime.month,
-      txns.last.dateTime.day,
+      sorted.last.dateTime.year,
+      sorted.last.dateTime.month,
+      sorted.last.dateTime.day,
     );
 
     final days = <DateTime>[];
@@ -76,7 +69,7 @@ class AccountViewModel extends ChangeNotifier {
     }
 
     final map = {for (final d in days) d: DailyBalancePoint(d, 0, 0)};
-    for (final t in txns) {
+    for (final t in sorted) {
       final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
       final p = map[d];
       if (p != null) {
@@ -87,6 +80,7 @@ class AccountViewModel extends ChangeNotifier {
         }
       }
     }
+
     _dailyPoints = days.map((d) => map[d]!).toList();
   }
 
@@ -104,15 +98,16 @@ class AccountViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateBalance(double newBalance) async {
+  Future<void> updateInitialBalance(double newBalance) async {
     if (_account == null) return;
-    _account = _account!.copyWith(balance: newBalance);
+    _account = _account!.copyWith(initialBalance: newBalance);
     await repo.updateAccount(_account!);
     await load();
   }
 
   void updateAccount(AccountModel updated) {
     _account = updated;
+    notifyListeners();
     load();
   }
 
@@ -126,13 +121,11 @@ class AccountViewModel extends ChangeNotifier {
     if (_account == null) return;
     _account = _account!.copyWith(currency: cur);
     await repo.updateAccount(_account!);
-    notifyListeners();
-    await _buildDailyPoints();
-    notifyListeners();
+    await load();
   }
 
-  void bindTransactions(TransactionsViewModel txViewModel) {
-    txViewModel.addListener(() {
+  void bindTransactions(ValueNotifier<List<TransactionModel>> txNotifier) {
+    txNotifier.addListener(() {
       _buildDailyPoints().then((_) => notifyListeners());
     });
   }

@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/view_models/account/account_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:cashnetic/router/router.dart';
 
 @RoutePage()
@@ -41,7 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: GNav(
                         selectedIndex: tabsRouter.activeIndex,
-                        onTabChange: tabsRouter.setActiveIndex,
+                        onTabChange: (index) {
+                          tabsRouter.setActiveIndex(index);
+                          if (index == 2) {
+                            context.read<AccountViewModel>().load();
+                          }
+                        },
                         backgroundColor: Colors.green,
                         tabBackgroundColor: Colors.white,
                         activeColor: Colors.green,
@@ -72,10 +79,5 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  void _onTabChanged(int index, TabsRouter tabsRouter) {
-    tabsRouter.setActiveIndex(index);
-    // Можно логировать аналитику: final path = tabsRouter.routeCollection.routes[index].path;
   }
 }
