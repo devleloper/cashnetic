@@ -8,3 +8,4 @@ export 'incomes/incomes.dart';
 export 'account/account.dart';
 export 'categories/categories.dart';
 export 'settings/settings.dart';
+export 'account_edit/account_edit.dart';
