@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-class ExpensesHistoryScreen extends StatelessWidget {
-  const ExpensesHistoryScreen({super.key});
+class HistoryScreen extends StatelessWidget {
+  final TransactionType type;
+
+  const HistoryScreen({super.key, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -18,31 +20,31 @@ class ExpensesHistoryScreen extends StatelessWidget {
     final now = DateTime.now();
     final monthAgo = now.subtract(const Duration(days: 30));
 
-    // Filter only expenses within last 30 days:
-    final all = vm.expenses
-        .where((t) => t.dateTime.isAfter(monthAgo) && t.dateTime.isBefore(now))
-        .toList();
+    final list =
+        (type == TransactionType.expense ? vm.expenses : vm.incomes)
+            .where(
+              (t) => t.dateTime.isAfter(monthAgo) && t.dateTime.isBefore(now),
+            )
+            .toList()
+          ..sort(
+            (a, b) => b.dateTime.compareTo(a.dateTime),
+          ); // новейшие первыми
 
-    // Sort descending by date
-    all.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
-    final start = all.isNotEmpty
-        ? DateFormat('dd.MM.yyyy').format(
-            all.last.dateTime, // oldest
-          )
+    final start = list.isNotEmpty
+        ? DateFormat('dd.MM.yyyy').format(list.last.dateTime)
         : '—';
-
-    final end = all.isNotEmpty
-        ? DateFormat('dd.MM.yyyy').format(
-            all.first.dateTime, // newest
-          )
+    final end = list.isNotEmpty
+        ? DateFormat('dd.MM.yyyy').format(list.first.dateTime)
         : '—';
-
-    final total = all.fold<double>(0, (sum, t) => sum + t.amount);
+    final total = list.fold<double>(0, (sum, t) => sum + t.amount);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Расходы за месяц'),
+        title: Text(
+          type == TransactionType.expense
+              ? 'Расходы за месяц'
+              : 'Доходы за месяц',
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -51,10 +53,11 @@ class ExpensesHistoryScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.white),
             onPressed: () async {
-              await context.read<AnalysisViewModel>().load();
+              await context.read<AnalysisViewModel>().load(type);
+
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AnalysisScreen()),
+                MaterialPageRoute(builder: (_) => AnalysisScreen(type: type)),
               );
             },
           ),
@@ -77,14 +80,20 @@ class ExpensesHistoryScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: all.isEmpty
-                ? const Center(child: Text('Нет расходов за последний месяц'))
+            child: list.isEmpty
+                ? Center(
+                    child: Text(
+                      type == TransactionType.expense
+                          ? 'Нет расходов за последний месяц'
+                          : 'Нет доходов за последний месяц',
+                    ),
+                  )
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    itemCount: all.length,
+                    itemCount: list.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final e = all[index];
+                    itemBuilder: (_, index) {
+                      final e = list[index];
                       final bgColor = colorFor(
                         e.categoryTitle,
                       ).withOpacity(0.2);
@@ -100,7 +109,6 @@ class ExpensesHistoryScreen extends StatelessWidget {
 
 class _HistoryPeriodRow extends StatelessWidget {
   final String label, value;
-
   const _HistoryPeriodRow({required this.label, required this.value});
 
   @override

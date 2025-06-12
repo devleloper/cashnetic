@@ -6,6 +6,8 @@ import 'package:cashnetic/utils/format_currency.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../view_models/shared/transactions_view_model.dart';
+import '../../../../view_models/analysis/analysis_view_model.dart';
+import '../../history/history.dart';
 
 @RoutePage()
 class IncomesScreen extends StatelessWidget {
@@ -43,9 +45,18 @@ class IncomesScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              context.read<TransactionsViewModel>().loadTransactions();
+            icon: const Icon(Icons.history, color: Colors.white),
+            onPressed: () async {
+              await context.read<AnalysisViewModel>().load(
+                TransactionType.income,
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const HistoryScreen(type: TransactionType.income),
+                ),
+              );
             },
           ),
         ],

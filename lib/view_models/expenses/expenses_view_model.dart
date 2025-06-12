@@ -39,6 +39,8 @@ class ExpensesViewModel extends ChangeNotifier {
       return isToday && t.type == TransactionType.expense;
     }).toList();
 
+    transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime)); // сортировка
+
     total = transactions.fold(0.0, (sum, t) => sum + t.amount);
 
     loading = false;
@@ -47,13 +49,17 @@ class ExpensesViewModel extends ChangeNotifier {
 
   Future<void> addTransaction(TransactionModel t) async {
     await repository.addTransaction(t);
+
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
     final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     if (t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd)) {
       transactions.insert(0, t);
-      total += t.amount;
+      transactions.sort(
+        (a, b) => b.dateTime.compareTo(a.dateTime),
+      ); // сортировка
+      total = transactions.fold(0.0, (sum, t) => sum + t.amount);
       notifyListeners();
     }
   }
@@ -85,6 +91,7 @@ class ExpensesViewModel extends ChangeNotifier {
       }
     }
 
+    transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime)); // сортировка
     total = transactions.fold(0.0, (sum, t) => sum + t.amount);
     notifyListeners();
   }

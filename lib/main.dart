@@ -49,7 +49,7 @@ class _CashneticAppState extends State<CashneticApp> {
         ChangeNotifierProvider(
           create: (_) => AnalysisViewModel(
             repo: AnalysisRepositoryImpl(transactionsRepo: transactionsRepo),
-          )..load(),
+          ),
         ),
       ],
       child: MaterialApp.router(

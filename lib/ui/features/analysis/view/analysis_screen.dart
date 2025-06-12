@@ -1,3 +1,4 @@
+import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/view_models/analysis/analysis_view_model.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class AnalysisScreen extends StatelessWidget {
-  const AnalysisScreen({super.key});
+  final TransactionType type;
+
+  const AnalysisScreen({super.key, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +18,11 @@ class AnalysisScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(color: Colors.white),
-        title: const Text('Анализ за год'),
+        title: Text(
+          type == TransactionType.expense
+              ? 'Анализ расходов'
+              : 'Анализ доходов',
+        ),
       ),
       body: vm.loading || result == null
           ? const Center(child: CircularProgressIndicator())
@@ -34,9 +41,9 @@ class AnalysisScreen extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ChoiceChip(
-                          checkmarkColor: Colors.white,
                           elevation: 0,
                           pressElevation: 0,
+                          checkmarkColor: Colors.white,
                           label: Text('$yr'),
                           selected: selected,
                           selectedColor: Colors.green,
@@ -44,14 +51,12 @@ class AnalysisScreen extends StatelessWidget {
                           labelStyle: TextStyle(
                             color: selected ? Colors.white : Colors.black,
                           ),
-                          onSelected: (_) => vm.changeYear(yr),
+                          onSelected: (_) => vm.changeYear(yr, type),
                         ),
                       );
                     }).toList(),
                   ),
                 ),
-
-                // Период
                 Container(
                   color: Colors.green.withOpacity(0.2),
                   child: Column(
@@ -61,8 +66,6 @@ class AnalysisScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Сумма
                 Container(
                   color: Colors.green.withOpacity(0.2),
                   padding: const EdgeInsets.symmetric(
@@ -90,14 +93,11 @@ class AnalysisScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 48),
-
-                // График
                 if (result.total > 0)
                   SizedBox(
                     height: 200,
                     child: PieChart(
-                      swapAnimationCurve: Curves.linear,
-                      swapAnimationDuration: Duration(seconds: 3),
+                      swapAnimationDuration: const Duration(seconds: 3),
                       PieChartData(
                         sections: result.data.asMap().entries.map((entry) {
                           final idx = entry.key;
@@ -124,8 +124,6 @@ class AnalysisScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 48),
-
-                // Цветная легенда
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Wrap(
@@ -157,8 +155,6 @@ class AnalysisScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Детализация
                 Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -170,10 +166,9 @@ class AnalysisScreen extends StatelessWidget {
                         c.categoryTitle,
                         vm.sectionColors,
                       ).withOpacity(0.2);
-
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: color.withOpacity(0.2),
+                          backgroundColor: color,
                           child: Text(c.categoryIcon),
                         ),
                         title: Text(c.categoryTitle),

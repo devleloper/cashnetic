@@ -27,7 +27,8 @@ class ExpensesScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const ExpensesHistoryScreen(),
+                  builder: (_) =>
+                      const HistoryScreen(type: TransactionType.expense),
                 ),
               );
             },
@@ -65,14 +66,14 @@ class ExpensesScreen extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: sorted.isEmpty
+                  child: vm.transactions.isEmpty
                       ? const Center(child: Text('Нет расходов за сегодня'))
                       : ListView.separated(
                           padding: const EdgeInsets.symmetric(vertical: 4),
-                          itemCount: sorted.length,
+                          itemCount: vm.transactions.length,
                           separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (_, index) {
-                            final e = sorted[index];
+                            final e = vm.transactions[index];
                             final bgColor = colorFor(
                               e.categoryTitle,
                             ).withOpacity(0.2);
