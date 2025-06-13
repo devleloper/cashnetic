@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/transactions/transaction_model.dart';
 
@@ -6,9 +7,6 @@ abstract class TransactionsRepository {
   Future<List<TransactionModel>> loadTransactions();
   Future<void> addTransaction(TransactionModel transaction);
   Future<void> deleteTransaction(int id);
-  Future<void> updateTransaction(TransactionModel transaction);
-
-  Future<List<TransactionModel>> loadByCategory(int categoryId);
 }
 
 class TransactionsRepositoryImpl implements TransactionsRepository {
@@ -26,12 +24,6 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
             .toList();
       }
     }
-  }
-
-  Future<void> _saveToStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final json = jsonEncode(_cache.map((e) => e.toJson()).toList());
-    await prefs.setString(_storageKey, json);
   }
 
   @override
@@ -54,21 +46,9 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
     await _saveToStorage();
   }
 
-  @override
-  Future<void> updateTransaction(TransactionModel transaction) async {
-    await _loadCache();
-    final index = _cache.indexWhere((t) => t.id == transaction.id);
-    if (index != -1) {
-      _cache[index] = transaction;
-      await _saveToStorage();
-    }
-  }
-
-  @override
-  Future<List<TransactionModel>> loadByCategory(int categoryId) async {
-    await _loadCache();
-    return _cache
-        .where((t) => t.categoryId == categoryId)
-        .toList(growable: false);
+  Future<void> _saveToStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(_cache.map((e) => e.toJson()).toList());
+    await prefs.setString(_storageKey, json);
   }
 }

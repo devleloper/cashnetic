@@ -1,11 +1,7 @@
-import 'package:auto_route/annotations.dart';
-import 'package:cashnetic/models/transactions/transaction_model.dart';
-import 'package:cashnetic/utils/category_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../ui.dart';
 
-@RoutePage()
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
 
@@ -13,25 +9,13 @@ class ExpensesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<ExpensesViewModel>();
 
-    // Сортировка по дате (новые в начале)
-    final sorted = [...vm.transactions]
-      ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Расходы сегодня'),
         actions: [
           IconButton(
             icon: const Icon(Icons.history, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const HistoryScreen(type: TransactionType.expense),
-                ),
-              );
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -74,10 +58,26 @@ class ExpensesScreen extends StatelessWidget {
                           separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (_, index) {
                             final e = vm.transactions[index];
-                            final bgColor = colorFor(
-                              e.categoryTitle,
-                            ).withOpacity(0.2);
-                            return MyItemListTile(e: e, bgColor: bgColor);
+                            return ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: const Color(0xFFE8F5E9),
+                                child: Text(
+                                  e.categoryIcon,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                              title: Text(e.categoryTitle),
+                              subtitle: e.comment != null
+                                  ? Text(e.comment!)
+                                  : null,
+                              trailing: Text(
+                                '${e.amount.toStringAsFixed(0)} ₽',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onTap: () {},
+                            );
                           },
                         ),
                 ),
@@ -85,17 +85,11 @@ class ExpensesScreen extends StatelessWidget {
             ),
       floatingActionButton: MyFloatingActionButton(
         icon: Icons.add,
-        onPressesd: () async {
-          await Navigator.push(
+        onPressesd: () {
+          Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  const TransactionAddScreen(type: TransactionType.expense),
-            ),
+            MaterialPageRoute(builder: (_) => const TransactionAddScreen()),
           );
-
-          // Обязательно обновляем список после возвращения
-          await context.read<ExpensesViewModel>().load();
         },
       ),
     );

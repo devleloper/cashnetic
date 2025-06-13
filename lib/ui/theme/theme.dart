@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 ThemeData themeData() {
   return ThemeData(
-    progressIndicatorTheme: ProgressIndicatorThemeData(color: Colors.green),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.green,
       elevation: 0,
@@ -16,7 +15,7 @@ ThemeData themeData() {
     scaffoldBackgroundColor: Colors.white,
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.green,
+      selectedItemColor: Color.fromRGBO(76, 175, 80, 1),
       unselectedItemColor: Colors.grey,
       backgroundColor: Colors.white,
       elevation: 0,
@@ -30,7 +29,9 @@ ThemeData themeData() {
       highlightElevation: 0,
       backgroundColor: Colors.green,
     ),
-    primaryColor: Colors.green,
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+    primaryColor: Color.fromRGBO(76, 175, 80, 1),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Color.fromRGBO(76, 175, 80, 1),
+    ),
   );
 }

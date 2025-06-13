@@ -1,11 +1,6 @@
-import 'package:auto_route/auto_route.dart';
-import 'package:cashnetic/view_models/account/account_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:provider/provider.dart';
-import 'package:cashnetic/router/router.dart';
+import '../../../ui.dart';
 
-@RoutePage()
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -14,70 +9,43 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = const [ExpensesScreen()];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter(
-      routes: const [
-        ExpensesRoute(),
-        IncomesRoute(),
-        AccountRoute(),
-        CategoriesRoute(),
-        SettingsRoute(),
-      ],
-      builder: (context, child) {
-        final tabsRouter = AutoTabsRouter.of(context);
-
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: Container(
-            color: Colors.green,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: constraints.maxWidth,
-                      ),
-                      child: GNav(
-                        selectedIndex: tabsRouter.activeIndex,
-                        onTabChange: (index) {
-                          tabsRouter.setActiveIndex(index);
-                          if (index == 2) {
-                            context.read<AccountViewModel>().load();
-                          }
-                        },
-                        backgroundColor: Colors.green,
-                        tabBackgroundColor: Colors.white,
-                        activeColor: Colors.green,
-                        color: Colors.white,
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 18,
-                        ),
-                        gap: 6,
-                        tabs: const [
-                          GButton(icon: Icons.bar_chart, text: 'Расходы'),
-                          GButton(icon: Icons.show_chart, text: 'Доходы'),
-                          GButton(
-                            icon: Icons.account_balance_wallet,
-                            text: 'Счёт',
-                          ),
-                          GButton(icon: Icons.list_alt, text: 'Статьи'),
-                          GButton(icon: Icons.settings, text: 'Настройки'),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+    return Scaffold(
+      body: IndexedStack(index: _selectedIndex, children: _screens),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Расходы',
           ),
-        );
-      },
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Доходы',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet),
+            label: 'Счёт',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Статьи'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Настройки',
+          ),
+        ],
+      ),
     );
   }
 }
