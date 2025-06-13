@@ -27,17 +27,17 @@ class AccountRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [ArticlesScreen]
-class ArticlesRoute extends PageRouteInfo<void> {
-  const ArticlesRoute({List<PageRouteInfo>? children})
-    : super(ArticlesRoute.name, initialChildren: children);
+/// [CategoriesScreen]
+class CategoriesRoute extends PageRouteInfo<void> {
+  const CategoriesRoute({List<PageRouteInfo>? children})
+    : super(CategoriesRoute.name, initialChildren: children);
 
-  static const String name = 'ArticlesRoute';
+  static const String name = 'CategoriesRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const ArticlesScreen();
+      return const CategoriesScreen();
     },
   );
 }

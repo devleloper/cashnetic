@@ -25,8 +25,8 @@ class IncomesViewModel extends ChangeNotifier {
         .where(
           (t) =>
               t.type == TransactionType.income &&
-              t.dateTime.isAfter(todayStart) &&
-              t.dateTime.isBefore(todayEnd),
+              t.transactionDate.isAfter(todayStart) &&
+              t.transactionDate.isBefore(todayEnd),
         )
         .toList();
 

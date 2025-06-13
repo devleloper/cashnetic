@@ -23,18 +23,18 @@ class HistoryScreen extends StatelessWidget {
     final list =
         (type == TransactionType.expense ? vm.expenses : vm.incomes)
             .where(
-              (t) => t.dateTime.isAfter(monthAgo) && t.dateTime.isBefore(now),
+              (t) => t.transactionDate.isAfter(monthAgo) && t.transactionDate.isBefore(now),
             )
             .toList()
           ..sort(
-            (a, b) => b.dateTime.compareTo(a.dateTime),
+            (a, b) => b.transactionDate.compareTo(a.transactionDate),
           ); // новейшие первыми
 
     final start = list.isNotEmpty
-        ? DateFormat('dd.MM.yyyy').format(list.last.dateTime)
+        ? DateFormat('dd.MM.yyyy').format(list.last.transactionDate)
         : '—';
     final end = list.isNotEmpty
-        ? DateFormat('dd.MM.yyyy').format(list.first.dateTime)
+        ? DateFormat('dd.MM.yyyy').format(list.first.transactionDate)
         : '—';
     final total = list.fold<double>(0, (sum, t) => sum + t.amount);
 

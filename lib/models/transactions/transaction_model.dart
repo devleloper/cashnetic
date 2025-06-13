@@ -9,13 +9,14 @@ enum TransactionType { income, expense }
 abstract class TransactionModel with _$TransactionModel {
   const factory TransactionModel({
     required int id,
+    required int categoryId,
     required String account,
     required String categoryIcon,
     required String categoryTitle,
     required TransactionType type,
     String? comment,
     required double amount,
-    required DateTime dateTime,
+    required DateTime transactionDate,
   }) = _TransactionModel;
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) =>

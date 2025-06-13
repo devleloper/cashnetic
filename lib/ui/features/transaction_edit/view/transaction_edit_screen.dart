@@ -52,7 +52,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     category = widget.transaction.categoryTitle;
     amount = widget.transaction.amount.toString();
     comment = widget.transaction.comment ?? '';
-    selectedDate = widget.transaction.dateTime;
+    selectedDate = widget.transaction.transactionDate;
     selectedTime = TimeOfDay.fromDateTime(selectedDate);
   }
 
@@ -171,12 +171,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     final updated = TransactionModel(
       id: widget.transaction.id,
+      categoryId: widget.transaction.categoryId,
       account: account,
       categoryIcon: selectedIconFor(category),
       categoryTitle: category,
       amount: parsedAmount,
       comment: comment.isEmpty ? null : comment,
-      dateTime: updatedDateTime,
+      transactionDate: updatedDateTime,
       type: widget.transaction.type,
     );
 

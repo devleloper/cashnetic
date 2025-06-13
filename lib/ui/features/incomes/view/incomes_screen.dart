@@ -22,7 +22,11 @@ class IncomesScreen extends StatelessWidget {
     final end = DateTime(today.year, today.month, today.day, 23, 59, 59);
 
     var todayIncomes = vm.incomes
-        .where((t) => t.dateTime.isAfter(start) && t.dateTime.isBefore(end))
+        .where(
+          (t) =>
+              t.transactionDate.isAfter(start) &&
+              t.transactionDate.isBefore(end),
+        )
         .toList();
 
     // Удаляем дубликаты по ID
@@ -30,7 +34,7 @@ class IncomesScreen extends StatelessWidget {
     todayIncomes = todayIncomes.where((t) => unique.add(t.id)).toList();
 
     // Сортируем по дате — новые сверху
-    todayIncomes.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    todayIncomes.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
 
     final total = todayIncomes.fold<double>(0, (sum, t) => sum + t.amount);
 

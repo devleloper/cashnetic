@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ExpensesRoute(),
         IncomesRoute(),
         AccountRoute(),
-        ArticlesRoute(),
+        CategoriesRoute(),
         SettingsRoute(),
       ],
       builder: (context, child) {

@@ -9,25 +9,27 @@ part of 'transaction_model.dart';
 _TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) =>
     _TransactionModel(
       id: (json['id'] as num).toInt(),
+      categoryId: (json['categoryId'] as num).toInt(),
       account: json['account'] as String,
       categoryIcon: json['categoryIcon'] as String,
       categoryTitle: json['categoryTitle'] as String,
       type: $enumDecode(_$TransactionTypeEnumMap, json['type']),
       comment: json['comment'] as String?,
       amount: (json['amount'] as num).toDouble(),
-      dateTime: DateTime.parse(json['dateTime'] as String),
+      transactionDate: DateTime.parse(json['transactionDate'] as String),
     );
 
 Map<String, dynamic> _$TransactionModelToJson(_TransactionModel instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'categoryId': instance.categoryId,
       'account': instance.account,
       'categoryIcon': instance.categoryIcon,
       'categoryTitle': instance.categoryTitle,
       'type': _$TransactionTypeEnumMap[instance.type]!,
       'comment': instance.comment,
       'amount': instance.amount,
-      'dateTime': instance.dateTime.toIso8601String(),
+      'transactionDate': instance.transactionDate.toIso8601String(),
     };
 
 const _$TransactionTypeEnumMap = {

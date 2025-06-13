@@ -35,11 +35,12 @@ class ExpensesViewModel extends ChangeNotifier {
 
     transactions = all.where((t) {
       final isToday =
-          t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd);
+          t.transactionDate.isAfter(todayStart) &&
+          t.transactionDate.isBefore(todayEnd);
       return isToday && t.type == TransactionType.expense;
     }).toList();
 
-    transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime)); // сортировка
+    transactions.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
 
     total = transactions.fold(0.0, (sum, t) => sum + t.amount);
 
@@ -54,10 +55,11 @@ class ExpensesViewModel extends ChangeNotifier {
     final todayStart = DateTime(now.year, now.month, now.day);
     final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-    if (t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd)) {
+    if (t.transactionDate.isAfter(todayStart) &&
+        t.transactionDate.isBefore(todayEnd)) {
       transactions.insert(0, t);
       transactions.sort(
-        (a, b) => b.dateTime.compareTo(a.dateTime),
+        (a, b) => b.transactionDate.compareTo(a.transactionDate),
       ); // сортировка
       total = transactions.fold(0.0, (sum, t) => sum + t.amount);
       notifyListeners();
@@ -80,18 +82,20 @@ class ExpensesViewModel extends ChangeNotifier {
     final todayEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
     if (idx >= 0) {
-      if (t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd)) {
+      if (t.transactionDate.isAfter(todayStart) &&
+          t.transactionDate.isBefore(todayEnd)) {
         transactions[idx] = t;
       } else {
         transactions.removeAt(idx);
       }
     } else {
-      if (t.dateTime.isAfter(todayStart) && t.dateTime.isBefore(todayEnd)) {
+      if (t.transactionDate.isAfter(todayStart) &&
+          t.transactionDate.isBefore(todayEnd)) {
         transactions.insert(0, t);
       }
     }
 
-    transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime)); // сортировка
+    transactions.sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
     total = transactions.fold(0.0, (sum, t) => sum + t.amount);
     notifyListeners();
   }

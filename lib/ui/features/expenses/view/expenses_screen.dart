@@ -15,7 +15,7 @@ class ExpensesScreen extends StatelessWidget {
 
     // Сортировка по дате (новые в начале)
     final sorted = [...vm.transactions]
-      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
 
     return Scaffold(
       appBar: AppBar(

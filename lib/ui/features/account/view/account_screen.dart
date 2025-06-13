@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/models/account/account_model.dart';
 import 'package:cashnetic/ui/features/account_edit/account_edit.dart';
 import 'package:cashnetic/view_models/account/account_view_model.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+@RoutePage()
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 

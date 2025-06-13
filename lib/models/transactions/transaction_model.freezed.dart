@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TransactionModel {
 
- int get id; String get account; String get categoryIcon; String get categoryTitle; TransactionType get type; String? get comment; double get amount; DateTime get dateTime;
+ int get id; int get categoryId; String get account; String get categoryIcon; String get categoryTitle; TransactionType get type; String? get comment; double get amount; DateTime get transactionDate;
 /// Create a copy of TransactionModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $TransactionModelCopyWith<TransactionModel> get copyWith => _$TransactionModelCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.account, account) || other.account == account)&&(identical(other.categoryIcon, categoryIcon) || other.categoryIcon == categoryIcon)&&(identical(other.categoryTitle, categoryTitle) || other.categoryTitle == categoryTitle)&&(identical(other.type, type) || other.type == type)&&(identical(other.comment, comment) || other.comment == comment)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.account, account) || other.account == account)&&(identical(other.categoryIcon, categoryIcon) || other.categoryIcon == categoryIcon)&&(identical(other.categoryTitle, categoryTitle) || other.categoryTitle == categoryTitle)&&(identical(other.type, type) || other.type == type)&&(identical(other.comment, comment) || other.comment == comment)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.transactionDate, transactionDate) || other.transactionDate == transactionDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,account,categoryIcon,categoryTitle,type,comment,amount,dateTime);
+int get hashCode => Object.hash(runtimeType,id,categoryId,account,categoryIcon,categoryTitle,type,comment,amount,transactionDate);
 
 @override
 String toString() {
-  return 'TransactionModel(id: $id, account: $account, categoryIcon: $categoryIcon, categoryTitle: $categoryTitle, type: $type, comment: $comment, amount: $amount, dateTime: $dateTime)';
+  return 'TransactionModel(id: $id, categoryId: $categoryId, account: $account, categoryIcon: $categoryIcon, categoryTitle: $categoryTitle, type: $type, comment: $comment, amount: $amount, transactionDate: $transactionDate)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $TransactionModelCopyWith<$Res>  {
   factory $TransactionModelCopyWith(TransactionModel value, $Res Function(TransactionModel) _then) = _$TransactionModelCopyWithImpl;
 @useResult
 $Res call({
- int id, String account, String categoryIcon, String categoryTitle, TransactionType type, String? comment, double amount, DateTime dateTime
+ int id, int categoryId, String account, String categoryIcon, String categoryTitle, TransactionType type, String? comment, double amount, DateTime transactionDate
 });
 
 
@@ -66,16 +66,17 @@ class _$TransactionModelCopyWithImpl<$Res>
 
 /// Create a copy of TransactionModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? account = null,Object? categoryIcon = null,Object? categoryTitle = null,Object? type = null,Object? comment = freezed,Object? amount = null,Object? dateTime = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? categoryId = null,Object? account = null,Object? categoryIcon = null,Object? categoryTitle = null,Object? type = null,Object? comment = freezed,Object? amount = null,Object? transactionDate = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,categoryIcon: null == categoryIcon ? _self.categoryIcon : categoryIcon // ignore: cast_nullable_to_non_nullable
 as String,categoryTitle: null == categoryTitle ? _self.categoryTitle : categoryTitle // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as TransactionType,comment: freezed == comment ? _self.comment : comment // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as double,transactionDate: null == transactionDate ? _self.transactionDate : transactionDate // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -87,17 +88,18 @@ as DateTime,
 @JsonSerializable()
 
 class _TransactionModel implements TransactionModel {
-  const _TransactionModel({required this.id, required this.account, required this.categoryIcon, required this.categoryTitle, required this.type, this.comment, required this.amount, required this.dateTime});
+  const _TransactionModel({required this.id, required this.categoryId, required this.account, required this.categoryIcon, required this.categoryTitle, required this.type, this.comment, required this.amount, required this.transactionDate});
   factory _TransactionModel.fromJson(Map<String, dynamic> json) => _$TransactionModelFromJson(json);
 
 @override final  int id;
+@override final  int categoryId;
 @override final  String account;
 @override final  String categoryIcon;
 @override final  String categoryTitle;
 @override final  TransactionType type;
 @override final  String? comment;
 @override final  double amount;
-@override final  DateTime dateTime;
+@override final  DateTime transactionDate;
 
 /// Create a copy of TransactionModel
 /// with the given fields replaced by the non-null parameter values.
@@ -112,16 +114,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.account, account) || other.account == account)&&(identical(other.categoryIcon, categoryIcon) || other.categoryIcon == categoryIcon)&&(identical(other.categoryTitle, categoryTitle) || other.categoryTitle == categoryTitle)&&(identical(other.type, type) || other.type == type)&&(identical(other.comment, comment) || other.comment == comment)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.account, account) || other.account == account)&&(identical(other.categoryIcon, categoryIcon) || other.categoryIcon == categoryIcon)&&(identical(other.categoryTitle, categoryTitle) || other.categoryTitle == categoryTitle)&&(identical(other.type, type) || other.type == type)&&(identical(other.comment, comment) || other.comment == comment)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.transactionDate, transactionDate) || other.transactionDate == transactionDate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,account,categoryIcon,categoryTitle,type,comment,amount,dateTime);
+int get hashCode => Object.hash(runtimeType,id,categoryId,account,categoryIcon,categoryTitle,type,comment,amount,transactionDate);
 
 @override
 String toString() {
-  return 'TransactionModel(id: $id, account: $account, categoryIcon: $categoryIcon, categoryTitle: $categoryTitle, type: $type, comment: $comment, amount: $amount, dateTime: $dateTime)';
+  return 'TransactionModel(id: $id, categoryId: $categoryId, account: $account, categoryIcon: $categoryIcon, categoryTitle: $categoryTitle, type: $type, comment: $comment, amount: $amount, transactionDate: $transactionDate)';
 }
 
 
@@ -132,7 +134,7 @@ abstract mixin class _$TransactionModelCopyWith<$Res> implements $TransactionMod
   factory _$TransactionModelCopyWith(_TransactionModel value, $Res Function(_TransactionModel) _then) = __$TransactionModelCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String account, String categoryIcon, String categoryTitle, TransactionType type, String? comment, double amount, DateTime dateTime
+ int id, int categoryId, String account, String categoryIcon, String categoryTitle, TransactionType type, String? comment, double amount, DateTime transactionDate
 });
 
 
@@ -149,16 +151,17 @@ class __$TransactionModelCopyWithImpl<$Res>
 
 /// Create a copy of TransactionModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? account = null,Object? categoryIcon = null,Object? categoryTitle = null,Object? type = null,Object? comment = freezed,Object? amount = null,Object? dateTime = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? categoryId = null,Object? account = null,Object? categoryIcon = null,Object? categoryTitle = null,Object? type = null,Object? comment = freezed,Object? amount = null,Object? transactionDate = null,}) {
   return _then(_TransactionModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int,account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,categoryIcon: null == categoryIcon ? _self.categoryIcon : categoryIcon // ignore: cast_nullable_to_non_nullable
 as String,categoryTitle: null == categoryTitle ? _self.categoryTitle : categoryTitle // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as TransactionType,comment: freezed == comment ? _self.comment : comment // ignore: cast_nullable_to_non_nullable
 as String?,amount: null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
-as double,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as double,transactionDate: null == transactionDate ? _self.transactionDate : transactionDate // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

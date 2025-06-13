@@ -50,17 +50,17 @@ class AccountViewModel extends ChangeNotifier {
     }
 
     final sorted = List<TransactionModel>.from(transactions)
-      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      ..sort((a, b) => a.transactionDate.compareTo(b.transactionDate));
 
     final start = DateTime(
-      sorted.first.dateTime.year,
-      sorted.first.dateTime.month,
-      sorted.first.dateTime.day,
+      sorted.first.transactionDate.year,
+      sorted.first.transactionDate.month,
+      sorted.first.transactionDate.day,
     );
     final end = DateTime(
-      sorted.last.dateTime.year,
-      sorted.last.dateTime.month,
-      sorted.last.dateTime.day,
+      sorted.last.transactionDate.year,
+      sorted.last.transactionDate.month,
+      sorted.last.transactionDate.day,
     );
 
     final days = <DateTime>[];
@@ -70,7 +70,7 @@ class AccountViewModel extends ChangeNotifier {
 
     final map = {for (final d in days) d: DailyBalancePoint(d, 0, 0)};
     for (final t in sorted) {
-      final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
+      final d = DateTime(t.transactionDate.year, t.transactionDate.month, t.transactionDate.day);
       final p = map[d];
       if (p != null) {
         if (t.type == TransactionType.income) {

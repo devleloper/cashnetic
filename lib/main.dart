@@ -1,3 +1,4 @@
+import 'package:cashnetic/repositories/categories/categories_repositroy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,8 @@ import 'repositories/analysis/analysis_repository.dart';
 import 'view_models/account/account_view_model.dart';
 import 'view_models/analysis/analysis_view_model.dart';
 import 'view_models/shared/transactions_view_model.dart';
+import 'view_models/expenses/expenses_view_model.dart';
+import 'view_models/categories/categories_view_model.dart';
 
 import 'router/router.dart';
 import 'ui/ui.dart';
@@ -41,6 +44,7 @@ class _CashneticAppState extends State<CashneticApp> {
   Widget build(BuildContext context) {
     final transactionsRepo = TransactionsRepositoryImpl();
     final accountsRepo = AccountsRepositoryImpl();
+    final categoriesRepo = CategoriesRepositoryImpl();
 
     return MultiProvider(
       providers: [
@@ -62,6 +66,12 @@ class _CashneticAppState extends State<CashneticApp> {
             repo: accountsRepo,
             transactionsRepo: transactionsRepo,
           )..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CategoriesViewModel(
+            categoriesRepo: categoriesRepo,
+            txRepo: transactionsRepo,
+          )..loadCategories(),
         ),
       ],
       child: MaterialApp.router(

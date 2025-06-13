@@ -23,6 +23,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   String category = '';
   String amount = '';
   String comment = '';
+  int categoryId = 0;
 
   final List<String> accounts = [
     'Сбербанк',
@@ -49,6 +50,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   void initState() {
     super.initState();
     category = categories.first;
+    categoryId = categories.indexOf(category); // Простой механизм ID
   }
 
   Future<void> _selectDate() async {
@@ -146,6 +148,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       if (input != null && input.isNotEmpty) {
         setState(() {
           options.add(input);
+          categoryId = options.indexOf(input);
         });
         onSelected(input);
       }
@@ -166,12 +169,13 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
     final model = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
+      categoryId: categoryId,
       account: account,
       categoryIcon: selectedIconFor(category),
       categoryTitle: category,
       amount: parsed,
       comment: comment.isEmpty ? null : comment,
-      dateTime: dt,
+      transactionDate: dt,
       type: widget.type,
     );
 
@@ -221,7 +225,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             onTap: () => _selectFromList(
               'категория',
               categories,
-              (v) => setState(() => category = v),
+              (v) => setState(() {
+                category = v;
+                categoryId = categories.indexOf(v);
+              }),
             ),
           ),
           MyListTileRow(
