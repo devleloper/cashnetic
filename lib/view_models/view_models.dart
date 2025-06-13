@@ -1,1 +1,1 @@
-export 'expenses_view_model.dart';
+export 'expenses/expenses_view_model.dart';
