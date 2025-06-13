@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cashnetic/models/transactions/transaction_model.dart';
-import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/models/category/category_model.dart';
+import 'package:cashnetic/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+import '../../../../view_models/categories/categories_view_model.dart';
 import '../../../../view_models/shared/transactions_view_model.dart';
 import '../../../ui.dart';
 
@@ -20,10 +22,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
   String account = 'Сбербанк';
-  String category = '';
   String amount = '';
   String comment = '';
-  int categoryId = 0;
+  CategoryModel? selectedCategory;
+  bool ready = false;
 
   final List<String> accounts = [
     'Сбербанк',
@@ -34,23 +36,20 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     'Почта Банк',
   ];
 
-  List<String> get categories => widget.type == TransactionType.expense
-      ? [
-          'Ремонт',
-          'Одежда',
-          'Продукты',
-          'Электроника',
-          'Развлечения',
-          'Образование',
-          'Услуги связи',
-        ]
-      : ['Зарплата', 'Подработка'];
-
   @override
   void initState() {
     super.initState();
-    category = categories.first;
-    categoryId = categories.indexOf(category); // Простой механизм ID
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final vm = context.read<CategoriesViewModel>();
+      await vm.loadCategories();
+      final options = vm.categories
+          .where((c) => c.isIncome == (widget.type == TransactionType.income))
+          .toList();
+      setState(() {
+        selectedCategory = options.isNotEmpty ? options.first : null;
+        ready = true;
+      });
+    });
   }
 
   Future<void> _selectDate() async {
@@ -102,62 +101,35 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     );
   }
 
-  Future<void> _selectFromList(
-    String title,
-    List<String> options,
-    ValueChanged<String> onSelected,
-  ) async {
-    final res = await showModalBottomSheet<String>(
+  Future<void> _selectCategory() async {
+    final vm = context.read<CategoriesViewModel>();
+    final options = vm.categories
+        .where((c) => c.isIncome == (widget.type == TransactionType.income))
+        .toList();
+
+    final res = await showModalBottomSheet<CategoryModel>(
       context: context,
       builder: (c) => ListView(
         children: [
           ...options.map(
-            (o) => ListTile(title: Text(o), onTap: () => Navigator.pop(c, o)),
-          ),
-          ListTile(
-            title: const Text('Введите вручную…'),
-            onTap: () => Navigator.pop(c, null),
+            (cat) => ListTile(
+              leading: Text(cat.emoji),
+              title: Text(cat.name),
+              onTap: () => Navigator.pop(c, cat),
+            ),
           ),
         ],
       ),
     );
 
     if (res != null) {
-      onSelected(res);
-    } else {
-      final input = await showDialog<String>(
-        context: context,
-        builder: (c) {
-          final ctrl = TextEditingController();
-          return AlertDialog(
-            title: Text('Новый $title'),
-            content: TextField(controller: ctrl, autofocus: true),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(c),
-                child: const Text('Отмена'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(c, ctrl.text),
-                child: const Text('Добавить'),
-              ),
-            ],
-          );
-        },
-      );
-      if (input != null && input.isNotEmpty) {
-        setState(() {
-          options.add(input);
-          categoryId = options.indexOf(input);
-        });
-        onSelected(input);
-      }
+      setState(() => selectedCategory = res);
     }
   }
 
   void _save() {
     final parsed = double.tryParse(amount.replaceAll(',', '.'));
-    if (parsed == null) return;
+    if (parsed == null || selectedCategory == null) return;
 
     final dt = DateTime(
       selectedDate.year,
@@ -169,26 +141,34 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
     final model = TransactionModel(
       id: DateTime.now().millisecondsSinceEpoch,
-      categoryId: categoryId,
+      categoryId: selectedCategory!.id,
       account: account,
-      categoryIcon: selectedIconFor(category),
-      categoryTitle: category,
+      categoryIcon: selectedCategory!.emoji,
+      categoryTitle: selectedCategory!.name,
       amount: parsed,
       comment: comment.isEmpty ? null : comment,
       transactionDate: dt,
       type: widget.type,
     );
 
-    final vm = context.read<TransactionsViewModel>();
-    vm.addTransaction(model);
+    context.read<TransactionsViewModel>().addTransaction(model);
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!ready) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (selectedCategory == null) {
+      return const Scaffold(
+        body: Center(child: Text('Нет доступных категорий')),
+      );
+    }
+
     final dateStr = DateFormat('dd.MM.yyyy').format(selectedDate);
     final timeStr = selectedTime.format(context);
-
     final title = widget.type == TransactionType.income
         ? 'Добавить доход'
         : 'Добавить расход';
@@ -221,15 +201,8 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
           ),
           MyListTileRow(
             title: 'Категория',
-            value: category,
-            onTap: () => _selectFromList(
-              'категория',
-              categories,
-              (v) => setState(() {
-                category = v;
-                categoryId = categories.indexOf(v);
-              }),
-            ),
+            value: selectedCategory?.name ?? '',
+            onTap: _selectCategory,
           ),
           MyListTileRow(
             title: 'Сумма',
@@ -252,5 +225,26 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _selectFromList(
+    String title,
+    List<String> options,
+    ValueChanged<String> onSelected,
+  ) async {
+    final res = await showModalBottomSheet<String>(
+      context: context,
+      builder: (c) => ListView(
+        children: [
+          ...options.map(
+            (o) => ListTile(title: Text(o), onTap: () => Navigator.pop(c, o)),
+          ),
+        ],
+      ),
+    );
+
+    if (res != null) {
+      onSelected(res);
+    }
   }
 }

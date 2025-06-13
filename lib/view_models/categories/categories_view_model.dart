@@ -9,14 +9,22 @@ class CategoriesViewModel extends ChangeNotifier {
   final CategoriesRepository categoriesRepo;
   final TransactionsRepository txRepo;
 
-  List<CategoryModel> _categories = [];
   final Map<int, List<TransactionModel>> _txByCat = {};
+  List<CategoryModel> _categories = [];
+  bool _loaded = false;
 
   CategoriesViewModel({required this.categoriesRepo, required this.txRepo});
 
   List<CategoryModel> get categories => _categories;
 
   Future<void> loadCategories() async {
+    if (_loaded) return;
+    _categories = await categoriesRepo.fetchAll();
+    _loaded = true;
+    notifyListeners();
+  }
+
+  Future<void> reloadCategories() async {
     _categories = await categoriesRepo.fetchAll();
     notifyListeners();
   }
@@ -33,12 +41,12 @@ class CategoriesViewModel extends ChangeNotifier {
 
   Future<void> addCategory(CategoryModel category) async {
     await categoriesRepo.addCategoryModel(category);
-    await loadCategories();
+    await reloadCategories();
   }
 
   Future<bool> deleteCategory(int categoryId) async {
     final result = await categoriesRepo.deleteCategory(categoryId);
-    await loadCategories();
+    await reloadCategories();
     return result;
   }
 

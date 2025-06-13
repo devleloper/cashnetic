@@ -1,11 +1,9 @@
 import 'package:auto_route/annotations.dart';
-import 'package:cashnetic/models/category/category_model.dart';
 import 'package:cashnetic/ui/features/categories/widgets/category_list_tile.dart';
 import 'package:cashnetic/view_models/categories/categories_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../ui.dart';
 import 'transaction_list_by_category_screen.dart';
 
 @RoutePage()

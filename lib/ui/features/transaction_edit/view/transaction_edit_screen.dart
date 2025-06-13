@@ -1,9 +1,10 @@
-import 'package:cashnetic/models/transactions/transaction_model.dart';
-import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/models/category/category_model.dart';
+import 'package:cashnetic/models/models.dart';
+import 'package:cashnetic/view_models/categories/categories_view_model.dart';
+import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../../../view_models/shared/transactions_view_model.dart';
 import '../../../ui.dart';
 
 class TransactionEditScreen extends StatefulWidget {
@@ -19,9 +20,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   late DateTime selectedDate;
   late TimeOfDay selectedTime;
   late String account;
-  late String category;
   late String amount;
   late String comment;
+  CategoryModel? selectedCategory;
 
   final List<String> accounts = [
     'Сбербанк',
@@ -32,152 +33,56 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     'Почта Банк',
   ];
 
-  List<String> get categories =>
-      widget.transaction.type == TransactionType.expense
-      ? [
-          'Ремонт',
-          'Одежда',
-          'Продукты',
-          'Электроника',
-          'Развлечения',
-          'Образование',
-          'Услуги связи',
-        ]
-      : ['Зарплата', 'Подработка'];
-
   @override
   void initState() {
     super.initState();
     account = widget.transaction.account;
-    category = widget.transaction.categoryTitle;
     amount = widget.transaction.amount.toString();
     comment = widget.transaction.comment ?? '';
     selectedDate = widget.transaction.transactionDate;
     selectedTime = TimeOfDay.fromDateTime(selectedDate);
-  }
 
-  Future<void> _selectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() => selectedDate = picked);
-    }
-  }
+    final cats = context.read<CategoriesViewModel>().categories;
 
-  Future<void> _selectTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    if (picked != null) {
-      setState(() => selectedTime = picked);
-    }
-  }
+    final match = cats
+        .where(
+          (c) =>
+              c.name == widget.transaction.categoryTitle &&
+              c.emoji == widget.transaction.categoryIcon &&
+              c.isIncome == (widget.transaction.type == TransactionType.income),
+        )
+        .toList();
 
-  void _selectAmount() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: amount);
-        return AlertDialog(
-          title: const Text('Введите сумму'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: '0.00'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() => amount = controller.text);
-                Navigator.pop(context);
-              },
-              child: const Text('ОК'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _selectFromList(
-    String title,
-    List<String> options,
-    ValueChanged<String> onSelected,
-  ) async {
-    final res = await showModalBottomSheet<String>(
-      context: context,
-      builder: (c) => ListView(
-        children: [
-          ...options.map(
-            (o) => ListTile(title: Text(o), onTap: () => Navigator.pop(c, o)),
-          ),
-          ListTile(
-            title: const Text('Введите вручную…'),
-            onTap: () => Navigator.pop(c, null),
-          ),
-        ],
-      ),
-    );
-
-    if (res != null) {
-      onSelected(res);
-    } else {
-      final input = await showDialog<String>(
-        context: context,
-        builder: (c) {
-          final ctrl = TextEditingController();
-          return AlertDialog(
-            title: Text('Новый $title'),
-            content: TextField(controller: ctrl, autofocus: true),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(c),
-                child: const Text('Отмена'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(c, ctrl.text),
-                child: const Text('Добавить'),
-              ),
-            ],
-          );
-        },
-      );
-      if (input != null && input.isNotEmpty) {
-        setState(() {
-          options.add(input);
-        });
-        onSelected(input);
-      }
-    }
+    selectedCategory = match.isNotEmpty
+        ? match.first
+        : cats
+              .where(
+                (c) =>
+                    c.isIncome ==
+                    (widget.transaction.type == TransactionType.income),
+              )
+              .firstOrNull;
   }
 
   void _save() {
-    final parsedAmount = double.tryParse(amount.replaceAll(',', '.'));
-    if (parsedAmount == null) return;
-
-    final updatedDateTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      selectedTime.hour,
-      selectedTime.minute,
-    );
+    final parsed = double.tryParse(amount.replaceAll(',', '.'));
+    if (parsed == null || selectedCategory == null) return;
 
     final updated = TransactionModel(
       id: widget.transaction.id,
-      categoryId: widget.transaction.categoryId,
+      categoryId: selectedCategory!.id,
       account: account,
-      categoryIcon: selectedIconFor(category),
-      categoryTitle: category,
-      amount: parsedAmount,
+      categoryIcon: selectedCategory!.emoji,
+      categoryTitle: selectedCategory!.name,
+      amount: parsed,
       comment: comment.isEmpty ? null : comment,
-      transactionDate: updatedDateTime,
+      transactionDate: DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      ),
       type: widget.transaction.type,
     );
 
@@ -192,11 +97,103 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     Navigator.pop(context);
   }
 
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) setState(() => selectedDate = picked);
+  }
+
+  Future<void> _selectTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+    );
+    if (picked != null) setState(() => selectedTime = picked);
+  }
+
+  void _selectAmount() {
+    final controller = TextEditingController(text: amount);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Введите сумму'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: '0.00'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => amount = controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text('ОК'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectCategory() async {
+    final vm = context.read<CategoriesViewModel>();
+    final options = vm.categories
+        .where(
+          (c) =>
+              c.isIncome == (widget.transaction.type == TransactionType.income),
+        )
+        .toList();
+
+    final result = await showModalBottomSheet<CategoryModel>(
+      context: context,
+      builder: (ctx) => ListView(
+        children: options
+            .map(
+              (cat) => ListTile(
+                leading: Text(cat.emoji),
+                title: Text(cat.name),
+                onTap: () => Navigator.pop(ctx, cat),
+              ),
+            )
+            .toList(),
+      ),
+    );
+
+    if (result != null) {
+      setState(() => selectedCategory = result);
+    }
+  }
+
+  Future<void> _selectFromList(
+    String title,
+    List<String> options,
+    ValueChanged<String> onSelected,
+  ) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => ListView(
+        children: options
+            .map(
+              (o) =>
+                  ListTile(title: Text(o), onTap: () => Navigator.pop(ctx, o)),
+            )
+            .toList(),
+      ),
+    );
+
+    if (result != null) {
+      onSelected(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateStr = DateFormat('dd.MM.yyyy').format(selectedDate);
     final timeStr = selectedTime.format(context);
-
     final title = widget.transaction.type == TransactionType.income
         ? 'Редактировать доход'
         : 'Редактировать расход';
@@ -229,12 +226,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           ),
           MyListTileRow(
             title: 'Категория',
-            value: category,
-            onTap: () => _selectFromList(
-              'категория',
-              categories,
-              (v) => setState(() => category = v),
-            ),
+            value: selectedCategory?.name ?? '',
+            onTap: _selectCategory,
           ),
           MyListTileRow(
             title: 'Сумма',

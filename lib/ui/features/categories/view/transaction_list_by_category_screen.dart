@@ -15,7 +15,10 @@ class TransactionListByCategoryScreen extends StatelessWidget {
     final txns = vm.transactionsByCategory(category.id);
 
     return Scaffold(
-      appBar: AppBar(title: Text(category.name)),
+      appBar: AppBar(
+        leading: BackButton(color: Colors.white),
+        title: Text(category.name),
+      ),
       body: ListView.separated(
         itemCount: txns.length,
         separatorBuilder: (_, __) => const Divider(height: 1),
