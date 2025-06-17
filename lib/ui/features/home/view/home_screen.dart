@@ -1,8 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cashnetic/view_models/account/account_view_model.dart';
+import 'package:cashnetic/ui/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/ui/features/account/bloc/account_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:provider/provider.dart';
 import 'package:cashnetic/router/router.dart';
 
 @RoutePage()
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTabChange: (index) {
                           tabsRouter.setActiveIndex(index);
                           if (index == 2) {
-                            context.read<AccountViewModel>().load();
+                            context.read<AccountBloc>().add(LoadAccount());
                           }
                         },
                         backgroundColor: Colors.green,

@@ -1,10 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cashnetic/models/account/account_model.dart';
+import 'package:cashnetic/ui/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/ui/features/account/bloc/account_event.dart';
+import 'package:cashnetic/ui/features/account/bloc/account_state.dart';
 import 'package:cashnetic/ui/features/account_edit/account_edit.dart';
-import 'package:cashnetic/view_models/account/account_view_model.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 @RoutePage()
@@ -13,82 +14,110 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.watch<AccountViewModel>();
-    final account = vm.account;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Мой счёт'),
-        actions: [
-          if (account != null)
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
-              onPressed: () async {
-                final updated = await Navigator.push<AccountModel>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AccountEditScreen(account: account),
-                  ),
-                );
-                if (updated != null) {
-                  await vm.updateAccountAndRebuild(updated);
-                }
-              },
-            ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => vm.load(),
-        tooltip: 'Обновить',
-        child: const Icon(Icons.refresh, color: Colors.white),
-      ),
-      body: account == null && vm.loading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Container(
-                  color: Colors.green.withOpacity(0.2),
-                  child: Column(
-                    children: [
-                      _optionRow(
-                        icon: Icons.account_balance_wallet,
-                        label: 'Баланс',
-                        value: NumberFormat.currency(
-                          symbol: account!.currency,
-                          decimalDigits: 0,
-                        ).format(vm.computedBalance),
-                        onTap: () async {
-                          final updated = await Navigator.push<AccountModel>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  AccountEditScreen(account: account),
-                            ),
+    return BlocBuilder<AccountBloc, AccountState>(
+      builder: (context, state) {
+        if (state is AccountLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state is AccountError) {
+          return Scaffold(body: Center(child: Text(state.message)));
+        }
+        if (state is! AccountLoaded) {
+          return const SizedBox.shrink();
+        }
+        final account = state.account;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Мой счёт'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white),
+                onPressed: () async {
+                  final accountModel = accountDomainToModel(account);
+                  final updatedModel = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountEditScreen(account: accountModel),
+                    ),
+                  );
+                  if (updatedModel != null) {
+                    final updatedAccount = accountModelToDomain(
+                      updatedModel,
+                      account.userId,
+                      account.timeInterval.createdAt,
+                      DateTime.now(),
+                    );
+                    context.read<AccountBloc>().add(
+                      UpdateAccount(updatedAccount),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
+            tooltip: 'Обновить',
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
+          body: Column(
+            children: [
+              Container(
+                color: Colors.green.withOpacity(0.2),
+                child: Column(
+                  children: [
+                    _optionRow(
+                      icon: Icons.account_balance_wallet,
+                      label: 'Баланс',
+                      value: NumberFormat.currency(
+                        symbol: account.moneyDetails.currency,
+                        decimalDigits: 0,
+                      ).format(state.computedBalance),
+                      onTap: () async {
+                        final accountModel = accountDomainToModel(account);
+                        final updatedModel = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                AccountEditScreen(account: accountModel),
+                          ),
+                        );
+                        if (updatedModel != null) {
+                          final updatedAccount = accountModelToDomain(
+                            updatedModel,
+                            account.userId,
+                            account.timeInterval.createdAt,
+                            DateTime.now(),
                           );
-                          if (updated != null) {
-                            await vm.updateAccountAndRebuild(updated);
-                          }
-                        },
-                      ),
-                      const Divider(height: 1),
-                      _optionRow(
-                        icon: Icons.currency_exchange,
-                        label: 'Валюта',
-                        value: account.currency,
-                        onTap: () => _showCurrencyPicker(context),
-                      ),
-                    ],
-                  ),
+                          context.read<AccountBloc>().add(
+                            UpdateAccount(updatedAccount),
+                          );
+                        }
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _optionRow(
+                      icon: Icons.currency_exchange,
+                      label: 'Валюта',
+                      value: account.moneyDetails.currency,
+                      onTap: () => _showCurrencyPicker(context, account),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: _BalanceBarChart(),
-                  ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: _BalanceBarChart(points: state.dailyPoints),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -119,8 +148,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  void _showCurrencyPicker(BuildContext context) async {
-    final vm = context.read<AccountViewModel>();
+  void _showCurrencyPicker(BuildContext context, account) async {
     final sel = await showModalBottomSheet<String>(
       context: context,
       builder: (_) => Column(
@@ -146,46 +174,24 @@ class AccountScreen extends StatelessWidget {
         ],
       ),
     );
-    if (sel != null && sel != vm.account?.currency) {
-      await vm.updateCurrencyAndRebuild(sel);
+    if (sel != null && sel != account.moneyDetails.currency) {
+      context.read<AccountBloc>().add(UpdateAccountCurrency(sel));
     }
   }
 }
 
-class _BalanceBarChart extends StatefulWidget {
-  @override
-  State<_BalanceBarChart> createState() => _BalanceBarChartState();
-}
-
-class _BalanceBarChartState extends State<_BalanceBarChart> {
-  late AccountViewModel vm;
-  int? touchedGroupIndex;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    vm = context.read<AccountViewModel>();
-    vm.addListener(_refresh);
-  }
-
-  @override
-  void dispose() {
-    vm.removeListener(_refresh);
-    super.dispose();
-  }
-
-  void _refresh() => setState(() {});
+class _BalanceBarChart extends StatelessWidget {
+  final List<DailyBalancePoint> points;
+  const _BalanceBarChart({required this.points});
 
   @override
   Widget build(BuildContext context) {
-    final pts = vm.dailyPoints;
-    if (pts.isEmpty) return const Center(child: Text('Нет данных для графика'));
-
-    final maxVal = pts
+    if (points.isEmpty)
+      return const Center(child: Text('Нет данных для графика'));
+    final maxVal = points
         .map((e) => e.income > e.expense ? e.income : e.expense)
         .reduce((a, b) => a > b ? a : b);
-
-    final groups = pts.asMap().entries.map((entry) {
+    final groups = points.asMap().entries.map((entry) {
       final idx = entry.key;
       final pt = entry.value;
       return BarChartGroupData(
@@ -197,7 +203,6 @@ class _BalanceBarChartState extends State<_BalanceBarChart> {
         ],
       );
     }).toList();
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SizedBox(
@@ -216,7 +221,7 @@ class _BalanceBarChartState extends State<_BalanceBarChart> {
               touchTooltipData: BarTouchTooltipData(
                 getTooltipColor: (group) => Colors.white,
                 getTooltipItem: (group, _, rod, rodIndex) {
-                  final date = pts[group.x.toInt()].date;
+                  final date = points[group.x.toInt()].date;
                   final value = rod.toY.toStringAsFixed(0);
                   final label = rodIndex == 0 ? 'Расход' : 'Доход';
                   return BarTooltipItem(
@@ -240,9 +245,9 @@ class _BalanceBarChartState extends State<_BalanceBarChart> {
                   interval: 1,
                   getTitlesWidget: (val, meta) {
                     final idx = val.toInt();
-                    if (idx < 0 || idx >= pts.length)
+                    if (idx < 0 || idx >= points.length)
                       return const SizedBox.shrink();
-                    final dt = pts[idx].date;
+                    final dt = points[idx].date;
                     return SizedBox(
                       width: 40,
                       child: SideTitleWidget(

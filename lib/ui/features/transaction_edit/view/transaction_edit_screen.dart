@@ -1,122 +1,228 @@
-import 'package:cashnetic/models/category/category_model.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/models/models.dart';
-import 'package:cashnetic/view_models/categories/categories_view_model.dart';
-import 'package:cashnetic/view_models/shared/transactions_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+
+import '../bloc/transaction_edit_bloc.dart';
+import '../bloc/transaction_edit_state.dart';
+import '../bloc/transaction_edit_event.dart';
 import '../../../ui.dart';
 
-class TransactionEditScreen extends StatefulWidget {
+class TransactionEditScreen extends StatelessWidget {
   final TransactionModel transaction;
 
   const TransactionEditScreen({super.key, required this.transaction});
 
   @override
-  State<TransactionEditScreen> createState() => _TransactionEditScreenState();
-}
-
-class _TransactionEditScreenState extends State<TransactionEditScreen> {
-  late DateTime selectedDate;
-  late TimeOfDay selectedTime;
-  late String account;
-  late String amount;
-  late String comment;
-  CategoryModel? selectedCategory;
-
-  final List<String> accounts = [
-    'Сбербанк',
-    'Т-Банк',
-    'Альфа Банк',
-    'ВТБ',
-    'МТС Банк',
-    'Почта Банк',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    account = widget.transaction.account;
-    amount = widget.transaction.amount.toString();
-    comment = widget.transaction.comment ?? '';
-    selectedDate = widget.transaction.transactionDate;
-    selectedTime = TimeOfDay.fromDateTime(selectedDate);
-
-    final cats = context.read<CategoriesViewModel>().categories;
-
-    final match = cats
-        .where(
-          (c) =>
-              c.name == widget.transaction.categoryTitle &&
-              c.emoji == widget.transaction.categoryIcon &&
-              c.isIncome == (widget.transaction.type == TransactionType.income),
-        )
-        .toList();
-
-    selectedCategory = match.isNotEmpty
-        ? match.first
-        : cats
-              .where(
-                (c) =>
-                    c.isIncome ==
-                    (widget.transaction.type == TransactionType.income),
-              )
-              .firstOrNull;
-  }
-
-  void _save() {
-    final parsed = double.tryParse(amount.replaceAll(',', '.'));
-    if (parsed == null || selectedCategory == null) return;
-
-    final updated = TransactionModel(
-      id: widget.transaction.id,
-      categoryId: selectedCategory!.id,
-      account: account,
-      categoryIcon: selectedCategory!.emoji,
-      categoryTitle: selectedCategory!.name,
-      amount: parsed,
-      comment: comment.isEmpty ? null : comment,
-      transactionDate: DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        selectedTime.hour,
-        selectedTime.minute,
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => TransactionEditBloc(
+        categoryRepository: context.read(),
+        transactionRepository: context.read(),
+      )..add(TransactionEditInitialized(transaction)),
+      child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
+        listener: (context, state) {
+          if (state is TransactionEditSuccess) {
+            Navigator.pop(context);
+          } else if (state is TransactionEditDeleted) {
+            Navigator.pop(context);
+          } else if (state is TransactionEditError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        builder: (context, state) {
+          if (state is TransactionEditInitial ||
+              state is TransactionEditLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          } else if (state is TransactionEditError) {
+            return Scaffold(
+              body: Center(child: Text('Ошибка: ${state.message}')),
+            );
+          } else if (state is TransactionEditLoaded ||
+              state is TransactionEditSaving ||
+              state is TransactionEditDeleting) {
+            final loadedState = state as dynamic;
+            return _buildContent(context, loadedState);
+          } else if (state is TransactionEditSuccess ||
+              state is TransactionEditDeleted) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return const Scaffold(
+            body: Center(child: Text('Неизвестное состояние')),
+          );
+        },
       ),
-      type: widget.transaction.type,
     );
-
-    context.read<TransactionsViewModel>().updateTransaction(updated);
-    Navigator.pop(context);
   }
 
-  void _delete() {
-    context.read<TransactionsViewModel>().deleteTransaction(
-      widget.transaction.id,
+  Widget _buildContent(BuildContext context, dynamic state) {
+    final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
+    final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
+    final title = state.transaction.type == TransactionType.income
+        ? 'Редактировать доход'
+        : 'Редактировать расход';
+    final isSaving = state is TransactionEditSaving;
+    final isDeleting = state is TransactionEditDeleting;
+    final isProcessing = isSaving || isDeleting;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, color: Colors.white),
+            onPressed: isProcessing
+                ? null
+                : () => context.read<TransactionEditBloc>().add(
+                    TransactionEditSaveTransaction(),
+                  ),
+          ),
+        ],
+        title: Text(title),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          MyListTileRow(
+            title: 'Счёт',
+            value: state.account,
+            onTap: isProcessing
+                ? () {}
+                : () => _selectFromList(
+                    context,
+                    'счёт',
+                    state.accounts,
+                    (account) => context.read<TransactionEditBloc>().add(
+                      TransactionEditAccountChanged(account),
+                    ),
+                  ),
+          ),
+          MyListTileRow(
+            title: 'Категория',
+            value: state.selectedCategory?.name ?? '',
+            onTap: isProcessing
+                ? () {}
+                : () => _selectCategory(context, state.categories),
+          ),
+          MyListTileRow(
+            title: 'Сумма',
+            value: state.amount.isEmpty ? 'Введите' : '${state.amount} ₽',
+            onTap: isProcessing
+                ? () {}
+                : () => _selectAmount(context, state.amount),
+          ),
+          MyListTileRow(
+            title: 'Дата',
+            value: dateStr,
+            onTap: isProcessing
+                ? () {}
+                : () => _selectDate(context, state.selectedDate),
+          ),
+          MyListTileRow(
+            title: 'Время',
+            value: timeStr,
+            onTap: isProcessing
+                ? () {}
+                : () => _selectTime(context, state.selectedDate),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: const InputDecoration(
+              labelText: 'Комментарий',
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            maxLines: 3,
+            enabled: !isProcessing,
+            controller: TextEditingController(text: state.comment),
+            onChanged: (comment) => context.read<TransactionEditBloc>().add(
+              TransactionEditCommentChanged(comment),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              fixedSize: const Size.fromHeight(50),
+              backgroundColor: Colors.red,
+              elevation: 0,
+            ),
+            onPressed: isProcessing
+                ? null
+                : () => context.read<TransactionEditBloc>().add(
+                    TransactionEditDeleteTransaction(),
+                  ),
+            child: isDeleting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Удалить', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
-    Navigator.pop(context);
   }
 
-  Future<void> _selectDate() async {
+  Future<void> _selectDate(BuildContext context, DateTime currentDate) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate: currentDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
     );
-    if (picked != null) setState(() => selectedDate = picked);
+    if (picked != null) {
+      context.read<TransactionEditBloc>().add(
+        TransactionEditDateChanged(picked),
+      );
+    }
   }
 
-  Future<void> _selectTime() async {
+  Future<void> _selectTime(BuildContext context, DateTime currentDate) async {
+    final currentTime = TimeOfDay.fromDateTime(currentDate);
     final picked = await showTimePicker(
       context: context,
-      initialTime: selectedTime,
+      initialTime: currentTime,
     );
-    if (picked != null) setState(() => selectedTime = picked);
+    if (picked != null) {
+      final newDateTime = DateTime(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day,
+        picked.hour,
+        picked.minute,
+      );
+      context.read<TransactionEditBloc>().add(
+        TransactionEditDateChanged(newDateTime),
+      );
+    }
   }
 
-  void _selectAmount() {
-    final controller = TextEditingController(text: amount);
+  void _selectAmount(BuildContext context, String currentAmount) {
+    final controller = TextEditingController(text: currentAmount);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -129,7 +235,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              setState(() => amount = controller.text);
+              context.read<TransactionEditBloc>().add(
+                TransactionEditAmountChanged(controller.text),
+              );
               Navigator.pop(context);
             },
             child: const Text('ОК'),
@@ -139,19 +247,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  Future<void> _selectCategory() async {
-    final vm = context.read<CategoriesViewModel>();
-    final options = vm.categories
-        .where(
-          (c) =>
-              c.isIncome == (widget.transaction.type == TransactionType.income),
-        )
-        .toList();
-
-    final result = await showModalBottomSheet<CategoryModel>(
+  Future<void> _selectCategory(
+    BuildContext context,
+    List<Category> categories,
+  ) async {
+    final result = await showModalBottomSheet<Category>(
       context: context,
       builder: (ctx) => ListView(
-        children: options
+        children: categories
             .map(
               (cat) => ListTile(
                 leading: Text(cat.emoji),
@@ -164,11 +267,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
 
     if (result != null) {
-      setState(() => selectedCategory = result);
+      context.read<TransactionEditBloc>().add(
+        TransactionEditCategoryChanged(result),
+      );
     }
   }
 
   Future<void> _selectFromList(
+    BuildContext context,
     String title,
     List<String> options,
     ValueChanged<String> onSelected,
@@ -188,78 +294,5 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     if (result != null) {
       onSelected(result);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final dateStr = DateFormat('dd.MM.yyyy').format(selectedDate);
-    final timeStr = selectedTime.format(context);
-    final title = widget.transaction.type == TransactionType.income
-        ? 'Редактировать доход'
-        : 'Редактировать расход';
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check, color: Colors.white),
-            onPressed: _save,
-          ),
-        ],
-        title: Text(title),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          MyListTileRow(
-            title: 'Счёт',
-            value: account,
-            onTap: () => _selectFromList(
-              'счёт',
-              accounts,
-              (v) => setState(() => account = v),
-            ),
-          ),
-          MyListTileRow(
-            title: 'Категория',
-            value: selectedCategory?.name ?? '',
-            onTap: _selectCategory,
-          ),
-          MyListTileRow(
-            title: 'Сумма',
-            value: amount.isEmpty ? 'Введите' : '$amount ₽',
-            onTap: _selectAmount,
-          ),
-          MyListTileRow(title: 'Дата', value: dateStr, onTap: _selectDate),
-          MyListTileRow(title: 'Время', value: timeStr, onTap: _selectTime),
-          const SizedBox(height: 16),
-          TextField(
-            controller: TextEditingController(text: comment),
-            decoration: const InputDecoration(
-              labelText: 'Комментарий',
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            maxLines: 3,
-            onChanged: (v) => comment = v,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              fixedSize: const Size.fromHeight(50),
-              backgroundColor: Colors.red,
-              elevation: 0,
-            ),
-            onPressed: _delete,
-            child: const Text('Удалить', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
   }
 }
