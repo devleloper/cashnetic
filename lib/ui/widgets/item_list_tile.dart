@@ -1,9 +1,9 @@
-import 'package:cashnetic/view_models/expenses/expenses_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/models.dart';
 import '../features/transaction_edit/transaction_edit.dart';
+import '../features/expenses/expenses.dart';
 
 class MyItemListTile extends StatelessWidget {
   const MyItemListTile({super.key, required this.e, required this.bgColor});
@@ -21,7 +21,7 @@ class MyItemListTile extends StatelessWidget {
             builder: (_) => TransactionEditScreen(transaction: e),
           ),
         );
-        context.read<ExpensesViewModel>().load();
+        // The edit screen will handle its own state management
       },
 
       leading: CircleAvatar(
