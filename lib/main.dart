@@ -3,22 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'router/router.dart';
-import 'ui/ui.dart';
+import 'presentation/presentation.dart';
+import 'domain/repositories/category_repository.dart';
+import 'domain/repositories/transaction_repository.dart';
+import 'domain/repositories/account_repository.dart';
 
 // Репозитории (моки)
 import 'data/repositories/mocks/mocked_account_repository.dart';
 import 'data/repositories/mocks/mocked_category_repository.dart';
-import 'data/repositories/mocks/mocked_transaction_repository.dart';
+import 'data/repositories/shared_prefs_transaction_repository.dart';
 
 // BLoC
-import 'ui/features/account/bloc/account_bloc.dart';
-import 'ui/features/analysis/bloc/analysis_bloc.dart';
-import 'ui/features/categories/bloc/categories_bloc.dart';
-import 'ui/features/expenses/bloc/expenses_bloc.dart';
-import 'ui/features/history/bloc/history_bloc.dart';
-import 'ui/features/incomes/bloc/incomes_bloc.dart';
-import 'ui/features/transaction_add/bloc/transaction_add_bloc.dart';
-import 'ui/features/transaction_edit/bloc/transaction_edit_bloc.dart';
+import 'presentation/features/account/bloc/account_bloc.dart';
+import 'presentation/features/analysis/bloc/analysis_bloc.dart';
+import 'presentation/features/categories/bloc/categories_bloc.dart';
+import 'presentation/features/expenses/bloc/expenses_bloc.dart';
+import 'presentation/features/history/bloc/history_bloc.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -45,15 +45,17 @@ class _CashneticAppState extends State<CashneticApp> {
 
   @override
   Widget build(BuildContext context) {
-    final transactionsRepo = MockedTransactionRepository();
+    final transactionsRepo = SharedPreferencesTransactionRepository();
     final accountsRepo = MockedAccountRepository();
     final categoriesRepo = MockedCategoryRepository();
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider.value(value: transactionsRepo),
-        RepositoryProvider.value(value: accountsRepo),
-        RepositoryProvider.value(value: categoriesRepo),
+        RepositoryProvider<TransactionRepository>.value(
+          value: transactionsRepo,
+        ),
+        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
+        RepositoryProvider<AccountRepository>.value(value: accountsRepo),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -83,24 +85,6 @@ class _CashneticAppState extends State<CashneticApp> {
           BlocProvider(
             create: (context) =>
                 HistoryBloc(transactionRepository: transactionsRepo),
-          ),
-          BlocProvider(
-            create: (context) => IncomesBloc(
-              transactionRepository: transactionsRepo,
-              categoryRepository: categoriesRepo,
-            ),
-          ),
-          BlocProvider(
-            create: (context) => TransactionAddBloc(
-              categoryRepository: categoriesRepo,
-              transactionRepository: transactionsRepo,
-            ),
-          ),
-          BlocProvider(
-            create: (context) => TransactionEditBloc(
-              categoryRepository: categoriesRepo,
-              transactionRepository: transactionsRepo,
-            ),
           ),
           // BLoC для добавления/редактирования транзакций создаются локально в соответствующих экранах
         ],
