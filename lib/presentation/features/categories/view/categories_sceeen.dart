@@ -22,7 +22,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<CategoriesBloc>().add(LoadCategories());
+    context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      route.addScopedWillPopCallback(() async {
+        context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
+        return true;
+      });
+    }
   }
 
   @override
@@ -40,13 +52,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         if (state is! CategoriesLoaded) {
           return const SizedBox.shrink();
         }
-        final categories = state.categories
-            .where(
-              (c) =>
-                  _search.isEmpty ||
-                  c.name.toLowerCase().contains(_search.toLowerCase()),
-            )
-            .toList();
+        final txByCategory = state.txByCategory;
+        final categories =
+            state.categories
+                .where(
+                  (c) =>
+                      _search.isEmpty ||
+                      c.name.toLowerCase().contains(_search.toLowerCase()),
+                )
+                .toList()
+              ..sort(
+                (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
+                  txByCategory[a.id]?.length ?? 0,
+                ),
+              );
         return Scaffold(
           appBar: AppBar(title: const Text('Категории')),
           body: Column(
@@ -54,9 +73,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextField(
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Найти категорию',
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.green,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   onChanged: (v) => setState(() => _search = v),
                 ),
@@ -67,8 +96,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final cat = categories[i];
+                    final txCount = txByCategory[cat.id]?.length ?? 0;
                     return CategoryListTile(
                       category: cat,
+                      txCount: txCount,
                       onTap: () async {
                         context.read<CategoriesBloc>().add(
                           LoadTransactionsForCategory(cat.id),

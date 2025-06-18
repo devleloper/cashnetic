@@ -35,3 +35,5 @@ class LoadTransactionsForCategory extends CategoriesEvent {
   @override
   List<Object?> get props => [categoryId];
 }
+
+class InitCategoriesWithTransactions extends CategoriesEvent {}

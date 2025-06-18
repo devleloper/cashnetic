@@ -14,11 +14,48 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     required this.categoryRepository,
     required this.transactionRepository,
   }) : super(CategoriesLoading()) {
+    on<InitCategoriesWithTransactions>(_onInitCategoriesWithTransactions);
     on<LoadCategories>(_onLoadCategories);
     on<SearchCategories>(_onSearchCategories);
     on<AddCategory>(_onAddCategory);
     on<DeleteCategory>(_onDeleteCategory);
     on<LoadTransactionsForCategory>(_onLoadTransactionsForCategory);
+  }
+
+  Future<void> _onInitCategoriesWithTransactions(
+    InitCategoriesWithTransactions event,
+    Emitter<CategoriesState> emit,
+  ) async {
+    emit(CategoriesLoading());
+    final result = await categoryRepository.getAllCategories();
+    final txResult = await transactionRepository.getTransactionsByPeriod(
+      1, // accountId (TODO: поддержка мультиаккаунтов)
+      DateTime(2000),
+      DateTime.now(),
+    );
+    final allTx = txResult.fold((_) => <Transaction>[], (txs) => txs);
+    result.fold((failure) => emit(CategoriesError(failure.toString())), (
+      categories,
+    ) {
+      final dtos = categories
+          .map(
+            (cat) => CategoryDTO(
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji,
+              isIncome: cat.isIncome,
+              color: cat.color,
+            ),
+          )
+          .toList();
+      final Map<int, List<Transaction>> txByCategory = {};
+      for (final cat in dtos) {
+        txByCategory[cat.id] = allTx
+            .where((t) => t.categoryId == cat.id)
+            .toList();
+      }
+      emit(CategoriesLoaded(categories: dtos, txByCategory: txByCategory));
+    });
   }
 
   Future<void> _onLoadCategories(
@@ -27,6 +64,12 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   ) async {
     emit(CategoriesLoading());
     final result = await categoryRepository.getAllCategories();
+    final txResult = await transactionRepository.getTransactionsByPeriod(
+      1, // accountId (TODO: поддержка мультиаккаунтов)
+      DateTime(2000),
+      DateTime.now(),
+    );
+    final allTx = txResult.fold((_) => <Transaction>[], (txs) => txs);
     result.fold((failure) => emit(CategoriesError(failure.toString())), (
       categories,
     ) {
@@ -42,7 +85,14 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
             ),
           )
           .toList();
-      emit(CategoriesLoaded(categories: dtos));
+      // Формируем txByCategory для всех категорий
+      final Map<int, List<Transaction>> txByCategory = {};
+      for (final cat in dtos) {
+        txByCategory[cat.id] = allTx
+            .where((t) => t.categoryId == cat.id)
+            .toList();
+      }
+      emit(CategoriesLoaded(categories: dtos, txByCategory: txByCategory));
     });
   }
 
