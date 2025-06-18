@@ -2,10 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
-import 'package:cashnetic/models/models.dart';
 import 'transaction_add_event.dart';
 import 'transaction_add_state.dart';
 
@@ -43,15 +41,26 @@ class TransactionAddBloc
   ) async {
     emit(TransactionAddLoading());
     final result = await categoryRepository.getCategoriesByIsIncome(
-      event.type == TransactionType.income,
+      event.isIncome,
     );
     result.fold((failure) => emit(TransactionAddError(failure.toString())), (
       categories,
     ) {
+      final dtos = categories
+          .map(
+            (cat) => CategoryDTO(
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji,
+              isIncome: cat.isIncome,
+              color: cat.color,
+            ),
+          )
+          .toList();
       emit(
         TransactionAddLoaded(
-          categories: categories,
-          selectedCategory: categories.isNotEmpty ? categories.first : null,
+          categories: dtos,
+          selectedCategory: dtos.isNotEmpty ? dtos.first : null,
           selectedDate: DateTime.now(),
           account: accounts.first,
           amount: '',

@@ -1,8 +1,8 @@
-import 'package:cashnetic/models/account/account_model.dart';
 import 'package:flutter/material.dart';
+import 'package:cashnetic/data/models/account/account.dart';
 
 class AccountEditScreen extends StatefulWidget {
-  final AccountModel account;
+  final AccountDTO account;
 
   const AccountEditScreen({super.key, required this.account});
 
@@ -17,14 +17,17 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   @override
   void initState() {
     super.initState();
-    _balance = widget.account.initialBalance;
+    _balance = double.tryParse(widget.account.balance) ?? 0;
     _controller = TextEditingController(text: _balance.toStringAsFixed(0));
   }
 
   void _save() {
     final value = double.tryParse(_controller.text.replaceAll(',', '.'));
     if (value != null) {
-      Navigator.pop(context, widget.account.copyWith(initialBalance: value));
+      Navigator.pop(
+        context,
+        widget.account.copyWith(balance: value.toStringAsFixed(0)),
+      );
     }
   }
 

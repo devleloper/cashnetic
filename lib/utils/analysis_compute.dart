@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/analysis_result/analysis_result_model.dart';
-import '../models/transactions/transaction_model.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 
 /// Входная модель для изолята
 class AnalysisInput {
-  final List<TransactionModel> transactions;
+  final List<Transaction> transactions;
   final List<int> colorValues;
 
   const AnalysisInput({required this.transactions, required this.colorValues});
@@ -21,34 +21,40 @@ AnalysisResult computeAnalysisIsolate(AnalysisInput input) {
   }
 
   final periodStart = transactions
-      .map((e) => DateTime.fromMillisecondsSinceEpoch(e.id))
+      .map((e) => e.timestamp)
       .reduce((a, b) => a.isBefore(b) ? a : b);
 
   final periodEnd = transactions
-      .map((e) => DateTime.fromMillisecondsSinceEpoch(e.id))
+      .map((e) => e.timestamp)
       .reduce((a, b) => a.isAfter(b) ? a : b);
 
   final total = transactions.fold<double>(0, (sum, e) => sum + e.amount);
 
-  final Map<String, double> sums = {};
-  final Map<String, String> icons = {};
+  final Map<int, num> sums = {}; // categoryId -> сумма
+  final Map<int, String> titles = {}; // categoryId -> title
+  final Map<int, String> icons = {}; // categoryId -> emoji
 
   for (var e in transactions) {
-    sums[e.categoryTitle] = (sums[e.categoryTitle] ?? 0) + e.amount;
-    icons[e.categoryTitle] = e.categoryIcon;
+    final catId = e.categoryId ?? 0;
+    sums[catId] = ((sums[catId] ?? 0.0) + e.amount.toDouble());
+    titles[catId] = '';
+    icons[catId] = '';
   }
 
+  final entries = sums.entries
+      .map((e) => MapEntry(e.key, double.tryParse(e.value.toString()) ?? 0.0))
+      .toList();
   int idx = 0;
-  final data = sums.entries.map((entry) {
-    final percent = (entry.value / total) * 100;
+  final data = entries.map((entry) {
+    final percent = (total == 0) ? 0 : (entry.value / total) * 100;
     final color = Color(colorValues[idx % colorValues.length]);
     idx++;
 
     return CategoryChartData(
-      categoryTitle: entry.key,
+      categoryTitle: titles[entry.key] ?? '',
       categoryIcon: icons[entry.key] ?? '',
-      amount: entry.value,
-      percent: percent,
+      amount: entry.value.toDouble(),
+      percent: percent.toDouble(),
       color: color,
     );
   }).toList();

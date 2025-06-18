@@ -3,24 +3,21 @@ import 'package:cashnetic/presentation/features/history/bloc/history_event.dart'
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/models/transactions/transaction_model.dart';
 import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.dart';
 import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
-import 'package:intl/intl.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 
 class HistoryScreen extends StatefulWidget {
-  final TransactionType type;
-  const HistoryScreen({super.key, required this.type});
+  final bool isIncome;
+  const HistoryScreen({super.key, required this.isIncome});
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -31,11 +28,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void initState() {
     super.initState();
     context.read<HistoryBloc>().add(
-      LoadHistory(
-        widget.type == TransactionType.expense
-            ? HistoryType.expense
-            : HistoryType.income,
-      ),
+      LoadHistory(widget.isIncome ? HistoryType.income : HistoryType.expense),
     );
     context.read<CategoriesBloc>().add(LoadCategories());
   }
@@ -58,16 +51,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final list = state.transactions;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
-            List<Category> categories = [];
+            List<CategoryDTO> categories = [];
             if (catState is CategoriesLoaded) {
               categories = catState.categories;
             }
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                  widget.type == TransactionType.expense
-                      ? 'Расходы за месяц'
-                      : 'Доходы за месяц',
+                  widget.isIncome ? 'Доходы за месяц' : 'Расходы за месяц',
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -90,15 +81,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 )..add(
                                   LoadAnalysis(
                                     year: DateTime.now().year,
-                                    type: widget.type == TransactionType.expense
-                                        ? AnalysisType.expense
-                                        : AnalysisType.income,
+                                    type: widget.isIncome
+                                        ? AnalysisType.income
+                                        : AnalysisType.expense,
                                   ),
                                 ),
                             child: AnalysisScreen(
-                              type: widget.type == TransactionType.expense
-                                  ? AnalysisType.expense
-                                  : AnalysisType.income,
+                              type: widget.isIncome
+                                  ? AnalysisType.income
+                                  : AnalysisType.expense,
                             ),
                           ),
                         ),
@@ -130,9 +121,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: list.isEmpty
                         ? Center(
                             child: Text(
-                              widget.type == TransactionType.expense
-                                  ? 'Нет расходов за последний месяц'
-                                  : 'Нет доходов за последний месяц',
+                              widget.isIncome
+                                  ? 'Нет доходов за последний месяц'
+                                  : 'Нет расходов за последний месяц',
                             ),
                           )
                         : ListView.separated(
@@ -144,11 +135,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               final e = list[index];
                               final cat = categories.firstWhere(
                                 (c) => c.id == e.categoryId,
-                                orElse: () => Category(
+                                orElse: () => CategoryDTO(
                                   id: 0,
                                   name: '—',
                                   emoji: '❓',
                                   isIncome: false,
+                                  color: '#E0E0E0',
                                 ),
                               );
                               final bgColor = colorFor(

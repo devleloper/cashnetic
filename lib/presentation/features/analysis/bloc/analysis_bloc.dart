@@ -50,7 +50,13 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     final filtered = txs.where((t) {
       final cat = cats.firstWhere(
         (c) => c.id == t.categoryId,
-        orElse: () => Category(id: 0, name: '', emoji: '', isIncome: false),
+        orElse: () => Category(
+          id: 0,
+          name: '',
+          emoji: '',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
       );
       return event.type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
     }).toList();
@@ -80,8 +86,13 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     byCategory.forEach((catId, txs) {
       final cat = cats.firstWhere(
         (c) => c.id == catId,
-        orElse: () =>
-            Category(id: 0, name: 'Другое', emoji: '', isIncome: false),
+        orElse: () => Category(
+          id: 0,
+          name: 'Другое',
+          emoji: '',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
       );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;

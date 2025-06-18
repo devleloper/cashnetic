@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'categories_event.dart';
 import 'categories_state.dart';
@@ -27,10 +27,23 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   ) async {
     emit(CategoriesLoading());
     final result = await categoryRepository.getAllCategories();
-    result.fold(
-      (failure) => emit(CategoriesError(failure.toString())),
-      (categories) => emit(CategoriesLoaded(categories: categories)),
-    );
+    result.fold((failure) => emit(CategoriesError(failure.toString())), (
+      categories,
+    ) {
+      // Преобразуем domain Category в CategoryDTO, если нужно
+      final dtos = categories
+          .map(
+            (cat) => CategoryDTO(
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji,
+              isIncome: cat.isIncome,
+              color: cat.color,
+            ),
+          )
+          .toList();
+      emit(CategoriesLoaded(categories: dtos));
+    });
   }
 
   Future<void> _onSearchCategories(
@@ -59,9 +72,22 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     AddCategory event,
     Emitter<CategoriesState> emit,
   ) async {
-    // event.category должен быть типа Category
+    // event.category должен быть типа CategoryDTO
     final result = await categoryRepository.getAllCategories();
-    final categories = result.fold((_) => <Category>[], (cats) => cats);
+    final categories = result.fold(
+      (_) => <CategoryDTO>[],
+      (cats) => cats
+          .map(
+            (cat) => CategoryDTO(
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji,
+              isIncome: cat.isIncome,
+              color: cat.color,
+            ),
+          )
+          .toList(),
+    );
     // Здесь должна быть логика добавления категории через репозиторий (реализовать в domain/data)
     // После добавления перезагружаем список
     add(LoadCategories());

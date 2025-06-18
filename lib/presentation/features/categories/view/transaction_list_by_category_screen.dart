@@ -1,7 +1,6 @@
-import 'package:cashnetic/models/category/category_model.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import '../bloc/categories_bloc.dart';
 import '../bloc/categories_state.dart';
@@ -9,7 +8,7 @@ import '../bloc/categories_event.dart';
 import '../../../presentation.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {
-  final CategoryModel category;
+  final CategoryDTO category;
   const TransactionListByCategoryScreen({super.key, required this.category});
 
   @override
@@ -33,8 +32,13 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                 final t = txns[i];
                 final cat = categories.firstWhere(
                   (c) => c.id == t.categoryId,
-                  orElse: () =>
-                      Category(id: 0, name: '—', emoji: '❓', isIncome: false),
+                  orElse: () => CategoryDTO(
+                    id: 0,
+                    name: '—',
+                    emoji: '❓',
+                    isIncome: false,
+                    color: '#E0E0E0',
+                  ),
                 );
                 return MyItemListTile(
                   transaction: t,

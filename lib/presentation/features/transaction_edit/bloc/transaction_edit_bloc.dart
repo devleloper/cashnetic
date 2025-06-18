@@ -2,9 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
-import 'package:cashnetic/models/models.dart';
 import 'transaction_edit_event.dart';
 import 'transaction_edit_state.dart';
 
@@ -43,31 +43,52 @@ class TransactionEditBloc
   ) async {
     emit(TransactionEditLoading());
     final result = await categoryRepository.getCategoriesByIsIncome(
-      event.transaction.type == TransactionType.income,
+      event.transaction.category.isIncome,
     );
     result.fold((failure) => emit(TransactionEditError(failure.toString())), (
       categories,
     ) {
+      // Преобразуем domain Category в CategoryDTO
+      final dtos = categories
+          .map(
+            (cat) => CategoryDTO(
+              id: cat.id,
+              name: cat.name,
+              emoji: cat.emoji,
+              isIncome: cat.isIncome,
+              color: cat.color,
+            ),
+          )
+          .toList();
+
       // Находим соответствующую категорию
-      Category? selectedCategory;
+      CategoryDTO? selectedCategory;
       try {
-        selectedCategory = categories.firstWhere(
+        selectedCategory = dtos.firstWhere(
           (c) =>
-              c.name == event.transaction.categoryTitle &&
-              c.emoji == event.transaction.categoryIcon,
+              c.name == event.transaction.category.name &&
+              c.emoji == event.transaction.category.emoji,
         );
       } catch (e) {
-        selectedCategory = categories.isNotEmpty ? categories.first : null;
+        selectedCategory = dtos.isNotEmpty ? dtos.first : null;
+      }
+
+      // Парсим дату из строки
+      DateTime transactionDate;
+      try {
+        transactionDate = DateTime.parse(event.transaction.transactionDate);
+      } catch (e) {
+        transactionDate = DateTime.now();
       }
 
       emit(
         TransactionEditLoaded(
           transaction: event.transaction,
-          categories: categories,
+          categories: dtos,
           selectedCategory: selectedCategory,
-          selectedDate: event.transaction.transactionDate,
-          account: event.transaction.account,
-          amount: event.transaction.amount.toString(),
+          selectedDate: transactionDate,
+          account: event.transaction.account.name,
+          amount: event.transaction.amount,
           comment: event.transaction.comment ?? '',
           accounts: accounts,
         ),

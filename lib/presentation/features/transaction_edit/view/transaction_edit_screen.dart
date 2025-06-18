@@ -1,5 +1,5 @@
-import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/models/models.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -13,7 +13,7 @@ import '../bloc/transaction_edit_event.dart';
 import '../../../presentation.dart';
 
 class TransactionEditScreen extends StatefulWidget {
-  final TransactionModel transaction;
+  final TransactionResponseDTO transaction;
 
   const TransactionEditScreen({super.key, required this.transaction});
 
@@ -92,7 +92,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildContent(BuildContext context, dynamic state) {
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
-    final title = state.transaction.type == TransactionType.income
+    final title = state.transaction.category.isIncome
         ? 'Редактировать доход'
         : 'Редактировать расход';
     final isSaving = state is TransactionEditSaving;
@@ -345,10 +345,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Future<void> _selectCategory(
     BuildContext context,
-    List<Category> categories,
+    List<CategoryDTO> categories,
   ) async {
     final bloc = context.read<TransactionEditBloc>();
-    final res = await showModalBottomSheet<Category>(
+    final res = await showModalBottomSheet<CategoryDTO>(
       context: context,
       builder: (c) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -365,9 +365,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               children: [
                 ...categories.map(
                   (cat) => ListTile(
-                    leading: Text(
-                      cat.emoji,
-                      style: const TextStyle(fontSize: 20),
+                    leading: CircleAvatar(
+                      backgroundColor: Color(
+                        int.parse(cat.color.replaceFirst('#', '0xff')),
+                      ),
+                      child: Text(
+                        cat.emoji,
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
                     title: Text(cat.name),
                     onTap: () => Navigator.pop(c, cat),
@@ -377,7 +382,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ListTile(
                   leading: const Icon(Icons.add),
                   title: const Text('Создать категорию'),
-                  onTap: () => _showCustomCategoryDialog(context, bloc),
+                  onTap: () =>
+                      _showCustomCategoryDialog(context, bloc, categories),
                 ),
               ],
             ),
@@ -394,6 +400,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   void _showCustomCategoryDialog(
     BuildContext context,
     TransactionEditBloc bloc,
+    List<CategoryDTO> categories,
   ) {
     final nameController = TextEditingController();
     final emojiController = TextEditingController(text: '💰');
@@ -430,13 +437,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           TextButton(
             onPressed: () {
               if (nameController.text.isNotEmpty) {
-                final customCategory = Category(
+                final customCategory = CategoryDTO(
                   id: -1, // Временный ID для кастомной категории
                   name: nameController.text,
                   emoji: emojiController.text.isNotEmpty
                       ? emojiController.text
                       : '💰',
-                  isIncome: widget.transaction.type == TransactionType.income,
+                  isIncome: categories.isNotEmpty
+                      ? categories.first.isIncome
+                      : false,
+                  color: '#E0E0E0',
                 );
                 bloc.add(TransactionEditCategoryChanged(customCategory));
                 Navigator.pop(context);

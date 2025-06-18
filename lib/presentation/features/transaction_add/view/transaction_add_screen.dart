@@ -1,5 +1,4 @@
-import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/models/models.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -13,9 +12,9 @@ import '../bloc/transaction_add_event.dart';
 import '../../../presentation.dart';
 
 class TransactionAddScreen extends StatefulWidget {
-  final TransactionType type;
+  final bool isIncome;
 
-  const TransactionAddScreen({super.key, required this.type});
+  const TransactionAddScreen({super.key, required this.isIncome});
 
   @override
   State<TransactionAddScreen> createState() => _TransactionAddScreenState();
@@ -43,17 +42,8 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         categoryRepository: context.read<CategoryRepository>(),
         transactionRepository: context.read<TransactionRepository>(),
         accountRepository: context.read<AccountRepository>(),
-      )..add(TransactionAddInitialized(widget.type)),
+      )..add(TransactionAddInitialized(widget.isIncome)),
       child: BlocConsumer<TransactionAddBloc, TransactionAddState>(
-        listener: (context, state) {
-          if (state is TransactionAddSuccess) {
-            Navigator.pop(context);
-          } else if (state is TransactionAddError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          }
-        },
         builder: (context, state) {
           if (state is TransactionAddInitial ||
               state is TransactionAddLoading) {
@@ -66,11 +56,13 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             );
           } else if (state is TransactionAddLoaded ||
               state is TransactionAddSaving) {
-            final loadedState = state as dynamic;
-            if (_commentController.text != loadedState.comment) {
-              _commentController.text = loadedState.comment;
+            final comment = state is TransactionAddLoaded
+                ? state.comment
+                : (state as TransactionAddSaving).comment;
+            if (_commentController.text != comment) {
+              _commentController.text = comment;
             }
-            return _buildContent(context, loadedState);
+            return _buildContent(context, state);
           } else if (state is TransactionAddSuccess) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
@@ -80,16 +72,28 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             body: Center(child: Text('Неизвестное состояние')),
           );
         },
+        listener: (context, state) {
+          if (state is TransactionAddSuccess) {
+            Navigator.pop(context);
+          } else if (state is TransactionAddError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, dynamic state) {
+    // Ensure state is either TransactionAddLoaded or TransactionAddSaving
+    if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
+      return const Scaffold(body: Center(child: Text('Неизвестное состояние')));
+    }
+
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
-    final title = widget.type == TransactionType.income
-        ? 'Добавить доход'
-        : 'Добавить расход';
+    final title = widget.isIncome ? 'Добавить доход' : 'Добавить расход';
     final isSaving = state is TransactionAddSaving;
 
     return Scaffold(
@@ -174,6 +178,11 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   }
 
   void _validateAndSave(BuildContext context, dynamic state) {
+    // Ensure state is either TransactionAddLoaded or TransactionAddSaving
+    if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
+      return;
+    }
+
     final errors = <String>[];
 
     if (state.selectedCategory == null) {
@@ -310,14 +319,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   Future<void> _selectCategory(
     BuildContext context,
-    List<Category> categories,
+    List<CategoryDTO> categories,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
     final filteredCategories = categories
-        .where((c) => c.isIncome == (widget.type == TransactionType.income))
+        .where((c) => c.isIncome == widget.isIncome)
         .toList();
 
-    final res = await showModalBottomSheet<Category>(
+    final res = await showModalBottomSheet<CategoryDTO>(
       context: context,
       builder: (c) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -334,9 +343,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
               children: [
                 ...filteredCategories.map(
                   (cat) => ListTile(
-                    leading: Text(
-                      cat.emoji,
-                      style: const TextStyle(fontSize: 20),
+                    leading: CircleAvatar(
+                      backgroundColor: Color(
+                        int.parse(cat.color.replaceFirst('#', '0xff')),
+                      ),
+                      child: Text(
+                        cat.emoji,
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
                     title: Text(cat.name),
                     onTap: () => Navigator.pop(c, cat),
@@ -399,13 +413,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
           TextButton(
             onPressed: () {
               if (nameController.text.isNotEmpty) {
-                final customCategory = Category(
+                final customCategory = CategoryDTO(
                   id: -1, // Временный ID для кастомной категории
                   name: nameController.text,
                   emoji: emojiController.text.isNotEmpty
                       ? emojiController.text
                       : '💰',
-                  isIncome: widget.type == TransactionType.income,
+                  isIncome: widget.isIncome,
+                  color: '#E0E0E0',
                 );
                 bloc.add(TransactionAddCategoryChanged(customCategory));
                 Navigator.pop(context);

@@ -11,6 +11,7 @@ _CategoryDTO _$CategoryDTOFromJson(Map<String, dynamic> json) => _CategoryDTO(
   name: json['name'] as String,
   emoji: json['emoji'] as String,
   isIncome: json['isIncome'] as bool,
+  color: json['color'] as String,
 );
 
 Map<String, dynamic> _$CategoryDTOToJson(_CategoryDTO instance) =>
@@ -19,4 +20,5 @@ Map<String, dynamic> _$CategoryDTOToJson(_CategoryDTO instance) =>
       'name': instance.name,
       'emoji': instance.emoji,
       'isIncome': instance.isIncome,
+      'color': instance.color,
     };

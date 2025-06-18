@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
-import 'package:cashnetic/models/category/category_model.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/category_list_tile.dart';
@@ -67,14 +67,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final cat = categories[i];
-                    final catModel = CategoryModel(
-                      id: cat.id,
-                      name: cat.name,
-                      emoji: cat.emoji,
-                      isIncome: cat.isIncome,
-                    );
                     return CategoryListTile(
-                      category: catModel,
+                      category: cat,
                       onTap: () async {
                         context.read<CategoriesBloc>().add(
                           LoadTransactionsForCategory(cat.id),
@@ -82,9 +76,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => TransactionListByCategoryScreen(
-                              category: catModel,
-                            ),
+                            builder: (_) =>
+                                TransactionListByCategoryScreen(category: cat),
                           ),
                         );
                         context.read<CategoriesBloc>().add(

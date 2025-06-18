@@ -75,7 +75,13 @@ class IncomesBloc extends Bloc<IncomesEvent, IncomesState> {
       final incomeTransactions = allTransactions.where((transaction) {
         final category = categories.firstWhere(
           (cat) => cat.id == transaction.categoryId,
-          orElse: () => Category(id: 0, name: '', emoji: '', isIncome: false),
+          orElse: () => Category(
+            id: 0,
+            name: '',
+            emoji: '',
+            isIncome: false,
+            color: '#E0E0E0',
+          ),
         );
         return category.isIncome;
       }).toList();

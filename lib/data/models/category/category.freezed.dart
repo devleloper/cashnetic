@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryDTO {
 
- int get id; String get name; String get emoji; bool get isIncome;
+ int get id; String get name; String get emoji; bool get isIncome; String get color;
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $CategoryDTOCopyWith<CategoryDTO> get copyWith => _$CategoryDTOCopyWithImpl<Cate
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryDTO&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.emoji, emoji) || other.emoji == emoji)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryDTO&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.emoji, emoji) || other.emoji == emoji)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome)&&(identical(other.color, color) || other.color == color));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,emoji,isIncome);
+int get hashCode => Object.hash(runtimeType,id,name,emoji,isIncome,color);
 
 @override
 String toString() {
-  return 'CategoryDTO(id: $id, name: $name, emoji: $emoji, isIncome: $isIncome)';
+  return 'CategoryDTO(id: $id, name: $name, emoji: $emoji, isIncome: $isIncome, color: $color)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $CategoryDTOCopyWith<$Res>  {
   factory $CategoryDTOCopyWith(CategoryDTO value, $Res Function(CategoryDTO) _then) = _$CategoryDTOCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String emoji, bool isIncome
+ int id, String name, String emoji, bool isIncome, String color
 });
 
 
@@ -66,13 +66,14 @@ class _$CategoryDTOCopyWithImpl<$Res>
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,emoji: null == emoji ? _self.emoji : emoji // ignore: cast_nullable_to_non_nullable
 as String,isIncome: null == isIncome ? _self.isIncome : isIncome // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -83,13 +84,14 @@ as bool,
 @JsonSerializable()
 
 class _CategoryDTO implements CategoryDTO {
-  const _CategoryDTO({required this.id, required this.name, required this.emoji, required this.isIncome});
+  const _CategoryDTO({required this.id, required this.name, required this.emoji, required this.isIncome, required this.color});
   factory _CategoryDTO.fromJson(Map<String, dynamic> json) => _$CategoryDTOFromJson(json);
 
 @override final  int id;
 @override final  String name;
 @override final  String emoji;
 @override final  bool isIncome;
+@override final  String color;
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
@@ -104,16 +106,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryDTO&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.emoji, emoji) || other.emoji == emoji)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryDTO&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.emoji, emoji) || other.emoji == emoji)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome)&&(identical(other.color, color) || other.color == color));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,emoji,isIncome);
+int get hashCode => Object.hash(runtimeType,id,name,emoji,isIncome,color);
 
 @override
 String toString() {
-  return 'CategoryDTO(id: $id, name: $name, emoji: $emoji, isIncome: $isIncome)';
+  return 'CategoryDTO(id: $id, name: $name, emoji: $emoji, isIncome: $isIncome, color: $color)';
 }
 
 
@@ -124,7 +126,7 @@ abstract mixin class _$CategoryDTOCopyWith<$Res> implements $CategoryDTOCopyWith
   factory _$CategoryDTOCopyWith(_CategoryDTO value, $Res Function(_CategoryDTO) _then) = __$CategoryDTOCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String emoji, bool isIncome
+ int id, String name, String emoji, bool isIncome, String color
 });
 
 
@@ -141,13 +143,14 @@ class __$CategoryDTOCopyWithImpl<$Res>
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = null,}) {
   return _then(_CategoryDTO(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,emoji: null == emoji ? _self.emoji : emoji // ignore: cast_nullable_to_non_nullable
 as String,isIncome: null == isIncome ? _self.isIncome : isIncome // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

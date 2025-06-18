@@ -10,6 +10,7 @@ abstract class CategoryDTO with _$CategoryDTO {
     required String name,
     required String emoji,
     required bool isIncome,
+    required String color,
   }) = _CategoryDTO;
 
   factory CategoryDTO.fromJson(Map<String, dynamic> json) =>

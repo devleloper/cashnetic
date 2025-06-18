@@ -1,17 +1,16 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/presentation/features/expenses/bloc/expenses_bloc.dart';
 import 'package:cashnetic/presentation/features/expenses/bloc/expenses_event.dart';
 import 'package:cashnetic/presentation/features/expenses/bloc/expenses_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../presentation.dart';
-import 'package:cashnetic/models/transactions/transaction_model.dart';
-import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
-import 'package:cashnetic/utils/transaction_mapper.dart';
 
 @RoutePage()
 class ExpensesScreen extends StatefulWidget {
@@ -48,7 +47,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
-            List<Category> categories = [];
+            List<CategoryDTO> categories = [];
             if (catState is CategoriesLoaded) {
               categories = catState.categories;
             }
@@ -62,9 +61,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const HistoryScreen(
-                            type: TransactionType.expense,
-                          ),
+                          builder: (_) => const HistoryScreen(isIncome: false),
                         ),
                       );
                     },
@@ -111,11 +108,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               final t = sorted[index];
                               final cat = categories.firstWhere(
                                 (c) => c.id == t.categoryId,
-                                orElse: () => Category(
+                                orElse: () => CategoryDTO(
                                   id: 0,
-                                  name: '—',
-                                  emoji: '❓',
+                                  name: 'Расход',
+                                  emoji: '💸',
                                   isIncome: false,
+                                  color: '#E0E0E0',
                                 ),
                               );
                               return MyItemListTile(
@@ -135,9 +133,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const TransactionAddScreen(
-                        type: TransactionType.expense,
-                      ),
+                      builder: (_) =>
+                          const TransactionAddScreen(isIncome: false),
                     ),
                   );
                   context.read<ExpensesBloc>().add(LoadExpenses());
@@ -153,9 +150,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Future<void> _editTransaction(
     BuildContext context,
     Transaction transaction,
-    Category category,
+    CategoryDTO category,
   ) async {
-    final transactionModel = TransactionMapper.domainToModel(
+    final transactionModel = TransactionDomainMapper.domainToModel(
       transaction,
       category,
       'Сбербанк', // TODO: получить реальное название аккаунта

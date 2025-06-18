@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/models/models.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
 import 'package:cashnetic/utils/format_currency.dart';
@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/utils/transaction_mapper.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
@@ -31,8 +30,6 @@ class _IncomesScreenState extends State<IncomesScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<IncomesBloc>().add(LoadIncomes());
-    context.read<CategoriesBloc>().add(LoadCategories());
   }
 
   @override
@@ -87,8 +84,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    const HistoryScreen(type: TransactionType.income),
+                builder: (_) => const HistoryScreen(isIncome: true),
               ),
             );
           },
@@ -104,7 +100,6 @@ class _IncomesScreenState extends State<IncomesScreen> {
     final total = state is IncomesLoaded
         ? state.total
         : (state as IncomesRefreshing).total;
-    final isRefreshing = state is IncomesRefreshing;
 
     return Scaffold(
       appBar: _buildAppBar(context),
@@ -139,7 +134,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     },
                     child: BlocBuilder<CategoriesBloc, CategoriesState>(
                       builder: (context, catState) {
-                        List<Category> categories = [];
+                        List<CategoryDTO> categories = [];
                         if (catState is CategoriesLoaded) {
                           categories = catState.categories;
                         }
@@ -151,11 +146,12 @@ class _IncomesScreenState extends State<IncomesScreen> {
                             final transaction = incomes[index];
                             final cat = categories.firstWhere(
                               (c) => c.id == transaction.categoryId,
-                              orElse: () => Category(
+                              orElse: () => CategoryDTO(
                                 id: 0,
                                 name: 'Доход',
                                 emoji: '💰',
                                 isIncome: true,
+                                color: '#E0E0E0',
                               ),
                             );
                             return MyItemListTile(
@@ -180,8 +176,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  const TransactionAddScreen(type: TransactionType.income),
+              builder: (_) => const TransactionAddScreen(isIncome: true),
             ),
           );
           context.read<IncomesBloc>().add(RefreshIncomes());
@@ -194,9 +189,9 @@ class _IncomesScreenState extends State<IncomesScreen> {
   Future<void> _editTransaction(
     BuildContext context,
     Transaction transaction,
-    Category category,
+    CategoryDTO category,
   ) async {
-    final transactionModel = TransactionMapper.domainToModel(
+    final transactionModel = TransactionDomainMapper.domainToModel(
       transaction,
       category,
       'Сбербанк', // TODO: получить реальное название аккаунта

@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/data/models/account/account.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
@@ -35,22 +36,15 @@ class AccountScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.white),
                 onPressed: () async {
-                  final accountModel = accountDomainToModel(account);
                   final updatedModel = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AccountEditScreen(account: accountModel),
+                      builder: (_) => AccountEditScreen(account: account),
                     ),
                   );
                   if (updatedModel != null) {
-                    final updatedAccount = accountModelToDomain(
-                      updatedModel,
-                      account.userId,
-                      account.timeInterval.createdAt,
-                      DateTime.now(),
-                    );
                     context.read<AccountBloc>().add(
-                      UpdateAccount(updatedAccount),
+                      UpdateAccount(updatedModel),
                     );
                   }
                 },
@@ -72,27 +66,19 @@ class AccountScreen extends StatelessWidget {
                       icon: Icons.account_balance_wallet,
                       label: 'Баланс',
                       value: NumberFormat.currency(
-                        symbol: account.moneyDetails.currency,
+                        symbol: account.currency,
                         decimalDigits: 0,
-                      ).format(state.computedBalance),
+                      ).format(double.tryParse(account.balance) ?? 0),
                       onTap: () async {
-                        final accountModel = accountDomainToModel(account);
                         final updatedModel = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                AccountEditScreen(account: accountModel),
+                            builder: (_) => AccountEditScreen(account: account),
                           ),
                         );
                         if (updatedModel != null) {
-                          final updatedAccount = accountModelToDomain(
-                            updatedModel,
-                            account.userId,
-                            account.timeInterval.createdAt,
-                            DateTime.now(),
-                          );
                           context.read<AccountBloc>().add(
-                            UpdateAccount(updatedAccount),
+                            UpdateAccount(updatedModel),
                           );
                         }
                       },
@@ -101,7 +87,7 @@ class AccountScreen extends StatelessWidget {
                     _optionRow(
                       icon: Icons.currency_exchange,
                       label: 'Валюта',
-                      value: account.moneyDetails.currency,
+                      value: account.currency,
                       onTap: () => _showCurrencyPicker(context, account),
                     ),
                   ],
@@ -148,7 +134,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  void _showCurrencyPicker(BuildContext context, account) async {
+  void _showCurrencyPicker(BuildContext context, AccountDTO account) async {
     final sel = await showModalBottomSheet<String>(
       context: context,
       builder: (_) => Column(
@@ -174,7 +160,7 @@ class AccountScreen extends StatelessWidget {
         ],
       ),
     );
-    if (sel != null && sel != account.moneyDetails.currency) {
+    if (sel != null && sel != account.currency) {
       context.read<AccountBloc>().add(UpdateAccountCurrency(sel));
     }
   }
