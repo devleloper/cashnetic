@@ -13,14 +13,6 @@ class TransactionEditBloc
   final CategoryRepository categoryRepository;
   final TransactionRepository transactionRepository;
   final AccountRepository accountRepository;
-  final List<String> accounts = const [
-    'Сбербанк',
-    'Т‑Банк',
-    'Альфа Банк',
-    'ВТБ',
-    'МТС Банк',
-    'Почта Банк',
-  ];
 
   TransactionEditBloc({
     required this.categoryRepository,
@@ -35,6 +27,7 @@ class TransactionEditBloc
     on<TransactionEditCommentChanged>(_onCommentChanged);
     on<TransactionEditSaveTransaction>(_onSaveTransaction);
     on<TransactionEditDeleteTransaction>(_onDeleteTransaction);
+    on<TransactionEditCustomCategoryCreated>(_onCustomCategoryCreated);
   }
 
   Future<void> _onInitialized(
@@ -45,6 +38,12 @@ class TransactionEditBloc
     final result = await categoryRepository.getCategoriesByIsIncome(
       event.transaction.category.isIncome,
     );
+    final accountsResult = await accountRepository.getAllAccounts();
+    if (accountsResult.isLeft()) {
+      emit(TransactionEditError('Ошибка загрузки счетов'));
+      return;
+    }
+    final accounts = accountsResult.getOrElse(() => []);
     result.fold((failure) => emit(TransactionEditError(failure.toString())), (
       categories,
     ) {
@@ -81,13 +80,21 @@ class TransactionEditBloc
         transactionDate = DateTime.now();
       }
 
+      // Находим Account по имени (или id, если есть)
+      final selectedAccount = accounts.firstWhere(
+        (a) => a.name == event.transaction.account.name,
+        orElse: () => accounts.isNotEmpty
+            ? accounts.first
+            : throw Exception('Нет счетов'),
+      );
+
       emit(
         TransactionEditLoaded(
           transaction: event.transaction,
           categories: dtos,
           selectedCategory: selectedCategory,
           selectedDate: transactionDate,
-          account: event.transaction.account.name,
+          account: selectedAccount,
           amount: event.transaction.amount,
           comment: event.transaction.comment ?? '',
           accounts: accounts,
@@ -223,21 +230,7 @@ class TransactionEditBloc
     );
 
     try {
-      // Получаем список аккаунтов для определения accountId
-      final accountsResult = await accountRepository.getAllAccounts();
-      final accountId = accountsResult.fold(
-        (failure) => 1, // По умолчанию используем ID 1
-        (accounts) {
-          try {
-            final account = accounts.firstWhere(
-              (a) => a.name == current.account,
-            );
-            return account.id;
-          } catch (e) {
-            return accounts.isNotEmpty ? accounts.first.id : 1;
-          }
-        },
-      );
+      final accountId = current.account.id;
 
       // Создаем форму транзакции для обновления
       final transactionForm = TransactionForm(
@@ -296,5 +289,63 @@ class TransactionEditBloc
     } catch (e) {
       emit(TransactionEditError('Ошибка при удалении: $e'));
     }
+  }
+
+  Future<void> _onCustomCategoryCreated(
+    TransactionEditCustomCategoryCreated event,
+    Emitter<TransactionEditState> emit,
+  ) async {
+    if (state is! TransactionEditLoaded) return;
+    final current = state as TransactionEditLoaded;
+    emit(TransactionEditLoading());
+    final addResult = await categoryRepository.addCategory(
+      name: event.name,
+      emoji: event.emoji,
+      isIncome: event.isIncome,
+      color: event.color,
+    );
+    await addResult.fold(
+      (failure) {
+        emit(TransactionEditError('Ошибка при добавлении категории: $failure'));
+      },
+      (newCat) async {
+        // После добавления — обновляем список и выбираем новую категорию
+        final result = await categoryRepository.getCategoriesByIsIncome(
+          event.isIncome,
+        );
+        result.fold(
+          (failure) => emit(TransactionEditError(failure.toString())),
+          (categories) {
+            final dtos = categories
+                .map(
+                  (cat) => CategoryDTO(
+                    id: cat.id,
+                    name: cat.name,
+                    emoji: cat.emoji,
+                    isIncome: cat.isIncome,
+                    color: cat.color,
+                  ),
+                )
+                .toList();
+            final selected = dtos.firstWhere(
+              (c) => c.id == newCat.id,
+              orElse: () => dtos.last,
+            );
+            emit(
+              TransactionEditLoaded(
+                transaction: current.transaction,
+                categories: dtos,
+                selectedCategory: selected,
+                selectedDate: current.selectedDate,
+                account: current.account,
+                amount: current.amount,
+                comment: current.comment,
+                accounts: current.accounts,
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

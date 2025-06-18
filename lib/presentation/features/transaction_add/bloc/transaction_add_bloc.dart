@@ -12,14 +12,6 @@ class TransactionAddBloc
   final CategoryRepository categoryRepository;
   final TransactionRepository transactionRepository;
   final AccountRepository accountRepository;
-  final List<String> accounts = const [
-    'Сбербанк',
-    'Т‑Банк',
-    'Альфа Банк',
-    'ВТБ',
-    'МТС Банк',
-    'Почта Банк',
-  ];
 
   TransactionAddBloc({
     required this.categoryRepository,
@@ -33,6 +25,7 @@ class TransactionAddBloc
     on<TransactionAddAmountChanged>(_onAmountChanged);
     on<TransactionAddCommentChanged>(_onCommentChanged);
     on<TransactionAddSaveTransaction>(_onSaveTransaction);
+    on<TransactionAddCustomCategoryCreated>(_onCustomCategoryCreated);
   }
 
   Future<void> _onInitialized(
@@ -43,6 +36,12 @@ class TransactionAddBloc
     final result = await categoryRepository.getCategoriesByIsIncome(
       event.isIncome,
     );
+    final accountsResult = await accountRepository.getAllAccounts();
+    if (accountsResult.isLeft()) {
+      emit(TransactionAddError('Ошибка загрузки счетов'));
+      return;
+    }
+    final accounts = accountsResult.getOrElse(() => []);
     result.fold((failure) => emit(TransactionAddError(failure.toString())), (
       categories,
     ) {
@@ -62,7 +61,9 @@ class TransactionAddBloc
           categories: dtos,
           selectedCategory: dtos.isNotEmpty ? dtos.first : null,
           selectedDate: DateTime.now(),
-          account: accounts.first,
+          account: accounts.isNotEmpty
+              ? accounts.first
+              : throw Exception('Нет счетов'),
           amount: '',
           comment: '',
           accounts: accounts,
@@ -192,23 +193,7 @@ class TransactionAddBloc
     );
 
     try {
-      // Получаем список аккаунтов для определения accountId
-      final accountsResult = await accountRepository.getAllAccounts();
-      final accountId = accountsResult.fold(
-        (failure) => 1, // По умолчанию используем ID 1
-        (accounts) {
-          // Ищем аккаунт по названию или используем первый
-          try {
-            final account = accounts.firstWhere(
-              (a) => a.name == current.account,
-            );
-            return account.id;
-          } catch (e) {
-            // Если аккаунт не найден, используем первый доступный или ID 1
-            return accounts.isNotEmpty ? accounts.first.id : 1;
-          }
-        },
-      );
+      final accountId = current.account.id;
 
       // Создаем форму транзакции
       final transactionForm = TransactionForm(
@@ -231,5 +216,62 @@ class TransactionAddBloc
     } catch (e) {
       emit(TransactionAddError('Ошибка при сохранении: $e'));
     }
+  }
+
+  Future<void> _onCustomCategoryCreated(
+    TransactionAddCustomCategoryCreated event,
+    Emitter<TransactionAddState> emit,
+  ) async {
+    if (state is! TransactionAddLoaded) return;
+    final current = state as TransactionAddLoaded;
+    emit(TransactionAddLoading());
+    final addResult = await categoryRepository.addCategory(
+      name: event.name,
+      emoji: event.emoji,
+      isIncome: event.isIncome,
+      color: event.color,
+    );
+    await addResult.fold(
+      (failure) {
+        emit(TransactionAddError('Ошибка при добавлении категории: $failure'));
+      },
+      (newCat) async {
+        // После добавления — обновляем список и выбираем новую категорию
+        final result = await categoryRepository.getCategoriesByIsIncome(
+          event.isIncome,
+        );
+        result.fold(
+          (failure) => emit(TransactionAddError(failure.toString())),
+          (categories) {
+            final dtos = categories
+                .map(
+                  (cat) => CategoryDTO(
+                    id: cat.id,
+                    name: cat.name,
+                    emoji: cat.emoji,
+                    isIncome: cat.isIncome,
+                    color: cat.color,
+                  ),
+                )
+                .toList();
+            final selected = dtos.firstWhere(
+              (c) => c.id == newCat.id,
+              orElse: () => dtos.last,
+            );
+            emit(
+              TransactionAddLoaded(
+                categories: dtos,
+                selectedCategory: selected,
+                selectedDate: current.selectedDate,
+                account: current.account,
+                amount: current.amount,
+                comment: current.comment,
+                accounts: current.accounts,
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

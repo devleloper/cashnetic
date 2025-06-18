@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
+import 'package:cashnetic/domain/entities/account.dart';
 
 abstract class TransactionEditState extends Equatable {
   const TransactionEditState();
@@ -17,10 +18,10 @@ class TransactionEditLoaded extends TransactionEditState {
   final List<CategoryDTO> categories;
   final CategoryDTO? selectedCategory;
   final DateTime selectedDate;
-  final String account;
+  final Account account;
   final String amount;
   final String comment;
-  final List<String> accounts;
+  final List<Account> accounts;
 
   const TransactionEditLoaded({
     required this.transaction,
@@ -51,10 +52,10 @@ class TransactionEditSaving extends TransactionEditState {
   final List<CategoryDTO> categories;
   final CategoryDTO? selectedCategory;
   final DateTime selectedDate;
-  final String account;
+  final Account account;
   final String amount;
   final String comment;
-  final List<String> accounts;
+  final List<Account> accounts;
 
   const TransactionEditSaving({
     required this.transaction,
@@ -85,10 +86,10 @@ class TransactionEditDeleting extends TransactionEditState {
   final List<CategoryDTO> categories;
   final CategoryDTO? selectedCategory;
   final DateTime selectedDate;
-  final String account;
+  final Account account;
   final String amount;
   final String comment;
-  final List<String> accounts;
+  final List<Account> accounts;
 
   const TransactionEditDeleting({
     required this.transaction,

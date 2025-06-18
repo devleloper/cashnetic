@@ -157,7 +157,9 @@ class _IncomesScreenState extends State<IncomesScreen> {
                             return MyItemListTile(
                               transaction: transaction,
                               category: cat,
-                              bgColor: const Color(0xFFD9F3DB),
+                              bgColor: Color(
+                                int.parse(cat.color.replaceFirst('#', '0xff')),
+                              ),
                               onTap: () =>
                                   _editTransaction(context, transaction, cat),
                             );

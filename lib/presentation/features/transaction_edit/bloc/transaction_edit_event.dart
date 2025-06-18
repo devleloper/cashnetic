@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
+import 'package:cashnetic/domain/entities/account.dart';
 
 abstract class TransactionEditEvent extends Equatable {
   const TransactionEditEvent();
@@ -30,7 +31,7 @@ class TransactionEditDateChanged extends TransactionEditEvent {
 }
 
 class TransactionEditAccountChanged extends TransactionEditEvent {
-  final String account;
+  final Account account;
   const TransactionEditAccountChanged(this.account);
   @override
   List<Object?> get props => [account];
@@ -53,3 +54,18 @@ class TransactionEditCommentChanged extends TransactionEditEvent {
 class TransactionEditSaveTransaction extends TransactionEditEvent {}
 
 class TransactionEditDeleteTransaction extends TransactionEditEvent {}
+
+class TransactionEditCustomCategoryCreated extends TransactionEditEvent {
+  final String name;
+  final String emoji;
+  final bool isIncome;
+  final String color;
+  const TransactionEditCustomCategoryCreated({
+    required this.name,
+    required this.emoji,
+    required this.isIncome,
+    required this.color,
+  });
+  @override
+  List<Object?> get props => [name, emoji, isIncome, color];
+}

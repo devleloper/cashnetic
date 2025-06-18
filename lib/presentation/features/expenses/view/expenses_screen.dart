@@ -119,7 +119,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               return MyItemListTile(
                                 transaction: t,
                                 category: cat,
-                                bgColor: Colors.green.shade50,
+                                bgColor: Color(
+                                  int.parse(
+                                    cat.color.replaceFirst('#', '0xff'),
+                                  ),
+                                ),
                                 onTap: () => _editTransaction(context, t, cat),
                               );
                             },

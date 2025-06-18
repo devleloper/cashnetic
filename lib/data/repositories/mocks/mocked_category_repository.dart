@@ -48,4 +48,29 @@ class MockedCategoryRepository implements CategoryRepository {
         .toList();
     return right(filtered);
   }
+
+  @override
+  Future<Either<Failure, Category>> addCategory({
+    required String name,
+    String emoji = '💰',
+    required bool isIncome,
+    String color = '#E0E0E0',
+  }) async {
+    try {
+      final newCat = Category(
+        id: _mockCategories.isNotEmpty
+            ? _mockCategories.map((c) => c.id).reduce((a, b) => a > b ? a : b) +
+                  1
+            : 1,
+        name: name,
+        emoji: emoji,
+        isIncome: isIncome,
+        color: color,
+      );
+      _mockCategories.add(newCat);
+      return right(newCat);
+    } catch (e) {
+      return left(RepositoryFailure('Ошибка при добавлении категории: $e'));
+    }
+  }
 }

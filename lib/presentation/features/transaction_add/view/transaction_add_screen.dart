@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
+import 'package:cashnetic/domain/entities/account.dart';
 
 import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
@@ -124,7 +125,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         children: [
           MyListTileRow(
             title: 'Счёт',
-            value: state.account,
+            value: state.account?.name ?? '',
             onTap: isSaving
                 ? () {}
                 : () => _selectAccount(context, state.accounts),
@@ -244,10 +245,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   Future<void> _selectAccount(
     BuildContext context,
-    List<String> accounts,
+    List<Account> accounts,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
-    final res = await showModalBottomSheet<String>(
+    final res = await showModalBottomSheet<Account>(
       context: context,
       builder: (c) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -255,7 +256,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             child: const Text(
-              'Выберите банк',
+              'Выберите счёт',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -264,15 +265,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
               children: [
                 ...accounts.map(
                   (account) => ListTile(
-                    title: Text(account),
+                    title: Text(account.name),
+                    subtitle: Text(account.moneyDetails?.currency ?? ''),
                     onTap: () => Navigator.pop(c, account),
                   ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.add),
-                  title: const Text('Ввести вручную'),
-                  onTap: () => _showCustomAccountDialog(context, bloc),
                 ),
               ],
             ),
@@ -284,37 +280,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     if (res != null) {
       bloc.add(TransactionAddAccountChanged(res));
     }
-  }
-
-  void _showCustomAccountDialog(BuildContext context, TransactionAddBloc bloc) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Введите название банка'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Название банка'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                bloc.add(TransactionAddAccountChanged(controller.text));
-                Navigator.pop(context);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('ОК'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _selectCategory(
@@ -413,16 +378,16 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
           TextButton(
             onPressed: () {
               if (nameController.text.isNotEmpty) {
-                final customCategory = CategoryDTO(
-                  id: -1, // Временный ID для кастомной категории
-                  name: nameController.text,
-                  emoji: emojiController.text.isNotEmpty
-                      ? emojiController.text
-                      : '💰',
-                  isIncome: widget.isIncome,
-                  color: '#E0E0E0',
+                bloc.add(
+                  TransactionAddCustomCategoryCreated(
+                    name: nameController.text,
+                    emoji: emojiController.text.isNotEmpty
+                        ? emojiController.text
+                        : '💰',
+                    isIncome: widget.isIncome,
+                    color: '#E0E0E0',
+                  ),
                 );
-                bloc.add(TransactionAddCategoryChanged(customCategory));
                 Navigator.pop(context);
                 Navigator.pop(context);
               }
