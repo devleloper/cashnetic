@@ -45,9 +45,16 @@ class MyItemListTile extends StatelessWidget {
               formattedDate,
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-      trailing: Text(
-        '$formattedAmount ₽',
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$formattedAmount ₽',
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.chevron_right, color: Colors.grey),
+        ],
       ),
       onTap: onTap,
     );
