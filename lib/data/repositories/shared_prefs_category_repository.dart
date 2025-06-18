@@ -5,6 +5,7 @@ import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 
 class SharedPrefsCategoryRepository implements CategoryRepository {
   static const _storageKey = 'categories_storage';
@@ -250,6 +251,23 @@ class SharedPrefsCategoryRepository implements CategoryRepository {
       return Right(deleted);
     } catch (e) {
       return Left(RepositoryFailure('Ошибка при удалении категории: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteCategoryIfUnused(
+    int categoryId,
+    List<dynamic> allTransactions,
+  ) async {
+    try {
+      await _loadFromStorage();
+      final used = allTransactions.any((t) => t.categoryId == categoryId);
+      if (used) return Right(false);
+      return await deleteCategory(categoryId);
+    } catch (e) {
+      return Left(
+        RepositoryFailure('Ошибка при проверке и удалении категории: $e'),
+      );
     }
   }
 }

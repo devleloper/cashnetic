@@ -15,4 +15,9 @@ abstract interface class CategoryRepository {
     required bool isIncome,
     String color = '#E0E0E0',
   });
+
+  Future<Either<Failure, bool>> deleteCategoryIfUnused(
+    int categoryId,
+    List<dynamic> allTransactions,
+  );
 }

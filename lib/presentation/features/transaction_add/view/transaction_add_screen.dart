@@ -6,6 +6,7 @@ import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/account.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 
 import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
@@ -309,9 +310,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
                 ...filteredCategories.map(
                   (cat) => ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Color(
-                        int.parse(cat.color.replaceFirst('#', '0xff')),
-                      ),
+                      backgroundColor: colorFor(cat.name).withOpacity(0.2),
                       child: Text(
                         cat.emoji,
                         style: const TextStyle(fontSize: 20),

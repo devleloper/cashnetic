@@ -12,6 +12,7 @@ import 'domain/repositories/account_repository.dart';
 import 'data/repositories/mocks/mocked_account_repository.dart';
 import 'data/repositories/mocks/mocked_category_repository.dart';
 import 'data/repositories/shared_prefs_transaction_repository.dart';
+import 'data/repositories/shared_prefs_category_repository.dart';
 
 // BLoC
 import 'presentation/features/account/bloc/account_bloc.dart';
@@ -47,7 +48,7 @@ class _CashneticAppState extends State<CashneticApp> {
   Widget build(BuildContext context) {
     final transactionsRepo = SharedPreferencesTransactionRepository();
     final accountsRepo = MockedAccountRepository();
-    final categoriesRepo = MockedCategoryRepository();
+    final categoriesRepo = SharedPrefsCategoryRepository();
 
     return MultiRepositoryProvider(
       providers: [
@@ -79,12 +80,16 @@ class _CashneticAppState extends State<CashneticApp> {
             ),
           ),
           BlocProvider(
-            create: (context) =>
-                ExpensesBloc(transactionRepository: transactionsRepo),
+            create: (context) => ExpensesBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
           ),
           BlocProvider(
-            create: (context) =>
-                HistoryBloc(transactionRepository: transactionsRepo),
+            create: (context) => HistoryBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
           ),
           // BLoC для добавления/редактирования транзакций создаются локально в соответствующих экранах
         ],

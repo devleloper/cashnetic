@@ -1,14 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'expenses_event.dart';
 import 'expenses_state.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
   final TransactionRepository transactionRepository;
+  final CategoryRepository categoryRepository;
 
-  ExpensesBloc({required this.transactionRepository})
-    : super(ExpensesLoading()) {
+  ExpensesBloc({
+    required this.transactionRepository,
+    required this.categoryRepository,
+  }) : super(ExpensesLoading()) {
     on<LoadExpenses>(_onLoadExpenses);
     on<AddExpense>(_onAddExpense);
     on<DeleteExpense>(_onDeleteExpense);
@@ -35,8 +40,23 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
               t.timestamp.isAfter(todayStart) && t.timestamp.isBefore(todayEnd),
         )
         .toList();
-    final expenses =
-        txs; // предполагается, что фильтрация по типу расхода делается через категории
+    // Получаем категории для фильтрации расходов
+    final catResult = await categoryRepository.getAllCategories();
+    final categories = catResult.fold((_) => <dynamic>[], (cats) => cats);
+    // Фильтруем только расходы
+    final expenses = txs.where((t) {
+      final cat = categories.firstWhere(
+        (c) => c.id == t.categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: 'Неизвестно',
+          emoji: '❓',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
+      );
+      return cat.isIncome == false;
+    }).toList();
     final total = expenses.fold<double>(0, (sum, t) => sum + t.amount);
     emit(ExpensesLoaded(transactions: expenses, total: total));
   }
@@ -54,8 +74,29 @@ class ExpensesBloc extends Bloc<ExpensesEvent, ExpensesState> {
     DeleteExpense event,
     Emitter<ExpensesState> emit,
   ) async {
-    // Здесь должна быть логика удаления транзакции через репозиторий
+    // Получаем транзакцию по id (можно из состояния, если есть)
+    int? categoryId;
+    if (state is ExpensesLoaded) {
+      final txList = (state as ExpensesLoaded).transactions;
+      final tx = txList.where((t) => t.id == event.transactionId).toList();
+      if (tx.isNotEmpty) {
+        categoryId = tx.first.categoryId;
+      }
+    }
+    // Удаляем транзакцию
+    await transactionRepository.deleteTransaction(event.transactionId);
+    // После удаления — обновляем список
     add(LoadExpenses());
+    // Проверяем, остались ли транзакции с этой категорией
+    if (categoryId != null) {
+      final allTxResult = await transactionRepository.getTransactionsByPeriod(
+        1, // accountId=1 (TODO: поддержка мультиаккаунтов)
+        DateTime(2000),
+        DateTime.now(),
+      );
+      final allTx = allTxResult.fold((_) => <Transaction>[], (txs) => txs);
+      await categoryRepository.deleteCategoryIfUnused(categoryId, allTx);
+    }
   }
 
   Future<void> _onUpdateExpense(

@@ -11,6 +11,7 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 
 @RoutePage()
 class ExpensesScreen extends StatefulWidget {
@@ -119,11 +120,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               return MyItemListTile(
                                 transaction: t,
                                 category: cat,
-                                bgColor: Color(
-                                  int.parse(
-                                    cat.color.replaceFirst('#', '0xff'),
-                                  ),
-                                ),
+                                bgColor: colorFor(cat.name).withOpacity(0.2),
                                 onTap: () => _editTransaction(context, t, cat),
                               );
                             },

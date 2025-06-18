@@ -17,6 +17,7 @@ import '../../history/history.dart';
 import '../bloc/incomes_bloc.dart';
 import '../bloc/incomes_state.dart';
 import '../bloc/incomes_event.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 
 @RoutePage()
 class IncomesScreen extends StatefulWidget {
@@ -157,9 +158,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                             return MyItemListTile(
                               transaction: transaction,
                               category: cat,
-                              bgColor: Color(
-                                int.parse(cat.color.replaceFirst('#', '0xff')),
-                              ),
+                              bgColor: colorFor(cat.name).withOpacity(0.2),
                               onTap: () =>
                                   _editTransaction(context, transaction, cat),
                             );

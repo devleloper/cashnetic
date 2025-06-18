@@ -4,11 +4,17 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:intl/intl.dart';
 import 'history_event.dart';
 import 'history_state.dart';
+import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   final TransactionRepository transactionRepository;
+  final CategoryRepository categoryRepository;
 
-  HistoryBloc({required this.transactionRepository}) : super(HistoryLoading()) {
+  HistoryBloc({
+    required this.transactionRepository,
+    required this.categoryRepository,
+  }) : super(HistoryLoading()) {
     on<LoadHistory>(_onLoadHistory);
   }
 
@@ -25,9 +31,24 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       now,
     ); // accountId=1 (TODO: поддержка мультиаккаунтов)
     final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
+    // Получаем категории для фильтрации
+    final catResult = await categoryRepository.getAllCategories();
+    final categories = catResult.fold((_) => <dynamic>[], (cats) => cats);
+    // Фильтруем по типу
     final filtered = txs.where((t) {
-      // TODO: фильтрация по типу (income/expense) через категории, если потребуется
-      return t.timestamp.isAfter(monthAgo) && t.timestamp.isBefore(now);
+      final cat = categories.firstWhere(
+        (c) => c.id == t.categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: 'Неизвестно',
+          emoji: '❓',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
+      );
+      return event.type == HistoryType.expense
+          ? cat.isIncome == false
+          : cat.isIncome == true;
     }).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     final total = filtered.fold<double>(0, (sum, t) => sum + t.amount);
     final start = filtered.isNotEmpty

@@ -6,6 +6,7 @@ import '../bloc/categories_bloc.dart';
 import '../bloc/categories_state.dart';
 import '../bloc/categories_event.dart';
 import '../../../presentation.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {
   final CategoryDTO category;
@@ -43,7 +44,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                 return MyItemListTile(
                   transaction: t,
                   category: cat,
-                  bgColor: Colors.green.shade50,
+                  bgColor: colorFor(cat.name).withOpacity(0.2),
                 );
               },
             );

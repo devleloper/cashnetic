@@ -112,8 +112,29 @@ class IncomesBloc extends Bloc<IncomesEvent, IncomesState> {
     DeleteIncome event,
     Emitter<IncomesState> emit,
   ) async {
-    // TODO: удалить транзакцию через репозиторий
+    // Получаем транзакцию по id (можно из состояния, если есть)
+    int? categoryId;
+    if (state is IncomesLoaded) {
+      final txList = (state as IncomesLoaded).incomes;
+      final tx = txList.where((t) => t.id == event.transactionId).toList();
+      if (tx.isNotEmpty) {
+        categoryId = tx.first.categoryId;
+      }
+    }
+    // Удаляем транзакцию
+    await transactionRepository.deleteTransaction(event.transactionId);
+    // После удаления — обновляем список
     add(RefreshIncomes());
+    // Проверяем, остались ли транзакции с этой категорией
+    if (categoryId != null) {
+      final allTxResult = await transactionRepository.getTransactionsByPeriod(
+        1, // accountId=1 (TODO: поддержка мультиаккаунтов)
+        DateTime(2000),
+        DateTime.now(),
+      );
+      final allTx = allTxResult.fold((_) => <Transaction>[], (txs) => txs);
+      await categoryRepository.deleteCategoryIfUnused(categoryId, allTx);
+    }
   }
 
   Future<void> _onUpdateIncome(
