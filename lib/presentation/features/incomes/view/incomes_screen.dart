@@ -9,14 +9,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
+import 'package:cashnetic/utils/transaction_mapper.dart';
+import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
+import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
+import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
+import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import '../../history/history.dart';
 import '../bloc/incomes_bloc.dart';
 import '../bloc/incomes_state.dart';
 import '../bloc/incomes_event.dart';
 
 @RoutePage()
-class IncomesScreen extends StatelessWidget {
+class IncomesScreen extends StatefulWidget {
   const IncomesScreen({super.key});
+
+  @override
+  State<IncomesScreen> createState() => _IncomesScreenState();
+}
+
+class _IncomesScreenState extends State<IncomesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<IncomesBloc>().add(LoadIncomes());
+    context.read<CategoriesBloc>().add(LoadCategories());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,37 +137,34 @@ class IncomesScreen extends StatelessWidget {
                     onRefresh: () async {
                       context.read<IncomesBloc>().add(RefreshIncomes());
                     },
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemCount: incomes.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final transaction = incomes[index];
-                        return ListTile(
-                          title: Text(_getCategoryName(transaction.categoryId)),
-                          subtitle: transaction.comment?.isNotEmpty == true
-                              ? Text(
-                                  transaction.comment!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                )
-                              : null,
-                          trailing: Text(
-                            '${formatCurrency(transaction.amount)} ₽',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          onTap: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TransactionEditScreen(
-                                  transaction: _convertToTransactionModel(
-                                    transaction,
-                                  ),
-                                ),
+                    child: BlocBuilder<CategoriesBloc, CategoriesState>(
+                      builder: (context, catState) {
+                        List<Category> categories = [];
+                        if (catState is CategoriesLoaded) {
+                          categories = catState.categories;
+                        }
+                        return ListView.separated(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          itemCount: incomes.length,
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final transaction = incomes[index];
+                            final cat = categories.firstWhere(
+                              (c) => c.id == transaction.categoryId,
+                              orElse: () => Category(
+                                id: 0,
+                                name: 'Доход',
+                                emoji: '💰',
+                                isIncome: true,
                               ),
                             );
-                            context.read<IncomesBloc>().add(RefreshIncomes());
+                            return MyItemListTile(
+                              transaction: transaction,
+                              category: cat,
+                              bgColor: const Color(0xFFD9F3DB),
+                              onTap: () =>
+                                  _editTransaction(context, transaction, cat),
+                            );
                           },
                         );
                       },
@@ -177,25 +191,25 @@ class IncomesScreen extends StatelessWidget {
     );
   }
 
-  String _getCategoryName(int? categoryId) {
-    // TODO: получить название категории из репозитория
-    // Пока возвращаем заглушку
-    return 'Доход';
-  }
-
-  TransactionModel _convertToTransactionModel(Transaction transaction) {
-    // TODO: создать маппер для конвертации domain Transaction в UI TransactionModel
-    // Пока возвращаем заглушку
-    return TransactionModel(
-      id: transaction.id,
-      categoryId: transaction.categoryId ?? 0,
-      account: 'Сбербанк', // TODO: получить из репозитория аккаунтов
-      categoryIcon: '💰', // TODO: получить из категории
-      categoryTitle: _getCategoryName(transaction.categoryId),
-      amount: transaction.amount,
-      comment: transaction.comment,
-      transactionDate: transaction.timestamp,
-      type: TransactionType.income,
+  Future<void> _editTransaction(
+    BuildContext context,
+    Transaction transaction,
+    Category category,
+  ) async {
+    final transactionModel = TransactionMapper.domainToModel(
+      transaction,
+      category,
+      'Сбербанк', // TODO: получить реальное название аккаунта
     );
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionEditScreen(transaction: transactionModel),
+      ),
+    );
+
+    // Обновляем список после возврата с экрана редактирования
+    context.read<IncomesBloc>().add(RefreshIncomes());
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
+import 'package:cashnetic/domain/repositories/account_repository.dart';
 
 import '../bloc/transaction_edit_bloc.dart';
 import '../bloc/transaction_edit_state.dart';
@@ -41,6 +42,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       create: (context) => TransactionEditBloc(
         categoryRepository: context.read<CategoryRepository>(),
         transactionRepository: context.read<TransactionRepository>(),
+        accountRepository: context.read<AccountRepository>(),
       )..add(TransactionEditInitialized(widget.transaction)),
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {

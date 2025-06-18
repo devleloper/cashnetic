@@ -11,6 +11,7 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
+import 'package:cashnetic/utils/transaction_mapper.dart';
 
 @RoutePage()
 class ExpensesScreen extends StatefulWidget {
@@ -121,6 +122,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                                 transaction: t,
                                 category: cat,
                                 bgColor: Colors.green.shade50,
+                                onTap: () => _editTransaction(context, t, cat),
                               );
                             },
                           ),
@@ -146,5 +148,27 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         );
       },
     );
+  }
+
+  Future<void> _editTransaction(
+    BuildContext context,
+    Transaction transaction,
+    Category category,
+  ) async {
+    final transactionModel = TransactionMapper.domainToModel(
+      transaction,
+      category,
+      'Сбербанк', // TODO: получить реальное название аккаунта
+    );
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionEditScreen(transaction: transactionModel),
+      ),
+    );
+
+    // Обновляем список после возврата с экрана редактирования
+    context.read<ExpensesBloc>().add(LoadExpenses());
   }
 }

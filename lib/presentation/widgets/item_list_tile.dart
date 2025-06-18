@@ -10,11 +10,13 @@ class MyItemListTile extends StatelessWidget {
     required this.transaction,
     required this.category,
     required this.bgColor,
+    this.onTap,
   });
 
   final Transaction transaction;
   final Category category;
   final Color bgColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +49,7 @@ class MyItemListTile extends StatelessWidget {
         '$formattedAmount ₽',
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
-      onTap: () {
-        // TODO: переход к экрану редактирования транзакции
-      },
+      onTap: onTap,
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
+import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'package:cashnetic/models/models.dart';
 import 'transaction_edit_event.dart';
 import 'transaction_edit_state.dart';
@@ -10,6 +12,7 @@ class TransactionEditBloc
     extends Bloc<TransactionEditEvent, TransactionEditState> {
   final CategoryRepository categoryRepository;
   final TransactionRepository transactionRepository;
+  final AccountRepository accountRepository;
   final List<String> accounts = const [
     'Сбербанк',
     'Т‑Банк',
@@ -22,6 +25,7 @@ class TransactionEditBloc
   TransactionEditBloc({
     required this.categoryRepository,
     required this.transactionRepository,
+    required this.accountRepository,
   }) : super(TransactionEditInitial()) {
     on<TransactionEditInitialized>(_onInitialized);
     on<TransactionEditCategoryChanged>(_onCategoryChanged);
@@ -197,23 +201,45 @@ class TransactionEditBloc
       ),
     );
 
-    // TODO: сохранить через domain репозиторий
-    // Создаем обновленную транзакцию для сохранения
-    // final updatedTransaction = TransactionModel(
-    //   id: current.transaction.id,
-    //   categoryId: current.selectedCategory!.id,
-    //   account: current.account,
-    //   categoryIcon: current.selectedCategory!.emoji,
-    //   categoryTitle: current.selectedCategory!.name,
-    //   amount: parsed,
-    //   comment: current.comment.isEmpty ? null : current.comment,
-    //   transactionDate: current.selectedDate,
-    //   type: current.transaction.type,
-    // );
+    try {
+      // Получаем список аккаунтов для определения accountId
+      final accountsResult = await accountRepository.getAllAccounts();
+      final accountId = accountsResult.fold(
+        (failure) => 1, // По умолчанию используем ID 1
+        (accounts) {
+          try {
+            final account = accounts.firstWhere(
+              (a) => a.name == current.account,
+            );
+            return account.id;
+          } catch (e) {
+            return accounts.isNotEmpty ? accounts.first.id : 1;
+          }
+        },
+      );
 
-    // Пока что эмулируем успешное сохранение
-    await Future.delayed(const Duration(milliseconds: 500));
-    emit(TransactionEditSuccess());
+      // Создаем форму транзакции для обновления
+      final transactionForm = TransactionForm(
+        accountId: accountId,
+        categoryId: current.selectedCategory!.id,
+        amount: parsed,
+        timestamp: current.selectedDate,
+        comment: current.comment.isEmpty ? null : current.comment,
+      );
+
+      // Обновляем транзакцию
+      final result = await transactionRepository.updateTransaction(
+        current.transaction.id,
+        transactionForm,
+      );
+
+      result.fold(
+        (failure) => emit(TransactionEditError(failure.toString())),
+        (transaction) => emit(TransactionEditSuccess()),
+      );
+    } catch (e) {
+      emit(TransactionEditError('Ошибка при сохранении: $e'));
+    }
   }
 
   Future<void> _onDeleteTransaction(
@@ -236,9 +262,18 @@ class TransactionEditBloc
       ),
     );
 
-    // TODO: удалить через domain репозиторий
-    // Пока что эмулируем успешное удаление
-    await Future.delayed(const Duration(milliseconds: 500));
-    emit(TransactionEditDeleted());
+    try {
+      // Удаляем транзакцию
+      final result = await transactionRepository.deleteTransaction(
+        current.transaction.id,
+      );
+
+      result.fold(
+        (failure) => emit(TransactionEditError(failure.toString())),
+        (_) => emit(TransactionEditDeleted()),
+      );
+    } catch (e) {
+      emit(TransactionEditError('Ошибка при удалении: $e'));
+    }
   }
 }
