@@ -18,6 +18,7 @@ import '../bloc/incomes_bloc.dart';
 import '../bloc/incomes_state.dart';
 import '../bloc/incomes_event.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 @RoutePage()
 class IncomesScreen extends StatefulWidget {
@@ -135,9 +136,19 @@ class _IncomesScreenState extends State<IncomesScreen> {
                     },
                     child: BlocBuilder<CategoriesBloc, CategoriesState>(
                       builder: (context, catState) {
-                        List<CategoryDTO> categories = [];
+                        List<Category> categories = [];
                         if (catState is CategoriesLoaded) {
-                          categories = catState.categories;
+                          categories = catState.categories
+                              .map(
+                                (cat) => Category(
+                                  id: cat.id,
+                                  name: cat.name,
+                                  emoji: cat.emoji,
+                                  isIncome: cat.isIncome,
+                                  color: cat.color,
+                                ),
+                              )
+                              .toList();
                         }
                         return ListView.separated(
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -147,7 +158,7 @@ class _IncomesScreenState extends State<IncomesScreen> {
                             final transaction = incomes[index];
                             final cat = categories.firstWhere(
                               (c) => c.id == transaction.categoryId,
-                              orElse: () => CategoryDTO(
+                              orElse: () => Category(
                                 id: 0,
                                 name: 'Доход',
                                 emoji: '💰',
@@ -190,12 +201,18 @@ class _IncomesScreenState extends State<IncomesScreen> {
   Future<void> _editTransaction(
     BuildContext context,
     Transaction transaction,
-    CategoryDTO category,
+    Category category,
   ) async {
     final transactionModel = TransactionDomainMapper.domainToModel(
       transaction,
-      category,
-      'Сбербанк', // TODO: получить реальное название аккаунта
+      CategoryDTO(
+        id: category.id,
+        name: category.name,
+        emoji: category.emoji,
+        isIncome: category.isIncome,
+        color: category.color,
+      ),
+      'Сбербанк',
     );
 
     await Navigator.push(

@@ -3,6 +3,7 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/category_list_tile.dart';
@@ -107,8 +108,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                TransactionListByCategoryScreen(category: cat),
+                            builder: (_) => TransactionListByCategoryScreen(
+                              category: Category(
+                                id: cat.id,
+                                name: cat.name,
+                                emoji: cat.emoji,
+                                isIncome: cat.isIncome,
+                                color: cat.color,
+                              ),
+                            ),
                           ),
                         );
                         context.read<CategoriesBloc>().add(

@@ -18,9 +18,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
-      routes: const [
-        ExpensesRoute(),
-        IncomesRoute(),
+      routes: [
+        ExpensesTabRoute(),
+        IncomesTabRoute(),
         AccountRoute(),
         CategoriesRoute(),
         SettingsRoute(),

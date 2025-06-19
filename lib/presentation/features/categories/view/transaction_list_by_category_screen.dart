@@ -9,9 +9,10 @@ import '../../../presentation.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {
-  final CategoryDTO category;
+  final Category category;
   const TransactionListByCategoryScreen({super.key, required this.category});
 
   @override
@@ -45,7 +46,13 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                 );
                 return MyItemListTile(
                   transaction: t,
-                  category: cat,
+                  category: Category(
+                    id: cat.id,
+                    name: cat.name,
+                    emoji: cat.emoji,
+                    isIncome: cat.isIncome,
+                    color: cat.color,
+                  ),
                   bgColor: colorFor(cat.name).withOpacity(0.2),
                   onTap: () async {
                     final model = TransactionDomainMapper.domainToModel(

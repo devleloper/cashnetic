@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/utils/format_currency.dart';
 import 'package:intl/intl.dart';
 
@@ -14,7 +14,7 @@ class MyItemListTile extends StatelessWidget {
   });
 
   final Transaction transaction;
-  final CategoryDTO category;
+  final Category category;
   final Color bgColor;
   final VoidCallback? onTap;
 

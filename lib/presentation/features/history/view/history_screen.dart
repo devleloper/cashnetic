@@ -10,10 +10,10 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dar
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -51,9 +51,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final list = state.transactions;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
-            List<CategoryDTO> categories = [];
+            List<Category> categories = [];
             if (catState is CategoriesLoaded) {
-              categories = catState.categories;
+              categories = catState.categories
+                  .map(
+                    (cat) => Category(
+                      id: cat.id,
+                      name: cat.name,
+                      emoji: cat.emoji,
+                      isIncome: cat.isIncome,
+                      color: cat.color,
+                    ),
+                  )
+                  .toList();
             }
             return Scaffold(
               appBar: AppBar(
@@ -135,7 +145,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               final e = list[index];
                               final cat = categories.firstWhere(
                                 (c) => c.id == e.categoryId,
-                                orElse: () => CategoryDTO(
+                                orElse: () => Category(
                                   id: 0,
                                   name: '—',
                                   emoji: '❓',

@@ -12,6 +12,7 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/domain/entities/category.dart' as domain;
 
 @RoutePage()
 class ExpensesScreen extends StatefulWidget {
@@ -119,9 +120,25 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                               );
                               return MyItemListTile(
                                 transaction: t,
-                                category: cat,
+                                category: domain.Category(
+                                  id: cat.id,
+                                  name: cat.name,
+                                  emoji: cat.emoji,
+                                  isIncome: cat.isIncome,
+                                  color: cat.color,
+                                ),
                                 bgColor: colorFor(cat.name).withOpacity(0.2),
-                                onTap: () => _editTransaction(context, t, cat),
+                                onTap: () => _editTransaction(
+                                  context,
+                                  t,
+                                  domain.Category(
+                                    id: cat.id,
+                                    name: cat.name,
+                                    emoji: cat.emoji,
+                                    isIncome: cat.isIncome,
+                                    color: cat.color,
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -151,11 +168,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Future<void> _editTransaction(
     BuildContext context,
     Transaction transaction,
-    CategoryDTO category,
+    domain.Category category,
   ) async {
     final transactionModel = TransactionDomainMapper.domainToModel(
       transaction,
-      category,
+      CategoryDTO(
+        id: category.id,
+        name: category.name,
+        emoji: category.emoji,
+        isIncome: category.isIncome,
+        color: category.color,
+      ),
       'Сбербанк', // TODO: получить реальное название аккаунта
     );
 

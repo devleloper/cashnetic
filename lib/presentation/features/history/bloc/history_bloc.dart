@@ -11,31 +11,85 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   final TransactionRepository transactionRepository;
   final CategoryRepository categoryRepository;
 
+  // Текущее состояние фильтров и сортировки
+  DateTime _from = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _to = DateTime.now();
+  HistoryType _type = HistoryType.expense;
+  HistorySort _sort = HistorySort.dateDesc;
+  int _page = 0;
+  final int _pageSize = 30;
+  bool _hasMore = true;
+  List<Transaction> _allLoaded = [];
+
   HistoryBloc({
     required this.transactionRepository,
     required this.categoryRepository,
   }) : super(HistoryLoading()) {
     on<LoadHistory>(_onLoadHistory);
+    on<ChangePeriod>(_onChangePeriod);
+    on<ChangeSort>(_onChangeSort);
+    on<LoadMoreHistory>(_onLoadMore);
   }
 
   Future<void> _onLoadHistory(
     LoadHistory event,
     Emitter<HistoryState> emit,
   ) async {
-    emit(HistoryLoading());
-    final now = DateTime.now();
-    final monthAgo = now.subtract(const Duration(days: 30));
+    _type = event.type;
+    _from = DateTime.now().subtract(const Duration(days: 30));
+    _to = DateTime.now();
+    _sort = HistorySort.dateDesc;
+    _page = 0;
+    _allLoaded.clear();
+    await _loadHistoryInternal(emit, reset: true);
+  }
+
+  Future<void> _onChangePeriod(
+    ChangePeriod event,
+    Emitter<HistoryState> emit,
+  ) async {
+    _from = event.from;
+    _to = event.to;
+    _type = event.type;
+    _page = 0;
+    _allLoaded.clear();
+    await _loadHistoryInternal(emit, reset: true);
+  }
+
+  Future<void> _onChangeSort(
+    ChangeSort event,
+    Emitter<HistoryState> emit,
+  ) async {
+    _sort = event.sort;
+    _page = 0;
+    _allLoaded.clear();
+    await _loadHistoryInternal(emit, reset: true);
+  }
+
+  Future<void> _onLoadMore(
+    LoadMoreHistory event,
+    Emitter<HistoryState> emit,
+  ) async {
+    if (!_hasMore) return;
+    _page++;
+    await _loadHistoryInternal(emit, reset: false);
+  }
+
+  Future<void> _loadHistoryInternal(
+    Emitter<HistoryState> emit, {
+    required bool reset,
+  }) async {
+    if (reset) emit(HistoryLoading());
     final txResult = await transactionRepository.getTransactionsByPeriod(
       1,
-      monthAgo,
-      now,
+      _from,
+      _to,
     ); // accountId=1 (TODO: поддержка мультиаккаунтов)
     final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    // Получаем категории для фильтрации
     final catResult = await categoryRepository.getAllCategories();
     final categories = catResult.fold((_) => <dynamic>[], (cats) => cats);
     // Фильтруем по типу
-    final filtered = txs.where((t) {
+    var filtered = txs.where((t) {
       final cat = categories.firstWhere(
         (c) => c.id == t.categoryId,
         orElse: () => Category(
@@ -46,23 +100,57 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
           color: '#E0E0E0',
         ),
       );
-      return event.type == HistoryType.expense
+      return _type == HistoryType.expense
           ? cat.isIncome == false
           : cat.isIncome == true;
-    }).toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    }).toList();
+    // Сортировка
+    switch (_sort) {
+      case HistorySort.dateDesc:
+        filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        break;
+      case HistorySort.dateAsc:
+        filtered.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        break;
+      case HistorySort.amountDesc:
+        filtered.sort((a, b) => b.amount.compareTo(a.amount));
+        break;
+      case HistorySort.amountAsc:
+        filtered.sort((a, b) => a.amount.compareTo(b.amount));
+        break;
+      case HistorySort.category:
+        filtered.sort(
+          (a, b) => (a.categoryId ?? 0).compareTo(b.categoryId ?? 0),
+        );
+        break;
+    }
+    // Lazy loading (постранично)
+    final start = _page * _pageSize;
+    final end = (_page + 1) * _pageSize;
+    final pageItems = filtered.skip(start).take(_pageSize).toList();
+    if (reset) {
+      _allLoaded = pageItems;
+    } else {
+      _allLoaded.addAll(pageItems);
+    }
+    _hasMore = end < filtered.length;
     final total = filtered.fold<double>(0, (sum, t) => sum + t.amount);
-    final start = filtered.isNotEmpty
+    final startStr = filtered.isNotEmpty
         ? DateFormat('dd.MM.yyyy').format(filtered.last.timestamp)
         : '—';
-    final end = filtered.isNotEmpty
+    final endStr = filtered.isNotEmpty
         ? DateFormat('dd.MM.yyyy').format(filtered.first.timestamp)
         : '—';
     emit(
       HistoryLoaded(
-        transactions: filtered,
+        transactions: _allLoaded,
         total: total,
-        start: start,
-        end: end,
+        start: startStr,
+        end: endStr,
+        from: _from,
+        to: _to,
+        sort: _sort,
+        hasMore: _hasMore,
       ),
     );
   }

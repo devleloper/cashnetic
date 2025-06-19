@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'history_event.dart';
 
 abstract class HistoryState extends Equatable {
   const HistoryState();
@@ -14,14 +15,31 @@ class HistoryLoaded extends HistoryState {
   final double total;
   final String start;
   final String end;
+  final DateTime from;
+  final DateTime to;
+  final HistorySort sort;
+  final bool hasMore;
   const HistoryLoaded({
     required this.transactions,
     required this.total,
     required this.start,
     required this.end,
+    required this.from,
+    required this.to,
+    required this.sort,
+    required this.hasMore,
   });
   @override
-  List<Object?> get props => [transactions, total, start, end];
+  List<Object?> get props => [
+    transactions,
+    total,
+    start,
+    end,
+    from,
+    to,
+    sort,
+    hasMore,
+  ];
 }
 
 class HistoryError extends HistoryState {
