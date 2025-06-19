@@ -14,6 +14,7 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/domain/entities/category.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -24,6 +25,48 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  DateTime? _from;
+  DateTime? _to;
+
+  Future<void> _pickDate(
+    BuildContext context,
+    bool isFrom,
+    DateTime initial,
+  ) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isFrom) {
+          _from = picked;
+        } else {
+          _to = picked;
+        }
+      });
+      final from = isFrom ? picked : (_from ?? initial);
+      final to = !isFrom ? picked : (_to ?? initial);
+      if (from.isAfter(to)) {
+        // Корректировка дат
+        if (isFrom) {
+          _to = from;
+        } else {
+          _from = to;
+        }
+      }
+      context.read<HistoryBloc>().add(
+        ChangePeriod(
+          _from ?? initial,
+          _to ?? initial,
+          widget.isIncome ? HistoryType.income : HistoryType.expense,
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +92,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return const SizedBox.shrink();
         }
         final list = state.transactions;
+        _from = state.from;
+        _to = state.to;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
             List<Category> categories = [];
@@ -112,17 +157,122 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 children: [
                   Container(
                     color: const Color(0xFFD9F3DB),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      bottom: 8,
+                      left: 16,
+                      right: 16,
                     ),
                     child: Column(
                       children: [
-                        _HistoryPeriodRow(label: 'Начало', value: state.start),
-                        _HistoryPeriodRow(label: 'Конец', value: state.end),
-                        _HistoryPeriodRow(
-                          label: 'Сумма',
-                          value: '${state.total.toStringAsFixed(0)} ₽',
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Период: начало',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () => _pickDate(
+                                context,
+                                true,
+                                _from ?? DateTime.now(),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                                child: Text(
+                                  DateFormat(
+                                    'LLLL yyyy',
+                                    'ru',
+                                  ).format(_from ?? DateTime.now()),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Период: конец',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(32),
+                              onTap: () => _pickDate(
+                                context,
+                                false,
+                                _to ?? DateTime.now(),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                                child: Text(
+                                  DateFormat(
+                                    'LLLL yyyy',
+                                    'ru',
+                                  ).format(_to ?? DateTime.now()),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8, top: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Сумма',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                '${state.total.toStringAsFixed(0)} ₽',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

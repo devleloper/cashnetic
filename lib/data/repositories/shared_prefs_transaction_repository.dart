@@ -72,7 +72,7 @@ class SharedPreferencesTransactionRepository implements TransactionRepository {
         accountId: form.accountId!,
         categoryId: form.categoryId!,
         amount: form.amount ?? 0.0,
-        timestamp: now,
+        timestamp: form.timestamp ?? now,
         comment: form.comment,
         timeInterval: TimeInterval(createdAt: now, updatedAt: now),
       );
@@ -116,7 +116,7 @@ class SharedPreferencesTransactionRepository implements TransactionRepository {
         accountId: form.accountId ?? old.accountId,
         categoryId: form.categoryId ?? old.categoryId,
         amount: form.amount ?? old.amount,
-        timestamp: now,
+        timestamp: form.timestamp ?? old.timestamp,
         comment: form.comment ?? old.comment,
         timeInterval: TimeInterval(
           createdAt: old.timeInterval.createdAt,

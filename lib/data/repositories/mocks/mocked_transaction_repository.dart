@@ -42,7 +42,7 @@ class MockedTransactionRepository implements TransactionRepository {
         categoryId: form.categoryId!,
         comment: form.comment ?? '',
         amount: form.amount ?? 0.0,
-        timestamp: DateTime.now(),
+        timestamp: form.timestamp ?? DateTime.now(),
         timeInterval: TimeInterval(
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -105,7 +105,7 @@ class MockedTransactionRepository implements TransactionRepository {
       categoryId: form.categoryId ?? existing.categoryId,
       comment: form.comment ?? existing.comment,
       amount: form.amount ?? existing.amount,
-      timestamp: DateTime.now(),
+      timestamp: form.timestamp ?? existing.timestamp,
       timeInterval: TimeInterval(
         createdAt: existing.timeInterval.createdAt,
         updatedAt: DateTime.now(),

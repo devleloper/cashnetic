@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -10,7 +11,6 @@ import 'domain/repositories/account_repository.dart';
 
 // Репозитории (моки)
 import 'data/repositories/mocks/mocked_account_repository.dart';
-import 'data/repositories/mocks/mocked_category_repository.dart';
 import 'data/repositories/shared_prefs_transaction_repository.dart';
 import 'data/repositories/shared_prefs_category_repository.dart';
 
@@ -18,10 +18,10 @@ import 'data/repositories/shared_prefs_category_repository.dart';
 import 'presentation/features/account/bloc/account_bloc.dart';
 import 'presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'presentation/features/categories/bloc/categories_bloc.dart';
-import 'presentation/features/expenses/bloc/expenses_bloc.dart';
 import 'presentation/features/history/bloc/history_bloc.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -31,6 +31,7 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+  await initializeDateFormatting('ru');
   runApp(const CashneticApp());
 }
 
@@ -79,12 +80,7 @@ class _CashneticAppState extends State<CashneticApp> {
               transactionRepository: transactionsRepo,
             ),
           ),
-          BlocProvider(
-            create: (context) => ExpensesBloc(
-              transactionRepository: transactionsRepo,
-              categoryRepository: categoriesRepo,
-            ),
-          ),
+
           BlocProvider(
             create: (context) => HistoryBloc(
               transactionRepository: transactionsRepo,
