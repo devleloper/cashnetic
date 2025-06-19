@@ -9,6 +9,12 @@ import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
+import 'package:cashnetic/router/router.dart';
+import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
+import 'package:cashnetic/data/mappers/transaction_mapper.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -44,62 +50,127 @@ class TransactionsScreen extends StatelessWidget {
               title: Text(isIncome ? 'Доходы сегодня' : 'Расходы сегодня'),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.history),
+                  icon: const Icon(Icons.history, color: Colors.white),
                   onPressed: () {
-                    // TODO: переход в историю
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => HistoryScreen(isIncome: isIncome),
+                      ),
+                    );
                   },
                 ),
               ],
             ),
             body: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
+                Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Всего',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                       Text(
                         '${total.toStringAsFixed(0)} ₽',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: Colors.black87,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   child: Row(
                     children: [
-                      const Text('Сортировка:'),
-                      const SizedBox(width: 8),
-                      DropdownButton<TransactionsSort>(
-                        value: state.sort,
-                        items: const [
-                          DropdownMenuItem(
-                            value: TransactionsSort.date,
-                            child: Text('По дате'),
+                      Text(
+                        'Сортировка:',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.green, width: 1),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsetsGeometry.symmetric(horizontal: 4),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<TransactionsSort>(
+                              value: state.sort,
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              isDense: true,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: TransactionsSort.date,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 16,
+                                        color: Colors.green,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text('По дате'),
+                                    ],
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: TransactionsSort.amount,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.attach_money,
+                                        size: 16,
+                                        color: Colors.green,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text('По сумме'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              onChanged: (sort) {
+                                if (sort != null) {
+                                  context.read<TransactionsBloc>().add(
+                                    TransactionsChangeSort(sort),
+                                  );
+                                }
+                              },
+                            ),
                           ),
-                          DropdownMenuItem(
-                            value: TransactionsSort.amount,
-                            child: Text('По сумме'),
-                          ),
-                        ],
-                        onChanged: (sort) {
-                          if (sort != null) {
-                            context.read<TransactionsBloc>().add(
-                              TransactionsChangeSort(sort),
-                            );
-                          }
-                        },
+                        ),
                       ),
                     ],
                   ),
@@ -133,8 +204,30 @@ class TransactionsScreen extends StatelessWidget {
                               transaction: t,
                               category: cat,
                               bgColor: colorFor(cat.name).withOpacity(0.2),
-                              onTap: () {
-                                // TODO: переход к редактированию
+                              onTap: () async {
+                                final model =
+                                    TransactionDomainMapper.domainToModel(
+                                      t,
+                                      CategoryDTO(
+                                        id: cat.id,
+                                        name: cat.name,
+                                        emoji: cat.emoji,
+                                        isIncome: cat.isIncome,
+                                        color: cat.color,
+                                      ),
+                                      'Сбербанк',
+                                    );
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TransactionEditScreen(
+                                      transaction: model,
+                                    ),
+                                  ),
+                                );
+                                context.read<TransactionsBloc>().add(
+                                  TransactionsLoad(isIncome: isIncome),
+                                );
                               },
                             );
                           },
@@ -145,8 +238,16 @@ class TransactionsScreen extends StatelessWidget {
             floatingActionButton: FloatingActionButton(
               heroTag: isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
-              onPressed: () {
-                // TODO: переход к добавлению операции
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionAddScreen(isIncome: isIncome),
+                  ),
+                );
+                context.read<TransactionsBloc>().add(
+                  TransactionsLoad(isIncome: isIncome),
+                );
               },
               child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),
