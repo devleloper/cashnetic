@@ -49,9 +49,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {
           if (state is TransactionEditSuccess) {
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           } else if (state is TransactionEditDeleted) {
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           } else if (state is TransactionEditError) {
             ScaffoldMessenger.of(
               context,

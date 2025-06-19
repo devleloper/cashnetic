@@ -15,6 +15,10 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_state
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:intl/intl.dart';
+import 'package:cashnetic/data/models/account_brief/account_brief.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
+import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -312,6 +316,53 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 transaction: e,
                                 category: cat,
                                 bgColor: bgColor,
+                                onTap: () async {
+                                  // Используем дефолтный аккаунт
+                                  final accountBrief = AccountBriefDTO(
+                                    id: 1,
+                                    name: 'Основной счёт',
+                                    balance: '0',
+                                    currency: '₽',
+                                  );
+                                  final categoryDTO = CategoryDTO(
+                                    id: cat.id,
+                                    name: cat.name,
+                                    emoji: cat.emoji,
+                                    isIncome: cat.isIncome,
+                                    color: cat.color,
+                                  );
+                                  final txDto = TransactionResponseDTO(
+                                    id: e.id,
+                                    account: accountBrief,
+                                    category: categoryDTO,
+                                    amount: e.amount.toString(),
+                                    transactionDate: e.timestamp
+                                        .toIso8601String(),
+                                    comment: e.comment,
+                                    createdAt: e.timeInterval.createdAt
+                                        .toIso8601String(),
+                                    updatedAt: e.timeInterval.updatedAt
+                                        .toIso8601String(),
+                                  );
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => TransactionEditScreen(
+                                        transaction: txDto,
+                                      ),
+                                    ),
+                                  );
+                                  if (result == true) {
+                                    // Обновляем историю после редактирования/удаления
+                                    context.read<HistoryBloc>().add(
+                                      LoadHistory(
+                                        widget.isIncome
+                                            ? HistoryType.income
+                                            : HistoryType.expense,
+                                      ),
+                                    );
+                                  }
+                                },
                               );
                             },
                           ),
