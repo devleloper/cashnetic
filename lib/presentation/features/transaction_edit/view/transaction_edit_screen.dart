@@ -185,6 +185,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               fixedSize: const Size.fromHeight(50),
               backgroundColor: Colors.red,
               elevation: 0,
+              shadowColor: Colors.transparent,
             ),
             onPressed: isProcessing
                 ? null

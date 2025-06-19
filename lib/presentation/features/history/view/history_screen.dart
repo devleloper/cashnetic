@@ -176,32 +176,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 color: Colors.black87,
                               ),
                             ),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(32),
-                              onTap: () => _pickDate(
-                                context,
-                                true,
-                                _from ?? DateTime.now(),
-                              ),
-                              child: Container(
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                shadowColor: Colors.transparent,
+                                elevation: 0,
+                                backgroundColor: Colors.green.withOpacity(0.8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
                                   vertical: 8,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(32),
-                                ),
-                                child: Text(
-                                  DateFormat(
-                                    'LLLL yyyy',
-                                    'ru',
-                                  ).format(_from ?? DateTime.now()),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
+                              ),
+                              onPressed: () => _pickDate(
+                                context,
+                                true,
+                                _from ?? DateTime.now(),
+                              ),
+                              child: Text(
+                                DateFormat(
+                                  'LLLL yyyy',
+                                  'ru',
+                                ).format(_from ?? DateTime.now()),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
@@ -219,32 +220,33 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 color: Colors.black87,
                               ),
                             ),
-                            InkWell(
-                              borderRadius: BorderRadius.circular(32),
-                              onTap: () => _pickDate(
-                                context,
-                                false,
-                                _to ?? DateTime.now(),
-                              ),
-                              child: Container(
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
+                                backgroundColor: Colors.green.withOpacity(0.8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
                                   vertical: 6,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(32),
-                                ),
-                                child: Text(
-                                  DateFormat(
-                                    'LLLL yyyy',
-                                    'ru',
-                                  ).format(_to ?? DateTime.now()),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
+                              ),
+                              onPressed: () => _pickDate(
+                                context,
+                                false,
+                                _to ?? DateTime.now(),
+                              ),
+                              child: Text(
+                                DateFormat(
+                                  'LLLL yyyy',
+                                  'ru',
+                                ).format(_to ?? DateTime.now()),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
