@@ -94,11 +94,14 @@ class TransactionsScreen extends StatelessWidget {
                 ),
                 Container(
                   color: Colors.green.withOpacity(0.2),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                  padding: const EdgeInsets.only(
+                    top: 0,
+                    left: 16,
+                    right: 16,
+                    bottom: 12,
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Сортировка:',
@@ -108,7 +111,7 @@ class TransactionsScreen extends StatelessWidget {
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(width: 6),
+
                       DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
