@@ -106,8 +106,8 @@ class TransactionsScreen extends StatelessWidget {
                       Text(
                         'Сортировка:',
                         style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                           color: Colors.black87,
                         ),
                       ),

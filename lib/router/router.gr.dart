@@ -43,22 +43,6 @@ class CategoriesRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [ExpensesScreen]
-class ExpensesRoute extends PageRouteInfo<void> {
-  const ExpensesRoute({List<PageRouteInfo>? children})
-    : super(ExpensesRoute.name, initialChildren: children);
-
-  static const String name = 'ExpensesRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      return const ExpensesScreen();
-    },
-  );
-}
-
-/// generated route for
 /// [ExpensesTabScreen]
 class ExpensesTabRoute extends PageRouteInfo<void> {
   const ExpensesTabRoute({List<PageRouteInfo>? children})
@@ -86,22 +70,6 @@ class HomeRoute extends PageRouteInfo<void> {
     name,
     builder: (data) {
       return const HomeScreen();
-    },
-  );
-}
-
-/// generated route for
-/// [IncomesScreen]
-class IncomesRoute extends PageRouteInfo<void> {
-  const IncomesRoute({List<PageRouteInfo>? children})
-    : super(IncomesRoute.name, initialChildren: children);
-
-  static const String name = 'IncomesRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      return const IncomesScreen();
     },
   );
 }
