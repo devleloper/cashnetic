@@ -280,8 +280,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     TransactionEditBloc bloc,
     List<CategoryDTO> categories,
   ) {
-    final nameController = TextEditingController();
-    final emojiController = TextEditingController(text: '💰');
     final isIncome = categories.isNotEmpty ? categories.first.isIncome : false;
 
     showDialog(

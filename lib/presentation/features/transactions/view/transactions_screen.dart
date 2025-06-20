@@ -15,6 +15,8 @@ import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
 import '../widgets/transactions_total_row.dart';
 import '../widgets/transactions_list_view.dart';
+import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -27,43 +29,50 @@ class TransactionsScreen extends StatelessWidget {
     TransactionDTO tx,
   ) async {
     final overlay = Overlay.of(context);
-    if (overlay == null) return;
 
-    // Получаем RenderBox и позиции
     final fabBox = context.findRenderObject() as RenderBox?;
-    final fabOffset =
-        fabBox?.localToGlobal(fabBox.size.center(Offset.zero)) ?? Offset.zero;
+    Offset fabOffset = Offset.zero;
+    try {
+      fabOffset =
+          fabBox?.localToGlobal(fabBox.size.center(Offset.zero)) ?? Offset.zero;
+    } catch (_) {}
 
     final historyBox =
         historyIconKey.currentContext?.findRenderObject() as RenderBox?;
     Offset historyOffset = Offset.zero;
-    if (historyBox != null) {
-      final position = historyBox.localToGlobal(Offset.zero);
-      final size = historyBox.size;
-      // Адаптивное смещение: 20% ширины иконки вправо от центра
-      final double relativeOffsetX = size.width * 2.7;
-      historyOffset =
-          position + Offset(size.width / 2 + relativeOffsetX, size.height / 2);
-    }
+    try {
+      if (historyBox != null) {
+        final position = historyBox.localToGlobal(Offset.zero);
+        final size = historyBox.size;
+        final double relativeOffsetX = size.width * 2.7;
+        historyOffset =
+            position +
+            Offset(size.width / 2 + relativeOffsetX, size.height / 2);
+      }
+    } catch (_) {}
 
-    // Если не удалось получить позиции — не анимируем
     if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
-
-    // Получаем emoji категории заранее, пока context видит Bloc
-    final emoji = _getCategoryEmoji(context, tx.categoryId);
+    String emoji = '💸';
+    String categoryName = 'Расход';
+    Color bgColor = Colors.green.withOpacity(0.2);
+    try {
+      emoji = _getCategoryEmoji(context, tx.categoryId);
+      categoryName = _getCategoryName(context, tx.categoryId);
+      bgColor = colorFor(categoryName).withOpacity(0.2);
+    } catch (_) {}
+    if (emoji.isEmpty) emoji = '💸';
 
     final entry = OverlayEntry(
       builder: (context) {
-        return _TransactionFlyCircle(
+        return TransactionsFlyChip(
           start: fabOffset,
           end: historyOffset,
           emoji: emoji,
-          amount: tx.amount,
+          bgColor: bgColor,
         );
       },
     );
     overlay.insert(entry);
-    // Длительность анимации: 900 мс перемещение + 500 мс пауза на иконке + 300 мс fade-out
     await Future.delayed(const Duration(milliseconds: 1700));
     entry.remove();
   }
@@ -85,8 +94,8 @@ class TransactionsScreen extends StatelessWidget {
           ),
         );
         return cat.emoji;
-      } else if (first is Category) {
-        final cat = (state.categories as List<Category>).firstWhere(
+      } else {
+        final cat = state.categories.firstWhere(
           (c) => c.id == categoryId,
           orElse: () => Category(
             id: 0,
@@ -100,6 +109,25 @@ class TransactionsScreen extends StatelessWidget {
       }
     }
     return '❓';
+  }
+
+  String _getCategoryName(BuildContext context, int categoryId) {
+    final bloc = BlocProvider.of<TransactionsBloc>(context);
+    final state = bloc.state;
+    if (state is TransactionsLoaded) {
+      final cat = state.categories.firstWhere(
+        (c) => c.id == categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: 'Расход',
+          emoji: '💸',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
+      );
+      return cat.name;
+    }
+    return 'Расход';
   }
 
   @override
@@ -207,121 +235,6 @@ class TransactionsScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class _TransactionFlyCircle extends StatefulWidget {
-  final Offset start;
-  final Offset end;
-  final String emoji;
-  final String amount;
-  const _TransactionFlyCircle({
-    required this.start,
-    required this.end,
-    required this.emoji,
-    required this.amount,
-  });
-
-  @override
-  State<_TransactionFlyCircle> createState() => _TransactionFlyCircleState();
-}
-
-class _TransactionFlyCircleState extends State<_TransactionFlyCircle>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _positionAnim;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _opacityAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(
-        milliseconds: 1200,
-      ), // 900 мс движение + 300 мс fade
-    );
-    _positionAnim = Tween<Offset>(begin: widget.start, end: widget.end).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.75, curve: Curves.easeInOutCubic),
-      ),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.6).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.75, curve: Curves.easeIn),
-      ),
-    );
-    _opacityAnim = TweenSequence([
-      TweenSequenceItem(
-        tween: ConstantTween(1.0),
-        weight: 75,
-      ), // 0-900 мс — opacity 1
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0),
-        weight: 25,
-      ), // 900-1200 fade-out
-    ]).animate(_controller);
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final pos = _positionAnim.value;
-        return Positioned(
-          left: pos.dx - 28,
-          top: pos.dy - 28,
-          child: Opacity(
-            opacity: _opacityAnim.value,
-            child: Transform.scale(
-              scale: _scaleAnim.value,
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(widget.emoji, style: const TextStyle(fontSize: 24)),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.amount,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

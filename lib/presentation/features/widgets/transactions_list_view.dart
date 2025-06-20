@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
 import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 
