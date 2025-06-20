@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cashnetic/data/models/account/account.dart';
+import '../widgets/balance_edit_row.dart';
 
 class AccountEditScreen extends StatefulWidget {
   final AccountDTO account;
@@ -54,36 +55,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
       ),
       body: Column(
         children: [
-          Container(
-            color: Colors.white,
-            child: Row(
-              children: [
-                const SizedBox(width: 16),
-                const Icon(Icons.account_balance_wallet_outlined),
-                const SizedBox(width: 16),
-                const Expanded(child: Text('Баланс')),
-                SizedBox(
-                  width: 120,
-                  child: TextField(
-                    controller: _controller,
-                    textAlign: TextAlign.end,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      suffixText: '₽',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // IconButton(
-                //   icon: const Icon(Icons.delete, color: Colors.red),
-                //   onPressed: _delete,
-                // ),
-              ],
-            ),
-          ),
+          BalanceEditRow(controller: _controller),
           const SizedBox(height: 24),
           // Padding(
           //   padding: const EdgeInsets.symmetric(horizontal: 24),

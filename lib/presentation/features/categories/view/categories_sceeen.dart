@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/category_list_tile.dart';
 import 'transaction_list_by_category_screen.dart';
+import '../widgets/category_search_field.dart';
+import '../widgets/category_list.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -71,58 +73,34 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           appBar: AppBar(title: const Text('Категории')),
           body: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Найти категорию',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Colors.green,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  onChanged: (v) => setState(() => _search = v),
-                ),
+              CategorySearchField(
+                value: _search,
+                onChanged: (v) => setState(() => _search = v),
               ),
               Expanded(
-                child: ListView.separated(
-                  itemCount: categories.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) {
-                    final cat = categories[i];
-                    final txCount = txByCategory[cat.id]?.length ?? 0;
-                    return CategoryListTile(
-                      category: cat,
-                      txCount: txCount,
-                      onTap: () async {
-                        context.read<CategoriesBloc>().add(
-                          LoadTransactionsForCategory(cat.id),
-                        );
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TransactionListByCategoryScreen(
-                              category: Category(
-                                id: cat.id,
-                                name: cat.name,
-                                emoji: cat.emoji,
-                                isIncome: cat.isIncome,
-                                color: cat.color,
-                              ),
-                            ),
+                child: CategoryList(
+                  categories: categories,
+                  txByCategory: txByCategory,
+                  onCategoryTap: (cat) async {
+                    context.read<CategoriesBloc>().add(
+                      LoadTransactionsForCategory(cat.id),
+                    );
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TransactionListByCategoryScreen(
+                          category: Category(
+                            id: cat.id,
+                            name: cat.name,
+                            emoji: cat.emoji,
+                            isIncome: cat.isIncome,
+                            color: cat.color,
                           ),
-                        );
-                        context.read<CategoriesBloc>().add(
-                          LoadTransactionsForCategory(cat.id),
-                        );
-                      },
+                        ),
+                      ),
+                    );
+                    context.read<CategoriesBloc>().add(
+                      LoadTransactionsForCategory(cat.id),
                     );
                   },
                 ),

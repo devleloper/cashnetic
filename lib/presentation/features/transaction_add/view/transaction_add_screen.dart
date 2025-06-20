@@ -12,6 +12,12 @@ import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
 import '../bloc/transaction_add_event.dart';
 import '../../../presentation.dart';
+import '../../../widgets/transaction_comment_field.dart';
+import '../../../widgets/custom_category_dialog.dart';
+import '../../../widgets/validation_error_sheet.dart';
+import '../../../widgets/amount_input_dialog.dart';
+import '../../../widgets/account_select_sheet.dart';
+import '../../../widgets/category_select_sheet.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   final bool isIncome;
@@ -170,16 +176,9 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
                 : () => _selectTime(context, state.selectedDate),
           ),
           const SizedBox(height: 16),
-          TextField(
-            decoration: const InputDecoration(
-              labelText: 'Комментарий',
-              border: OutlineInputBorder(),
-              filled: true,
-              fillColor: Colors.white,
-            ),
-            maxLines: 3,
-            enabled: !isSaving,
+          TransactionCommentField(
             controller: _commentController,
+            enabled: !isSaving,
             onChanged: (comment) => context.read<TransactionAddBloc>().add(
               TransactionAddCommentChanged(comment),
             ),
@@ -213,39 +212,9 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     if (errors.isNotEmpty) {
       showModalBottomSheet(
         context: context,
-        builder: (context) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Ошибки валидации:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ...errors.map(
-                (error) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(error)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Понятно'),
-                ),
-              ),
-            ],
-          ),
+        builder: (context) => ValidationErrorSheet(
+          errors: errors,
+          onClose: () => Navigator.pop(context),
         ),
       );
       return;
@@ -261,30 +230,9 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final bloc = context.read<TransactionAddBloc>();
     final res = await showModalBottomSheet<Account>(
       context: context,
-      builder: (c) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: const Text(
-              'Выберите счёт',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              children: [
-                ...accounts.map(
-                  (account) => ListTile(
-                    title: Text(account.name),
-                    subtitle: Text(account.moneyDetails?.currency ?? ''),
-                    onTap: () => Navigator.pop(c, account),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      builder: (c) => AccountSelectSheet(
+        accounts: accounts,
+        onSelect: (account) => Navigator.pop(c, account),
       ),
     );
 
@@ -304,42 +252,11 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
     final res = await showModalBottomSheet<CategoryDTO>(
       context: context,
-      builder: (c) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: const Text(
-              'Выберите категорию',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              children: [
-                ...filteredCategories.map(
-                  (cat) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: colorFor(cat.name).withOpacity(0.2),
-                      child: Text(
-                        cat.emoji,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
-                    title: Text(cat.name),
-                    onTap: () => Navigator.pop(c, cat),
-                  ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.add),
-                  title: const Text('Создать категорию'),
-                  onTap: () => _showCustomCategoryDialog(context, bloc),
-                ),
-              ],
-            ),
-          ),
-        ],
+      builder: (c) => CategorySelectSheet(
+        categories: filteredCategories,
+        isIncome: widget.isIncome,
+        onSelect: (category) => Navigator.pop(c, category),
+        onCreateCategory: () => _showCustomCategoryDialog(context, bloc),
       ),
     );
 
@@ -352,58 +269,25 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     BuildContext context,
     TransactionAddBloc bloc,
   ) {
-    final nameController = TextEditingController();
-    final emojiController = TextEditingController(text: '💰');
-
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Создать категорию'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Название категории',
-                hintText: 'Введите название',
+      builder: (context) => CustomCategoryDialog(
+        isIncome: widget.isIncome,
+        onCancel: () => Navigator.pop(context),
+        onCreate: (name, emoji) {
+          if (name.isNotEmpty) {
+            bloc.add(
+              TransactionAddCustomCategoryCreated(
+                name: name,
+                emoji: emoji.isNotEmpty ? emoji : '💰',
+                isIncome: widget.isIncome,
+                color: '#E0E0E0',
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emojiController,
-              decoration: const InputDecoration(
-                labelText: 'Эмоджи',
-                hintText: '💰',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty) {
-                bloc.add(
-                  TransactionAddCustomCategoryCreated(
-                    name: nameController.text,
-                    emoji: emojiController.text.isNotEmpty
-                        ? emojiController.text
-                        : '💰',
-                    isIncome: widget.isIncome,
-                    color: '#E0E0E0',
-                  ),
-                );
-                Navigator.pop(context);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Создать'),
-          ),
-        ],
+            );
+            Navigator.pop(context);
+            Navigator.pop(context);
+          }
+        },
       ),
     );
   }
@@ -444,27 +328,12 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final bloc = context.read<TransactionAddBloc>();
     showDialog(
       context: context,
-      builder: (context) {
-        final controller = TextEditingController(text: currentAmount);
-        return AlertDialog(
-          title: const Text('Введите сумму'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: '0.00'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                bloc.add(TransactionAddAmountChanged(controller.text));
-                Navigator.pop(context);
-              },
-              child: const Text('ОК'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => AmountInputDialog(
+        currentAmount: currentAmount,
+        onSubmit: (value) {
+          bloc.add(TransactionAddAmountChanged(value));
+        },
+      ),
     );
   }
 }

@@ -1,10 +1,10 @@
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_bloc.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.dart';
-import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
@@ -14,11 +14,11 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import 'package:intl/intl.dart';
-import 'package:cashnetic/data/models/account_brief/account_brief.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
-import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
+import '../widgets/history_period_selector.dart';
+import '../widgets/history_total_row.dart';
+import '../widgets/history_list_item.dart';
+import '../widgets/history_list_view.dart';
+import '../widgets/history_sort_dropdown.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -168,6 +168,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       right: 16,
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,10 +200,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 _from ?? DateTime.now(),
                               ),
                               child: Text(
-                                DateFormat(
-                                  'LLLL yyyy',
-                                  'ru',
-                                ).format(_from ?? DateTime.now()),
+                                _from != null
+                                    ? '${_from!.day.toString().padLeft(2, '0')}.${_from!.month.toString().padLeft(2, '0')}.${_from!.year}'
+                                    : '',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
@@ -226,15 +226,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                elevation: 0,
                                 shadowColor: Colors.transparent,
+                                elevation: 0,
                                 backgroundColor: Colors.green.withOpacity(0.8),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 18,
-                                  vertical: 6,
+                                  vertical: 8,
                                 ),
                               ),
                               onPressed: () => _pickDate(
@@ -243,10 +243,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 _to ?? DateTime.now(),
                               ),
                               child: Text(
-                                DateFormat(
-                                  'LLLL yyyy',
-                                  'ru',
-                                ).format(_to ?? DateTime.now()),
+                                _to != null
+                                    ? '${_to!.day.toString().padLeft(2, '0')}.${_to!.month.toString().padLeft(2, '0')}.${_to!.year}'
+                                    : '',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
@@ -256,133 +255,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ],
                         ),
-                        // Сортировка по дате/сумме
-                        Padding(
-                          padding: EdgeInsetsGeometry.only(top: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: Colors.green,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<HistorySort>(
-                                      value: state.sort,
-                                      icon: const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.green,
-                                        size: 20,
-                                      ),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      isDense: true,
-                                      items: const [
-                                        DropdownMenuItem(
-                                          value: HistorySort.dateDesc,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today,
-                                                size: 16,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text('По дате (сначала новые)'),
-                                            ],
-                                          ),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: HistorySort.dateAsc,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today,
-                                                size: 16,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text('По дате (сначала старые)'),
-                                            ],
-                                          ),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: HistorySort.amountDesc,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.attach_money,
-                                                size: 16,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text('По сумме (убыв.)'),
-                                            ],
-                                          ),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: HistorySort.amountAsc,
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.attach_money,
-                                                size: 16,
-                                                color: Colors.green,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text('По сумме (возр.)'),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                      onChanged: (sort) {
-                                        if (sort != null) {
-                                          context.read<HistoryBloc>().add(
-                                            ChangeSort(sort),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            HistorySortDropdown(
+                              value: state.sort,
+                              onChanged: (sort) {
+                                if (sort != null) {
+                                  context.read<HistoryBloc>().add(
+                                    ChangeSort(sort),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8, top: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Сумма',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Сумма',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
-                              Text(
-                                '${state.total.toStringAsFixed(0)} ₽',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
+                            ),
+                            Text(
+                              '${state.total.toStringAsFixed(0)} ₽',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -396,77 +304,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   : 'Нет расходов за последний месяц',
                             ),
                           )
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            itemCount: list.length,
-                            separatorBuilder: (_, __) =>
-                                const Divider(height: 1),
-                            itemBuilder: (_, index) {
-                              final e = list[index];
-                              final cat = categories.firstWhere(
-                                (c) => c.id == e.categoryId,
-                                orElse: () => Category(
-                                  id: 0,
-                                  name: '—',
-                                  emoji: '❓',
-                                  isIncome: false,
-                                  color: '#E0E0E0',
+                        : HistoryListView(
+                            transactions: list,
+                            categories: categories,
+                            isIncome: widget.isIncome,
+                            onEdited: () {
+                              // Обновляем историю после редактирования/удаления
+                              context.read<HistoryBloc>().add(
+                                LoadHistory(
+                                  widget.isIncome
+                                      ? HistoryType.income
+                                      : HistoryType.expense,
                                 ),
-                              );
-                              final bgColor = colorFor(
-                                cat.name,
-                              ).withOpacity(0.2);
-                              return MyItemListTile(
-                                transaction: e,
-                                category: cat,
-                                bgColor: bgColor,
-                                onTap: () async {
-                                  // Используем дефолтный аккаунт
-                                  final accountBrief = AccountBriefDTO(
-                                    id: 1,
-                                    name: 'Основной счёт',
-                                    balance: '0',
-                                    currency: '₽',
-                                  );
-                                  final categoryDTO = CategoryDTO(
-                                    id: cat.id,
-                                    name: cat.name,
-                                    emoji: cat.emoji,
-                                    isIncome: cat.isIncome,
-                                    color: cat.color,
-                                  );
-                                  final txDto = TransactionResponseDTO(
-                                    id: e.id,
-                                    account: accountBrief,
-                                    category: categoryDTO,
-                                    amount: e.amount.toString(),
-                                    transactionDate: e.timestamp
-                                        .toIso8601String(),
-                                    comment: e.comment,
-                                    createdAt: e.timeInterval.createdAt
-                                        .toIso8601String(),
-                                    updatedAt: e.timeInterval.updatedAt
-                                        .toIso8601String(),
-                                  );
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => TransactionEditScreen(
-                                        transaction: txDto,
-                                      ),
-                                    ),
-                                  );
-                                  if (result == true) {
-                                    // Обновляем историю после редактирования/удаления
-                                    context.read<HistoryBloc>().add(
-                                      LoadHistory(
-                                        widget.isIncome
-                                            ? HistoryType.income
-                                            : HistoryType.expense,
-                                      ),
-                                    );
-                                  }
-                                },
                               );
                             },
                           ),

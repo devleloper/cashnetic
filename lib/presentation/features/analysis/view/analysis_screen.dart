@@ -4,6 +4,10 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dar
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../widgets/period_row.dart';
+import '../widgets/analysis_pie_chart.dart';
+import '../widgets/analysis_legend.dart';
+import '../widgets/analysis_category_list.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -71,11 +75,11 @@ class AnalysisScreen extends StatelessWidget {
                 color: Colors.green.withOpacity(0.2),
                 child: Column(
                   children: [
-                    _PeriodRow(
+                    PeriodRow(
                       label: 'Период: начало',
                       value: _monthYear(result.periodStart),
                     ),
-                    _PeriodRow(
+                    PeriodRow(
                       label: 'Период: конец',
                       value: _monthYear(result.periodEnd),
                     ),
@@ -109,82 +113,11 @@ class AnalysisScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              if (result.total > 0)
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    swapAnimationDuration: const Duration(seconds: 3),
-                    PieChartData(
-                      sections: result.data.asMap().entries.map((entry) {
-                        final idx = entry.key;
-                        final c = entry.value;
-                        return PieChartSectionData(
-                          value: c.amount,
-                          title: '${c.percent.toStringAsFixed(0)}%',
-                          radius: 60,
-                          color: c.color,
-                          titleStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        );
-                      }).toList(),
-                      centerSpaceRadius: 50,
-                      sectionsSpace: 2,
-                      borderData: FlBorderData(show: false),
-                      pieTouchData: PieTouchData(enabled: false),
-                    ),
-                  ),
-                ),
+              if (result.total > 0) AnalysisPieChart(data: result.data),
               const SizedBox(height: 48),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 6,
-                  children: result.data.asMap().entries.map((entry) {
-                    final c = entry.value;
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: c.color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${c.categoryTitle} (${c.percent.toStringAsFixed(0)}%)',
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ),
+              AnalysisLegend(data: result.data),
               const SizedBox(height: 16),
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: result.data.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) {
-                    final c = result.data[i];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: c.color.withOpacity(0.2),
-                        child: Text(c.categoryIcon),
-                      ),
-                      title: Text(c.categoryTitle),
-                      subtitle: Text('${c.percent.toStringAsFixed(0)}%'),
-                      trailing: Text('${c.amount.toStringAsFixed(0)} ₽'),
-                    );
-                  },
-                ),
-              ),
+              Expanded(child: AnalysisCategoryList(data: result.data)),
             ],
           ),
         );
@@ -208,24 +141,5 @@ class AnalysisScreen extends StatelessWidget {
       'декабрь',
     ];
     return '${names[dt.month - 1]} ${dt.year}';
-  }
-}
-
-class _PeriodRow extends StatelessWidget {
-  final String label, value;
-  const _PeriodRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
   }
 }

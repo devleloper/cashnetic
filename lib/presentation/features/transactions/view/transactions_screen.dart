@@ -5,17 +5,16 @@ import '../bloc/transactions_event.dart';
 import '../bloc/transactions_state.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
-import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
-import 'package:cashnetic/router/router.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
+import '../widgets/transactions_total_row.dart';
+import '../widgets/transactions_list_view.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -146,177 +145,38 @@ class TransactionsScreen extends StatelessWidget {
             ),
             body: Column(
               children: [
-                Container(
-                  color: Colors.green.withOpacity(0.2),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Всего',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        '${total.toStringAsFixed(0)} ₽',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  color: Colors.green.withOpacity(0.2),
-                  padding: const EdgeInsets.only(
-                    top: 0,
-                    left: 16,
-                    right: 16,
-                    bottom: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Сортировка:',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
+                TransactionsTotalRow(total: total),
 
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.green, width: 1),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsetsGeometry.symmetric(horizontal: 4),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<TransactionsSort>(
-                              value: state.sort,
-                              icon: const Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.green,
-                                size: 20,
-                              ),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              isDense: true,
-                              items: const [
-                                DropdownMenuItem(
-                                  value: TransactionsSort.date,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.calendar_today,
-                                        size: 16,
-                                        color: Colors.green,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text('По дате'),
-                                    ],
-                                  ),
-                                ),
-                                DropdownMenuItem(
-                                  value: TransactionsSort.amount,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.attach_money,
-                                        size: 16,
-                                        color: Colors.green,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text('По сумме'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              onChanged: (sort) {
-                                if (sort != null) {
-                                  context.read<TransactionsBloc>().add(
-                                    TransactionsChangeSort(sort),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: transactions.isEmpty
-                      ? Center(
-                          child: Text(
-                            isIncome
-                                ? 'Нет доходов за сегодня'
-                                : 'Нет расходов за сегодня',
-                          ),
-                        )
-                      : ListView.separated(
-                          itemCount: transactions.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final t = transactions[index];
-                            final cat = categories.firstWhere(
-                              (c) => c.id == t.categoryId,
-                              orElse: () => Category(
-                                id: 0,
-                                name: isIncome ? 'Доход' : 'Расход',
-                                emoji: isIncome ? '💰' : '💸',
-                                isIncome: isIncome,
-                                color: '#E0E0E0',
-                              ),
-                            );
-                            return MyItemListTile(
-                              transaction: t,
-                              category: cat,
-                              bgColor: colorFor(cat.name).withOpacity(0.2),
-                              onTap: () async {
-                                final model =
-                                    TransactionDomainMapper.domainToModel(
-                                      t,
-                                      CategoryDTO(
-                                        id: cat.id,
-                                        name: cat.name,
-                                        emoji: cat.emoji,
-                                        isIncome: cat.isIncome,
-                                        color: cat.color,
-                                      ),
-                                      'Сбербанк',
-                                    );
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => TransactionEditScreen(
-                                      transaction: model,
-                                    ),
-                                  ),
-                                );
-                                context.read<TransactionsBloc>().add(
-                                  TransactionsLoad(isIncome: isIncome),
-                                );
-                              },
-                            );
-                          },
+                  child: TransactionsListView(
+                    transactions: transactions,
+                    categories: categories,
+                    isIncome: isIncome,
+                    onTap: (t, cat) async {
+                      final model = TransactionDomainMapper.domainToModel(
+                        t,
+                        CategoryDTO(
+                          id: cat.id,
+                          name: cat.name,
+                          emoji: cat.emoji,
+                          isIncome: cat.isIncome,
+                          color: cat.color,
                         ),
+                        'Сбербанк',
+                      );
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TransactionEditScreen(transaction: model),
+                        ),
+                      );
+                      context.read<TransactionsBloc>().add(
+                        TransactionsLoad(isIncome: isIncome),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
