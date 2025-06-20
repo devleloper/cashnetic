@@ -8,10 +8,19 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui';
 
 @RoutePage()
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  // Можно сделать через переменную, если нужно показывать/скрывать диалог динамически
+  final bool _showUnavailableDialog = true;
 
   @override
   Widget build(BuildContext context) {
@@ -29,79 +38,116 @@ class AccountScreen extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final account = state.account;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Мой счёт'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () async {
-                  final updatedModel = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AccountEditScreen(account: account),
-                    ),
-                  );
-                  if (updatedModel != null) {
-                    context.read<AccountBloc>().add(
-                      UpdateAccount(updatedModel),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
-            tooltip: 'Обновить',
-            child: const Icon(Icons.refresh, color: Colors.white),
-          ),
-          body: Column(
-            children: [
-              Container(
-                color: Colors.green.withOpacity(0.2),
-                child: Column(
-                  children: [
-                    _optionRow(
-                      icon: Icons.account_balance_wallet,
-                      label: 'Баланс',
-                      value: NumberFormat.currency(
-                        symbol: account.currency,
-                        decimalDigits: 0,
-                      ).format(double.tryParse(account.balance) ?? 0),
-                      onTap: () async {
-                        final updatedModel = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AccountEditScreen(account: account),
-                          ),
+
+        return Stack(
+          children: [
+            // Основной экран
+            Scaffold(
+              appBar: AppBar(
+                title: const Text('Мой счёт'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    onPressed: () async {
+                      final updatedModel = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AccountEditScreen(account: account),
+                        ),
+                      );
+                      if (updatedModel != null) {
+                        context.read<AccountBloc>().add(
+                          UpdateAccount(updatedModel),
                         );
-                        if (updatedModel != null) {
-                          context.read<AccountBloc>().add(
-                            UpdateAccount(updatedModel),
-                          );
-                        }
-                      },
+                      }
+                    },
+                  ),
+                ],
+              ),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
+                tooltip: 'Обновить',
+                child: const Icon(Icons.refresh, color: Colors.white),
+              ),
+              body: Column(
+                children: [
+                  Container(
+                    color: Colors.green.withOpacity(0.2),
+                    child: Column(
+                      children: [
+                        _optionRow(
+                          icon: Icons.account_balance_wallet,
+                          label: 'Баланс',
+                          value: NumberFormat.currency(
+                            symbol: account.currency,
+                            decimalDigits: 0,
+                          ).format(double.tryParse(account.balance) ?? 0),
+                          onTap: () async {
+                            final updatedModel = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    AccountEditScreen(account: account),
+                              ),
+                            );
+                            if (updatedModel != null) {
+                              context.read<AccountBloc>().add(
+                                UpdateAccount(updatedModel),
+                              );
+                            }
+                          },
+                        ),
+                        const Divider(height: 1),
+                        _optionRow(
+                          icon: Icons.currency_exchange,
+                          label: 'Валюта',
+                          value: account.currency,
+                          onTap: () => _showCurrencyPicker(context, account),
+                        ),
+                      ],
                     ),
-                    const Divider(height: 1),
-                    _optionRow(
-                      icon: Icons.currency_exchange,
-                      label: 'Валюта',
-                      value: account.currency,
-                      onTap: () => _showCurrencyPicker(context, account),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: _BalanceBarChart(points: state.dailyPoints),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Блюр + AlertDialog поверх
+            if (_showUnavailableDialog)
+              Positioned.fill(
+                child: Stack(
+                  children: [
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Container(color: Colors.black.withOpacity(0.2)),
+                    ),
+                    Center(
+                      child: AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        content: const Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 24,
+                            horizontal: 8,
+                          ),
+                          child: Text(
+                            'Функция пока недоступна,\nно скоро появится!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: _BalanceBarChart(points: state.dailyPoints),
-                ),
-              ),
-            ],
-          ),
+          ],
         );
       },
     );
