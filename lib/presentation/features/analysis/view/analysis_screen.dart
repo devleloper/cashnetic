@@ -7,6 +7,7 @@ import '../widgets/period_row.dart';
 import '../widgets/analysis_pie_chart.dart';
 import '../widgets/analysis_legend.dart';
 import '../widgets/analysis_category_list.dart';
+import 'package:flutter/rendering.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -28,32 +29,34 @@ class AnalysisScreen extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final result = state.result;
+        final selectedYears = state.selectedYears;
         return Scaffold(
           appBar: AppBar(
-            leading: const BackButton(color: Colors.white),
             title: Text(
               type == AnalysisType.expense
                   ? 'Анализ расходов'
                   : 'Анализ доходов',
+              style: const TextStyle(fontSize: 20, color: Colors.white),
             ),
+            centerTitle: true,
+            backgroundColor: Colors.green,
+            leading: const BackButton(color: Colors.white),
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                color: Colors.green.withOpacity(0.2),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: state.availableYears.map((yr) {
-                    final selected = yr == state.selectedYear;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    children: state.availableYears.map((yr) {
+                      final selected = selectedYears.contains(yr);
+                      return FilterChip(
                         elevation: 0,
-                        pressElevation: 0,
                         checkmarkColor: Colors.white,
                         label: Text('$yr'),
                         selected: selected,
@@ -62,61 +65,86 @@ class AnalysisScreen extends StatelessWidget {
                         labelStyle: TextStyle(
                           color: selected ? Colors.white : Colors.black,
                         ),
-                        onSelected: (_) => context.read<AnalysisBloc>().add(
-                          ChangeYear(year: yr, type: type),
+                        onSelected: (val) {
+                          final newYears = List<int>.from(selectedYears);
+                          if (val) {
+                            newYears.add(yr);
+                          } else {
+                            newYears.remove(yr);
+                          }
+                          if (newYears.isNotEmpty) {
+                            context.read<AnalysisBloc>().add(
+                              ChangeYears(
+                                years: newYears.toSet().toList()..sort(),
+                                type: type,
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  color: Colors.green.withOpacity(0.2),
+                  child: Column(
+                    children: [
+                      PeriodRow(
+                        label: 'Период: начало',
+                        value: _monthYear(result.periodStart),
+                      ),
+                      PeriodRow(
+                        label: 'Период: конец',
+                        value: _monthYear(result.periodEnd),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Всего',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Container(
-                color: Colors.green.withOpacity(0.2),
-                child: Column(
-                  children: [
-                    PeriodRow(
-                      label: 'Период: начало',
-                      value: _monthYear(result.periodStart),
-                    ),
-                    PeriodRow(
-                      label: 'Период: конец',
-                      value: _monthYear(result.periodEnd),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                color: Colors.green.withOpacity(0.2),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Всего',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                      Text(
+                        '${result.total.toStringAsFixed(0)} ₽',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${result.total.toStringAsFixed(0)} ₽',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 48),
-              if (result.total > 0) AnalysisPieChart(data: result.data),
-              const SizedBox(height: 48),
-              AnalysisLegend(data: result.data),
-              const SizedBox(height: 16),
-              Expanded(child: AnalysisCategoryList(data: result.data)),
+              SliverToBoxAdapter(child: SizedBox(height: 28)),
+              if (result.total > 0)
+                SliverToBoxAdapter(child: AnalysisPieChart(data: result.data)),
+              SliverToBoxAdapter(child: SizedBox(height: 28)),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _LegendHeaderDelegate(
+                  child: AnalysisLegend(data: result.data),
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 16)),
+              SliverToBoxAdapter(
+                child: AnalysisCategoryList(data: result.data),
+              ),
             ],
           ),
         );
@@ -141,4 +169,28 @@ class AnalysisScreen extends StatelessWidget {
     ];
     return '${names[dt.month - 1]} ${dt.year}';
   }
+}
+
+// Делегат для закреплённой легенды
+class _LegendHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _LegendHeaderDelegate({required this.child});
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Material(
+      color: Colors.green.withOpacity(0.1),
+      child: SizedBox(height: maxExtent, child: child),
+    );
+  }
+
+  @override
+  double get maxExtent => 80;
+  @override
+  double get minExtent => 80;
+  @override
+  bool shouldRebuild(covariant _LegendHeaderDelegate oldDelegate) => false;
 }

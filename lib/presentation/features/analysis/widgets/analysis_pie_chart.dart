@@ -11,7 +11,8 @@ class AnalysisPieChart extends StatelessWidget {
     return SizedBox(
       height: 200,
       child: PieChart(
-        swapAnimationDuration: const Duration(seconds: 3),
+        swapAnimationCurve: Curves.easeInOutCubic,
+        swapAnimationDuration: const Duration(milliseconds: 1500),
         PieChartData(
           sections: data.asMap().entries.map((entry) {
             final c = entry.value;

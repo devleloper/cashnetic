@@ -40,14 +40,21 @@ class AnalysisLoading extends AnalysisState {}
 class AnalysisLoaded extends AnalysisState {
   final AnalysisResult result;
   final int selectedYear;
+  final List<int> selectedYears;
   final List<int> availableYears;
   const AnalysisLoaded({
     required this.result,
     required this.selectedYear,
+    required this.selectedYears,
     required this.availableYears,
   });
   @override
-  List<Object?> get props => [result, selectedYear, availableYears];
+  List<Object?> get props => [
+    result,
+    selectedYear,
+    selectedYears,
+    availableYears,
+  ];
 }
 
 class AnalysisError extends AnalysisState {

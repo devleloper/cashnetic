@@ -6,22 +6,25 @@ class AnalysisCategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: data.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
-      itemBuilder: (_, i) {
+    // Если внутри сливеров — используем Column
+    return Column(
+      children: List.generate(data.length, (i) {
         final c = data[i];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: c.color.withOpacity(0.2),
-            child: Text(c.categoryIcon),
-          ),
-          title: Text(c.categoryTitle),
-          subtitle: Text('${c.percent.toStringAsFixed(0)}%'),
-          trailing: Text('${c.amount.toStringAsFixed(0)} ₽'),
+        return Column(
+          children: [
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: c.color.withOpacity(0.2),
+                child: Text(c.categoryIcon),
+              ),
+              title: Text(c.categoryTitle),
+              subtitle: Text('${c.percent.toStringAsFixed(0)}%'),
+              trailing: Text('${c.amount.toStringAsFixed(0)} ₽'),
+            ),
+            if (i < data.length - 1) const Divider(height: 1),
+          ],
         );
-      },
+      }),
     );
   }
 }
