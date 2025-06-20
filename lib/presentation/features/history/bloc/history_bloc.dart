@@ -48,8 +48,16 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     ChangePeriod event,
     Emitter<HistoryState> emit,
   ) async {
-    _from = event.from;
-    _to = event.to;
+    DateTime from = event.from;
+    DateTime to = event.to;
+    // Если конец меньше начала — меняем их местами
+    if (to.isBefore(from)) {
+      final tmp = from;
+      from = to;
+      to = tmp;
+    }
+    _from = from;
+    _to = to;
     _type = event.type;
     _page = 0;
     _allLoaded.clear();

@@ -24,9 +24,6 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  DateTime? _from;
-  DateTime? _to;
-
   Future<void> _pickDate(
     BuildContext context,
     bool isFrom,
@@ -39,30 +36,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      setState(() {
-        if (isFrom) {
-          _from = picked;
-        } else {
-          _to = picked;
-        }
-      });
-      final from = isFrom ? picked : (_from ?? initial);
-      final to = !isFrom ? picked : (_to ?? initial);
-      if (from.isAfter(to)) {
-        // Корректировка дат
-        if (isFrom) {
-          _to = from;
-        } else {
-          _from = to;
-        }
+      final bloc = context.read<HistoryBloc>();
+      final state = bloc.state;
+      if (state is HistoryLoaded) {
+        DateTime from = isFrom ? picked : state.from;
+        DateTime to = !isFrom ? picked : state.to;
+        bloc.add(
+          ChangePeriod(
+            from,
+            to,
+            widget.isIncome ? HistoryType.income : HistoryType.expense,
+          ),
+        );
       }
-      context.read<HistoryBloc>().add(
-        ChangePeriod(
-          _from ?? initial,
-          _to ?? initial,
-          widget.isIncome ? HistoryType.income : HistoryType.expense,
-        ),
-      );
     }
   }
 
@@ -91,8 +77,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return const SizedBox.shrink();
         }
         final list = state.transactions;
-        _from = state.from;
-        _to = state.to;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
             List<Category> categories = [];
@@ -189,15 +173,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   vertical: 8,
                                 ),
                               ),
-                              onPressed: () => _pickDate(
-                                context,
-                                true,
-                                _from ?? DateTime.now(),
-                              ),
+                              onPressed: () =>
+                                  _pickDate(context, true, state.from),
                               child: Text(
-                                _from != null
-                                    ? '${_from!.day.toString().padLeft(2, '0')}.${_from!.month.toString().padLeft(2, '0')}.${_from!.year}'
-                                    : '',
+                                '${state.from.day.toString().padLeft(2, '0')}.${state.from.month.toString().padLeft(2, '0')}.${state.from.year}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
@@ -232,15 +211,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   vertical: 8,
                                 ),
                               ),
-                              onPressed: () => _pickDate(
-                                context,
-                                false,
-                                _to ?? DateTime.now(),
-                              ),
+                              onPressed: () =>
+                                  _pickDate(context, false, state.to),
                               child: Text(
-                                _to != null
-                                    ? '${_to!.day.toString().padLeft(2, '0')}.${_to!.month.toString().padLeft(2, '0')}.${_to!.year}'
-                                    : '',
+                                '${state.to.day.toString().padLeft(2, '0')}.${state.to.month.toString().padLeft(2, '0')}.${state.to.year}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
