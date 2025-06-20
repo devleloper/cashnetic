@@ -1,0 +1,1 @@
+enum ChangeType { creation, modification }

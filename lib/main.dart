@@ -1,23 +1,27 @@
-import 'package:cashnetic/repositories/categories/categories_repositroy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-
-import 'models/models.dart';
-import 'repositories/account/account_repository.dart';
-import 'repositories/transactions/transactions_repository.dart';
-import 'repositories/analysis/analysis_repository.dart';
-
-import 'view_models/account/account_view_model.dart';
-import 'view_models/analysis/analysis_view_model.dart';
-import 'view_models/shared/transactions_view_model.dart';
-import 'view_models/expenses/expenses_view_model.dart';
-import 'view_models/categories/categories_view_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'router/router.dart';
-import 'ui/ui.dart';
+import 'presentation/presentation.dart';
+import 'domain/repositories/category_repository.dart';
+import 'domain/repositories/transaction_repository.dart';
+import 'domain/repositories/account_repository.dart';
 
-void main() {
+// Репозитории (моки)
+import 'data/repositories/mocks/mocked_account_repository.dart';
+import 'data/repositories/shared_prefs_transaction_repository.dart';
+import 'data/repositories/shared_prefs_category_repository.dart';
+
+// BLoC
+import 'presentation/features/account/bloc/account_bloc.dart';
+import 'presentation/features/analysis/bloc/analysis_bloc.dart';
+import 'presentation/features/categories/bloc/categories_bloc.dart';
+import 'presentation/features/history/bloc/history_bloc.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -27,6 +31,7 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+  await initializeDateFormatting('ru');
   runApp(const CashneticApp());
 }
 
@@ -42,42 +47,53 @@ class _CashneticAppState extends State<CashneticApp> {
 
   @override
   Widget build(BuildContext context) {
-    final transactionsRepo = TransactionsRepositoryImpl();
-    final accountsRepo = AccountsRepositoryImpl();
-    final categoriesRepo = CategoriesRepositoryImpl();
+    final transactionsRepo = SharedPreferencesTransactionRepository();
+    final accountsRepo = MockedAccountRepository();
+    final categoriesRepo = SharedPrefsCategoryRepository();
 
-    return MultiProvider(
+    return MultiRepositoryProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) =>
-              TransactionsViewModel(transactionsRepo)..loadTransactions(),
+        RepositoryProvider<TransactionRepository>.value(
+          value: transactionsRepo,
         ),
-        ChangeNotifierProvider(
-          create: (_) =>
-              ExpensesViewModel(repository: transactionsRepo)..load(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AnalysisViewModel(
-            repo: AnalysisRepositoryImpl(transactionsRepo: transactionsRepo),
-          )..load(TransactionType.expense),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AccountViewModel(
-            repo: accountsRepo,
-            transactionsRepo: transactionsRepo,
-          )..load(),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CategoriesViewModel(
-            categoriesRepo: categoriesRepo,
-            txRepo: transactionsRepo,
-          )..loadCategories(),
-        ),
+        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
+        RepositoryProvider<AccountRepository>.value(value: accountsRepo),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: themeData(),
-        routerConfig: _router.config(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AccountBloc(
+              accountRepository: accountsRepo,
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => AnalysisBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => CategoriesBloc(
+              categoryRepository: categoriesRepo,
+              transactionRepository: transactionsRepo,
+            ),
+          ),
+
+          BlocProvider(
+            create: (context) => HistoryBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
+          ),
+          // BLoC для добавления/редактирования транзакций создаются локально в соответствующих экранах
+        ],
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: themeData(),
+          routerConfig: _router.config(),
+        ),
       ),
     );
   }
