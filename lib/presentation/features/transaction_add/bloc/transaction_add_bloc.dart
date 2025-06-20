@@ -6,6 +6,7 @@ import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'transaction_add_event.dart';
 import 'transaction_add_state.dart';
+import 'package:cashnetic/data/models/transaction/transaction.dart';
 
 class TransactionAddBloc
     extends Bloc<TransactionAddEvent, TransactionAddState> {
@@ -209,10 +210,21 @@ class TransactionAddBloc
         transactionForm,
       );
 
-      result.fold(
-        (failure) => emit(TransactionAddError(failure.toString())),
-        (transaction) => emit(TransactionAddSuccess()),
-      );
+      result.fold((failure) => emit(TransactionAddError(failure.toString())), (
+        transaction,
+      ) {
+        final dto = TransactionDTO(
+          id: transaction.id,
+          accountId: transaction.accountId,
+          categoryId: transaction.categoryId ?? 0,
+          amount: transaction.amount.toString(),
+          transactionDate: transaction.timestamp.toIso8601String(),
+          comment: transaction.comment,
+          createdAt: transaction.timeInterval.createdAt.toIso8601String(),
+          updatedAt: transaction.timeInterval.updatedAt.toIso8601String(),
+        );
+        emit(TransactionAddSuccess(dto));
+      });
     } catch (e) {
       emit(TransactionAddError('Ошибка при сохранении: $e'));
     }

@@ -4,6 +4,7 @@ import 'transactions_state.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   final TransactionRepository transactionRepository;
@@ -71,6 +72,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     if (event.sort == TransactionsSort.amount) {
       sorted.sort((a, b) => b.amount.compareTo(a.amount));
     } else {
+      // Сортировка по дате и времени транзакции (timestamp)
       sorted.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     }
     emit(

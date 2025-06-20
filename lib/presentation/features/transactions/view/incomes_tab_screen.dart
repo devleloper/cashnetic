@@ -6,6 +6,5 @@ import 'transactions_screen.dart';
 class IncomesTabScreen extends StatelessWidget {
   const IncomesTabScreen({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const TransactionsScreen(isIncome: true);
+  Widget build(BuildContext context) => TransactionsScreen(isIncome: true);
 }

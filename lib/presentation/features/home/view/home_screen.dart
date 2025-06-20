@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
-
-import 'package:cashnetic/router/router.dart';
-
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:cashnetic/router/router.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {

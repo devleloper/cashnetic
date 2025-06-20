@@ -1,14 +1,12 @@
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/account.dart';
-
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/utils/category_utils.dart';
 
 import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
@@ -78,7 +76,17 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         },
         listener: (context, state) {
           if (state is TransactionAddSuccess) {
-            Navigator.pop(context);
+            final today = DateTime.now();
+            final txDate = DateTime.tryParse(state.transaction.transactionDate);
+            final isToday =
+                txDate != null &&
+                txDate.year == today.year &&
+                txDate.month == today.month &&
+                txDate.day == today.day;
+            Navigator.pop(context, {
+              'transaction': state.transaction,
+              'animateToHistory': !isToday,
+            });
           } else if (state is TransactionAddError) {
             ScaffoldMessenger.of(
               context,

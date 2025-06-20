@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:cashnetic/presentation/features/history/bloc/history_bloc.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
-
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.dart';
+import 'package:cashnetic/presentation/widgets/item_list_tile.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
@@ -16,13 +14,11 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-
+import 'package:intl/intl.dart';
 import 'package:cashnetic/data/models/account_brief/account_brief.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
-
-import '../../../widgets/widgets.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -260,7 +256,111 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ],
                         ),
-
+                        // Сортировка по дате/сумме
+                        Padding(
+                          padding: EdgeInsetsGeometry.only(top: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<HistorySort>(
+                                      value: state.sort,
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.green,
+                                        size: 20,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      isDense: true,
+                                      items: const [
+                                        DropdownMenuItem(
+                                          value: HistorySort.dateDesc,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: 16,
+                                                color: Colors.green,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text('По дате (сначала новые)'),
+                                            ],
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: HistorySort.dateAsc,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: 16,
+                                                color: Colors.green,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text('По дате (сначала старые)'),
+                                            ],
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: HistorySort.amountDesc,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.attach_money,
+                                                size: 16,
+                                                color: Colors.green,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text('По сумме (убыв.)'),
+                                            ],
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: HistorySort.amountAsc,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.attach_money,
+                                                size: 16,
+                                                color: Colors.green,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text('По сумме (возр.)'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (sort) {
+                                        if (sort != null) {
+                                          context.read<HistoryBloc>().add(
+                                            ChangeSort(sort),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8, top: 16),
                           child: Row(
@@ -377,6 +477,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
         );
       },
+    );
+  }
+}
+
+class _HistoryPeriodRow extends StatelessWidget {
+  final String label, value;
+  const _HistoryPeriodRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 14)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }
