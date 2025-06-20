@@ -1,4 +1,5 @@
 export 'home/home.dart';
+export 'transactions/transactions.dart';
 export 'transaction_add/transaction_add.dart';
 export 'transaction_edit/transaction_edit.dart';
 export 'history/history.dart';

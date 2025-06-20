@@ -4,7 +4,6 @@ import 'transactions_state.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   final TransactionRepository transactionRepository;

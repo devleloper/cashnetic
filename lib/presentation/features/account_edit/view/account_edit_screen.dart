@@ -31,11 +31,6 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     }
   }
 
-  void _delete() {
-    // По макету удаление здесь не делает навигацию — предполагается soft delete
-    Navigator.pop(context, null); // или можно передать сигнал об удалении
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
