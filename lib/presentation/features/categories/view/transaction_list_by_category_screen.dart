@@ -1,14 +1,12 @@
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/entities/transaction.dart';
 import '../bloc/categories_bloc.dart';
 import '../bloc/categories_state.dart';
 import '../bloc/categories_event.dart';
 import '../../../presentation.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
-import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {

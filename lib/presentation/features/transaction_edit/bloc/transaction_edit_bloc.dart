@@ -3,7 +3,6 @@ import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'transaction_edit_event.dart';
 import 'transaction_edit_state.dart';

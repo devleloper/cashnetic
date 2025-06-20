@@ -3,7 +3,6 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dar
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../widgets/period_row.dart';
 import '../widgets/analysis_pie_chart.dart';
 import '../widgets/analysis_legend.dart';

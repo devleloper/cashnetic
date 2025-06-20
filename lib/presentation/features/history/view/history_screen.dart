@@ -1,11 +1,9 @@
-import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_bloc.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.dart';
-import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
@@ -14,9 +12,6 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import '../widgets/history_period_selector.dart';
-import '../widgets/history_total_row.dart';
-import '../widgets/history_list_item.dart';
 import '../widgets/history_list_view.dart';
 import '../widgets/history_sort_dropdown.dart';
 

@@ -6,8 +6,6 @@ import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/account.dart';
-import 'package:cashnetic/utils/category_utils.dart';
-
 import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
 import '../bloc/transaction_add_event.dart';
