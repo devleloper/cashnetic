@@ -119,4 +119,9 @@ class MockedAccountRepository implements AccountRepository {
       AccountForm(name: updated.name, moneyDetails: updated.moneyDetails),
     );
   }
+
+  @override
+  Future<void> deleteAccount(int id) async {
+    _accounts.removeWhere((a) => a.id == id);
+  }
 }

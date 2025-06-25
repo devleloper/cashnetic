@@ -15,4 +15,20 @@ class Account {
     required this.moneyDetails,
     required this.timeInterval,
   });
+
+  Account copyWith({
+    int? id,
+    int? userId,
+    String? name,
+    MoneyDetails? moneyDetails,
+    TimeInterval? timeInterval,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      moneyDetails: moneyDetails ?? this.moneyDetails,
+      timeInterval: timeInterval ?? this.timeInterval,
+    );
+  }
 }

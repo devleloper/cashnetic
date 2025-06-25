@@ -72,9 +72,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 onPressed: () async {
                   final updatedModel = await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => AccountEditScreen(account: account),
-                    ),
+                    MaterialPageRoute(builder: (_) => AccountEditScreen()),
                   );
                   if (updatedModel != null) {
                     context.read<AccountBloc>().add(
@@ -92,66 +90,59 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           body: Column(
             children: [
-              // Вкладка выбора счетов (мультивыбор)
-              if (accounts.length > 1)
-                Container(
-                  width: double.infinity,
-                  color: Colors.green.withOpacity(0.2),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: accounts.map((acc) {
-                        final isSelected = selectedAccountIds.contains(acc.id);
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(acc.name),
-                                const SizedBox(width: 6),
-                                Icon(
-                                  Icons.account_balance_wallet,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.green,
-                                  size: 20,
-                                ),
-                              ],
-                            ),
-                            selected: isSelected,
-                            selectedColor: Colors.green,
-                            backgroundColor: Colors.white,
-                            checkmarkColor: Colors.white,
-                            labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            onSelected: (val) {
-                              final newSelected = List<int>.from(
-                                selectedAccountIds,
-                              );
-                              if (val) {
-                                newSelected.add(acc.id);
-                              } else {
-                                newSelected.remove(acc.id);
-                              }
-                              if (newSelected.isNotEmpty) {
-                                context.read<AccountBloc>().add(
-                                  SelectAccounts(newSelected),
-                                );
-                              }
-                            },
+              Container(
+                width: double.infinity,
+                color: Colors.green.withOpacity(0.2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: accounts.map((acc) {
+                      final isSelected = selectedAccountIds.contains(acc.id);
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(acc.name),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.account_balance_wallet,
+                                color: isSelected ? Colors.white : Colors.green,
+                                size: 20,
+                              ),
+                            ],
                           ),
-                        );
-                      }).toList(),
-                    ),
+                          selected: isSelected,
+                          selectedColor: Colors.green,
+                          backgroundColor: Colors.white,
+                          checkmarkColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          onSelected: (val) {
+                            final newSelected = List<int>.from(
+                              selectedAccountIds,
+                            );
+                            if (val) {
+                              newSelected.add(acc.id);
+                            } else {
+                              newSelected.remove(acc.id);
+                            }
+                            if (newSelected.isNotEmpty) {
+                              context.read<AccountBloc>().add(
+                                SelectAccounts(newSelected),
+                              );
+                            }
+                          },
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
+              ),
               Container(
                 color: Colors.green.withOpacity(0.2),
                 child: Column(

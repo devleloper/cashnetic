@@ -58,6 +58,82 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
+          } else if (state is TransactionAddError &&
+              state.message == 'Нет счетов') {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Нет счетов'),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final created = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              create: (context) => AccountAddBloc(
+                                accountRepository: context
+                                    .read<AccountRepository>(),
+                              ),
+                              child: const AccountAddScreen(),
+                            ),
+                          ),
+                        );
+                        if (created == true) {
+                          context.read<TransactionAddBloc>().add(
+                            TransactionAddInitialized(widget.isIncome),
+                          );
+                        }
+                      },
+                      child: const Text('Создать счет'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else if (state is TransactionAddError &&
+              state.message == 'Нет категорий') {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Нет категорий'),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await showDialog(
+                          context: context,
+                          builder: (context) => CustomCategoryDialog(
+                            isIncome: widget.isIncome,
+                            onCancel: () => Navigator.pop(context),
+                            onCreate: (name, emoji) {
+                              if (name.isNotEmpty) {
+                                context.read<TransactionAddBloc>().add(
+                                  TransactionAddCustomCategoryCreated(
+                                    name: name,
+                                    emoji: emoji.isNotEmpty ? emoji : '💰',
+                                    isIncome: widget.isIncome,
+                                    color: '#E0E0E0',
+                                  ),
+                                );
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        );
+                        context.read<TransactionAddBloc>().add(
+                          TransactionAddInitialized(widget.isIncome),
+                        );
+                      },
+                      child: const Text('Создать категорию'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           } else if (state is TransactionAddError) {
             return Scaffold(
               body: Center(child: Text('Ошибка: ${state.message}')),

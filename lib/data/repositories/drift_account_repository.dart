@@ -111,4 +111,9 @@ class DriftAccountRepository implements AccountRepository {
     // TODO: Реализовать историю аккаунта (например, выборка транзакций по аккаунту)
     return Left(RepositoryFailure('Not implemented'));
   }
+
+  @override
+  Future<void> deleteAccount(int id) async {
+    await dbInstance.deleteAccount(id);
+  }
 }

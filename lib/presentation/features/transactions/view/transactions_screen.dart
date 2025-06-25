@@ -17,6 +17,8 @@ import '../widgets/transactions_total_row.dart';
 import '../widgets/transactions_list_view.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -132,11 +134,21 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Получаем выбранный accountId из AccountBloc
+    final selectedAccountId = context.select<AccountBloc, int>(
+      (bloc) => bloc.state is AccountLoaded
+          ? (bloc.state as AccountLoaded).selectedAccountId
+          : 1, // fallback
+    );
+
     return BlocProvider(
-      create: (context) => TransactionsBloc(
-        transactionRepository: context.read<TransactionRepository>(),
-        categoryRepository: context.read<CategoryRepository>(),
-      )..add(TransactionsLoad(isIncome: isIncome)),
+      create: (context) =>
+          TransactionsBloc(
+            transactionRepository: context.read<TransactionRepository>(),
+            categoryRepository: context.read<CategoryRepository>(),
+          )..add(
+            TransactionsLoad(isIncome: isIncome, accountId: selectedAccountId),
+          ),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
           if (state is TransactionsLoading) {
@@ -201,7 +213,10 @@ class TransactionsScreen extends StatelessWidget {
                         ),
                       );
                       context.read<TransactionsBloc>().add(
-                        TransactionsLoad(isIncome: isIncome),
+                        TransactionsLoad(
+                          isIncome: isIncome,
+                          accountId: selectedAccountId,
+                        ),
                       );
                     },
                   ),
@@ -219,7 +234,10 @@ class TransactionsScreen extends StatelessWidget {
                   ),
                 );
                 context.read<TransactionsBloc>().add(
-                  TransactionsLoad(isIncome: isIncome),
+                  TransactionsLoad(
+                    isIncome: isIncome,
+                    accountId: selectedAccountId,
+                  ),
                 );
                 if (result != null &&
                     result is Map &&
