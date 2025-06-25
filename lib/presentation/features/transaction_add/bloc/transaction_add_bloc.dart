@@ -70,7 +70,7 @@ class TransactionAddBloc
           categories: dtos,
           selectedCategory: filtered.first,
           selectedDate: DateTime.now(),
-          account: accounts.isNotEmpty ? accounts.first : null,
+          account: accounts.isNotEmpty ? accounts.last : null,
           amount: '',
           comment: '',
           accounts: accounts,

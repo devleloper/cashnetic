@@ -16,6 +16,8 @@ import '../../../widgets/validation_error_sheet.dart';
 import '../../../widgets/amount_input_dialog.dart';
 import '../../../widgets/account_select_sheet.dart';
 import '../../../widgets/category_select_sheet.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
 import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
 
@@ -358,6 +360,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       ),
     );
     if (res != null) {
+      context.read<AccountBloc>().add(SelectAccount(res.id));
       bloc.add(TransactionAddAccountChanged(res));
     }
   }

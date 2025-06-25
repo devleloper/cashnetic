@@ -79,9 +79,9 @@ class TransactionEditBloc
         transactionDate = DateTime.now();
       }
 
-      // Находим Account по имени (или id, если есть)
+      // Находим Account по id
       final selectedAccount = accounts.firstWhere(
-        (a) => a.name == event.transaction.account.name,
+        (a) => a.id == event.transaction.account.id,
         orElse: () => accounts.isNotEmpty
             ? accounts.first
             : throw Exception('Нет счетов'),

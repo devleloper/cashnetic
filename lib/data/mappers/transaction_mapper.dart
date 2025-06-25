@@ -83,15 +83,16 @@ class TransactionDomainMapper {
   static TransactionResponseDTO domainToModel(
     domain.Transaction transaction,
     CategoryDTO category,
-    String accountName,
-  ) {
+    String accountName, {
+    String? currency,
+  }) {
     return TransactionResponseDTO(
       id: transaction.id,
       account: AccountBriefDTO(
         id: transaction.accountId,
         name: accountName,
         balance: '0', // Default balance
-        currency: 'RUB', // Default currency
+        currency: currency ?? 'RUB',
       ),
       category: category,
       amount: transaction.amount.toString(),

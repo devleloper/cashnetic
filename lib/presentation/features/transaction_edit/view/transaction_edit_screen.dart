@@ -18,6 +18,8 @@ import '../../../widgets/validation_error_sheet.dart';
 import '../../../widgets/amount_input_dialog.dart';
 import '../../../widgets/account_select_sheet.dart';
 import '../../../widgets/category_select_sheet.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final TransactionResponseDTO transaction;
@@ -54,6 +56,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {
           if (state is TransactionEditSuccess) {
+            // После успешного сохранения транзакции обновить выбранный аккаунт глобально
+            final loaded = context.read<TransactionEditBloc>().state;
+            if (loaded is TransactionEditLoaded) {
+              context.read<AccountBloc>().add(SelectAccount(loaded.account.id));
+            }
             Navigator.pop(context, true);
           } else if (state is TransactionEditDeleted) {
             Navigator.pop(context, true);
@@ -250,6 +257,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
 
     if (res != null) {
+      context.read<AccountBloc>().add(SelectAccount(res.id));
       bloc.add(TransactionEditAccountChanged(res));
     }
   }

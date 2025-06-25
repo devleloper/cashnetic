@@ -101,7 +101,7 @@ class DriftTransactionRepository implements TransactionRepository {
       final filtered = all
           .where(
             (t) =>
-                t.accountId == accountId &&
+                (accountId == 0 || t.accountId == accountId) &&
                 t.timestamp.isAfter(startDate) &&
                 t.timestamp.isBefore(endDate),
           )
