@@ -25,9 +25,19 @@ class CategorySelectSheet extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          child: const Text(
-            'Выберите категорию',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Выберите категорию',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.black, weight: 60),
+                onPressed: onCreateCategory,
+                tooltip: 'Создать категорию',
+              ),
+            ],
           ),
         ),
         Expanded(

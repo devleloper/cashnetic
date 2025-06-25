@@ -47,7 +47,7 @@ class _CashneticAppState extends State<CashneticApp> {
 
   @override
   Widget build(BuildContext context) {
-    final db = AppDatabase();
+    final db = appDatabaseSingleton;
     final transactionsRepo = DriftTransactionRepository(db);
     final accountsRepo = DriftAccountRepository(db);
     final categoriesRepo = DriftCategoryRepository(db);

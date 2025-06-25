@@ -6,6 +6,9 @@ import 'dart:io';
 
 part 'database.g.dart';
 
+// Синглтон базы данных
+final appDatabaseSingleton = AppDatabase();
+
 // Таблица счетов
 class Accounts extends Table {
   IntColumn get id => integer().autoIncrement()();

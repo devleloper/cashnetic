@@ -65,7 +65,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Мой счёт'),
+            title: const Text('Мой счета'),
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.white),
