@@ -24,6 +24,8 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<UpdateAccountCurrency>(_onUpdateCurrency);
     on<UpdateAccountBalance>(_onUpdateBalance);
     on<UpdateAccount>(_onUpdateAccount);
+    on<SelectAccount>(_onSelectAccount);
+    on<SelectAccounts>(_onSelectAccounts);
   }
 
   Future<void> _onLoadAccount(
@@ -39,14 +41,14 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           emit(AccountError('Нет аккаунтов'));
           return;
         }
-        final acc = accounts.first;
+        final selected = accounts.first;
         final account = AccountDTO(
-          id: acc.id,
-          userId: acc.userId,
-          name: acc.name,
-          balance: acc.moneyDetails.balance.toString(),
-          currency: acc.moneyDetails.currency,
-          createdAt: acc.timeInterval.createdAt.toIso8601String(),
+          id: selected.id,
+          userId: selected.userId,
+          name: selected.name,
+          balance: selected.moneyDetails.balance.toString(),
+          currency: selected.moneyDetails.currency,
+          createdAt: selected.timeInterval.createdAt.toIso8601String(),
           updatedAt: DateTime.now().toIso8601String(),
         );
         final dailyPoints = await _buildDailyPoints(account.id);
@@ -56,6 +58,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
             account: account,
             dailyPoints: dailyPoints,
             computedBalance: computedBalance,
+            accounts: accounts,
+            selectedAccountId: selected.id,
+            selectedAccountIds: [selected.id],
           ),
         );
       },
@@ -126,6 +131,103 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     result.fold(
       (failure) => emit(AccountError(failure.toString())),
       (_) => add(LoadAccount()),
+    );
+  }
+
+  Future<void> _onSelectAccount(
+    SelectAccount event,
+    Emitter<AccountState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AccountLoaded) return;
+    final accounts = currentState.accounts;
+    final selected = accounts.firstWhere(
+      (a) => a.id == event.accountId,
+      orElse: () => accounts.first,
+    );
+    final account = AccountDTO(
+      id: selected.id,
+      userId: selected.userId,
+      name: selected.name,
+      balance: selected.moneyDetails.balance.toString(),
+      currency: selected.moneyDetails.currency,
+      createdAt: selected.timeInterval.createdAt.toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+    final dailyPoints = await _buildDailyPoints(account.id);
+    final computedBalance = _computeBalance(account, dailyPoints);
+    emit(
+      AccountLoaded(
+        account: account,
+        dailyPoints: dailyPoints,
+        computedBalance: computedBalance,
+        accounts: accounts,
+        selectedAccountId: selected.id,
+        selectedAccountIds: [selected.id],
+      ),
+    );
+  }
+
+  Future<void> _onSelectAccounts(
+    SelectAccounts event,
+    Emitter<AccountState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AccountLoaded) return;
+    final accounts = currentState.accounts;
+    final selectedAccounts = accounts
+        .where((a) => event.accountIds.contains(a.id))
+        .toList();
+    if (selectedAccounts.isEmpty) return;
+    // Агрегируем баланс и dailyPoints
+    double totalBalance = 0;
+    List<DailyBalancePoint> aggregatedPoints = [];
+    for (final acc in selectedAccounts) {
+      totalBalance += acc.moneyDetails.balance;
+      final accountDTO = AccountDTO(
+        id: acc.id,
+        userId: acc.userId,
+        name: acc.name,
+        balance: acc.moneyDetails.balance.toString(),
+        currency: acc.moneyDetails.currency,
+        createdAt: acc.timeInterval.createdAt.toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+      final points = await _buildDailyPoints(accountDTO.id);
+      if (aggregatedPoints.isEmpty) {
+        aggregatedPoints = List.from(points);
+      } else {
+        for (int i = 0; i < aggregatedPoints.length && i < points.length; i++) {
+          aggregatedPoints[i] = DailyBalancePoint(
+            aggregatedPoints[i].date,
+            aggregatedPoints[i].income + points[i].income,
+            aggregatedPoints[i].expense + points[i].expense,
+          );
+        }
+      }
+    }
+    // Для отображения account используем первый выбранный
+    final selected = selectedAccounts.first;
+    final account = AccountDTO(
+      id: selected.id,
+      userId: selected.userId,
+      name: selected.name,
+      balance: selected.moneyDetails.balance.toString(),
+      currency: selected.moneyDetails.currency,
+      createdAt: selected.timeInterval.createdAt.toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
+    );
+    final dailyPoints = await _buildDailyPoints(account.id);
+    final computedBalance = _computeBalance(account, dailyPoints);
+    emit(
+      AccountLoaded(
+        account: account,
+        dailyPoints: aggregatedPoints,
+        computedBalance: totalBalance,
+        accounts: accounts,
+        selectedAccountId: selected.id,
+        selectedAccountIds: event.accountIds,
+      ),
     );
   }
 

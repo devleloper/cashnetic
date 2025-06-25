@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../widgets/option_row.dart';
 import '../widgets/balance_bar_chart.dart';
-import '../widgets/unavailable_feature_dialog.dart';
+import 'package:shake/shake.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -20,7 +20,28 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  final bool _showUnavailableDialog = true;
+  bool _isBalanceHidden = false;
+  ShakeDetector? _shakeDetector;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: (detector) {
+        if (mounted) {
+          setState(() {
+            _isBalanceHidden = !_isBalanceHidden;
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeDetector?.stopListening();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,88 +59,162 @@ class _AccountScreenState extends State<AccountScreen> {
           return const SizedBox.shrink();
         }
         final account = state.account;
+        final accounts = state.accounts;
+        final selectedAccountId = state.selectedAccountId;
+        final selectedAccountIds = state.selectedAccountIds;
 
-        return Stack(
-          children: [
-            // Основной экран
-            Scaffold(
-              appBar: AppBar(
-                title: const Text('Мой счёт'),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    onPressed: () async {
-                      final updatedModel = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AccountEditScreen(account: account),
-                        ),
-                      );
-                      if (updatedModel != null) {
-                        context.read<AccountBloc>().add(
-                          UpdateAccount(updatedModel),
-                        );
-                      }
-                    },
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Мой счёт'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.white),
+                onPressed: () async {
+                  final updatedModel = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AccountEditScreen(account: account),
+                    ),
+                  );
+                  if (updatedModel != null) {
+                    context.read<AccountBloc>().add(
+                      UpdateAccount(updatedModel),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
+            tooltip: 'Обновить',
+            child: const Icon(Icons.refresh, color: Colors.white),
+          ),
+          body: Column(
+            children: [
+              // Вкладка выбора счетов (мультивыбор)
+              if (accounts.length > 1)
+                Container(
+                  width: double.infinity,
+                  color: Colors.green.withOpacity(0.2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
                   ),
-                ],
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
-                tooltip: 'Обновить',
-                child: const Icon(Icons.refresh, color: Colors.white),
-              ),
-              body: Column(
-                children: [
-                  Container(
-                    color: Colors.green.withOpacity(0.2),
-                    child: Column(
-                      children: [
-                        OptionRow(
-                          icon: Icons.account_balance_wallet,
-                          label: 'Баланс',
-                          value: NumberFormat.currency(
-                            symbol: account.currency,
-                            decimalDigits: 0,
-                          ).format(double.tryParse(account.balance) ?? 0),
-                          onTap: () async {
-                            final updatedModel = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    AccountEditScreen(account: account),
-                              ),
-                            );
-                            if (updatedModel != null) {
-                              context.read<AccountBloc>().add(
-                                UpdateAccount(updatedModel),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: accounts.map((acc) {
+                        final isSelected = selectedAccountIds.contains(acc.id);
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(acc.name),
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.account_balance_wallet,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.green,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                            selected: isSelected,
+                            selectedColor: Colors.green,
+                            backgroundColor: Colors.white,
+                            checkmarkColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            onSelected: (val) {
+                              final newSelected = List<int>.from(
+                                selectedAccountIds,
                               );
-                            }
-                          },
-                        ),
-                        const Divider(height: 1),
-                        OptionRow(
-                          icon: Icons.currency_exchange,
-                          label: 'Валюта',
-                          value: account.currency,
-                          onTap: () => _showCurrencyPicker(context, account),
-                        ),
-                      ],
+                              if (val) {
+                                newSelected.add(acc.id);
+                              } else {
+                                newSelected.remove(acc.id);
+                              }
+                              if (newSelected.isNotEmpty) {
+                                context.read<AccountBloc>().add(
+                                  SelectAccounts(newSelected),
+                                );
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: BalanceBarChart(points: state.dailyPoints),
+                ),
+              Container(
+                color: Colors.green.withOpacity(0.2),
+                child: Column(
+                  children: [
+                    OptionRow(
+                      icon: Icons.account_balance_wallet,
+                      label: 'Баланс',
+                      value: '',
+                      onTap: () {
+                        setState(() {
+                          _isBalanceHidden = !_isBalanceHidden;
+                        });
+                      },
+                      trailing: Icon(
+                        _isBalanceHidden
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _isBalanceHidden
+                            ? Text(
+                                '****',
+                                key: const ValueKey('hidden'),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  letterSpacing: 6,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : Text(
+                                NumberFormat.currency(
+                                  symbol: account.currency,
+                                  decimalDigits: 0,
+                                ).format(double.tryParse(account.balance) ?? 0),
+                                key: const ValueKey('visible'),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
-                ],
+                    const Divider(height: 1),
+                    OptionRow(
+                      icon: Icons.currency_exchange,
+                      label: 'Валюта',
+                      value: account.currency,
+                      onTap: () => _showCurrencyPicker(context, account),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Блюр + AlertDialog поверх
-            if (_showUnavailableDialog) const UnavailableFeatureDialog(),
-          ],
+              const SizedBox(height: 16),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: BalanceBarChart(points: state.dailyPoints),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
