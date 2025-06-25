@@ -2,16 +2,17 @@ import 'package:dartz/dartz.dart';
 import 'package:cashnetic/data/mappers/types/try_parse_datetime.dart';
 import 'package:cashnetic/data/mappers/types/try_parse_double.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
-import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/domain/entities/transaction.dart' as domain;
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 
 import '../models/transaction_response/transaction_response.dart';
 import '../models/category/category.dart';
 import '../models/account_brief/account_brief.dart';
+import 'package:cashnetic/data/database.dart' as db;
 
 extension TransactionMapper on TransactionDTO {
-  Either<Failure, Transaction> toDomain() {
+  Either<Failure, domain.Transaction> toDomain() {
     final amountOrFailure = tryParseDouble(amount, 'amount');
     final transactionDateOrFailure = tryParseDateTime(
       transactionDate,
@@ -24,7 +25,7 @@ extension TransactionMapper on TransactionDTO {
       (parsedAmount) => transactionDateOrFailure.flatMap(
         (parsedTransactionDate) => createdAtOrFailure.flatMap(
           (parsedCreatedAt) => updatedAtOrFailure.map(
-            (parsedUpdatedAt) => Transaction(
+            (parsedUpdatedAt) => domain.Transaction(
               id: this.id,
               accountId: accountId,
               categoryId: categoryId,
@@ -44,7 +45,7 @@ extension TransactionMapper on TransactionDTO {
 }
 
 extension TransactionResponseMapper on TransactionResponseDTO {
-  Either<Failure, Transaction> toDomain() {
+  Either<Failure, domain.Transaction> toDomain() {
     final amountOrFailure = tryParseDouble(amount, 'amount');
     final transactionDateOrFailure = tryParseDateTime(
       transactionDate,
@@ -59,7 +60,7 @@ extension TransactionResponseMapper on TransactionResponseDTO {
       (parsedAmount) => transactionDateOrFailure.flatMap(
         (parsedTransactionDate) => createdAtOrFailure.flatMap(
           (parsedCreatedAt) => updatedAtOrFailure.map(
-            (parsedUpdatedAt) => Transaction(
+            (parsedUpdatedAt) => domain.Transaction(
               id: this.id,
               accountId: accountId,
               categoryId: categoryId,
@@ -80,7 +81,7 @@ extension TransactionResponseMapper on TransactionResponseDTO {
 
 class TransactionDomainMapper {
   static TransactionResponseDTO domainToModel(
-    Transaction transaction,
+    domain.Transaction transaction,
     CategoryDTO category,
     String accountName,
   ) {
@@ -98,6 +99,23 @@ class TransactionDomainMapper {
       comment: transaction.comment,
       createdAt: transaction.timeInterval.createdAt.toIso8601String(),
       updatedAt: transaction.timeInterval.updatedAt.toIso8601String(),
+    );
+  }
+}
+
+extension DbTransactionMapper on db.Transaction {
+  domain.Transaction toDomain() {
+    return domain.Transaction(
+      id: this.id,
+      accountId: this.accountId,
+      categoryId: this.categoryId,
+      amount: this.amount,
+      timestamp: this.timestamp,
+      comment: this.comment,
+      timeInterval: TimeInterval(
+        createdAt: this.createdAt,
+        updatedAt: this.updatedAt,
+      ),
     );
   }
 }

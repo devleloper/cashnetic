@@ -16,6 +16,8 @@ import '../../../widgets/validation_error_sheet.dart';
 import '../../../widgets/amount_input_dialog.dart';
 import '../../../widgets/account_select_sheet.dart';
 import '../../../widgets/category_select_sheet.dart';
+import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
+import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   final bool isIncome;
@@ -140,10 +142,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         children: [
           MyListTileRow(
             title: 'Счёт',
-            value: state.account?.name ?? '',
+            value: state.account?.name ?? '—',
             onTap: isSaving
                 ? () {}
-                : () => _selectAccount(context, state.accounts),
+                : () => _selectAccount(context, state.accounts, state.account),
           ),
           MyListTileRow(
             title: 'Категория',
@@ -194,6 +196,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
     final errors = <String>[];
 
+    if (state.account == null) {
+      errors.add('Выберите счет');
+    }
+
     if (state.selectedCategory == null) {
       errors.add('Выберите категорию');
     }
@@ -224,16 +230,57 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   Future<void> _selectAccount(
     BuildContext context,
     List<Account> accounts,
+    Account? selectedAccount,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
     final res = await showModalBottomSheet<Account>(
       context: context,
-      builder: (c) => AccountSelectSheet(
-        accounts: accounts,
-        onSelect: (account) => Navigator.pop(c, account),
+      isScrollControlled: true,
+      builder: (c) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (accounts.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Нет счетов'),
+              ),
+            ...accounts.map(
+              (acc) => ListTile(
+                title: Text(acc.name),
+                trailing: selectedAccount?.id == acc.id
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : null,
+                onTap: () => Navigator.pop(c, acc),
+              ),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('Создать счет'),
+              onTap: () async {
+                Navigator.pop(c); // Закрыть bottom sheet
+                final created = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => AccountAddBloc(
+                        accountRepository: context.read<AccountRepository>(),
+                      ),
+                      child: const AccountAddScreen(),
+                    ),
+                  ),
+                );
+                if (created == true) {
+                  // Обновить список счетов в BLoC
+                  bloc.add(TransactionAddInitialized(widget.isIncome));
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
-
     if (res != null) {
       bloc.add(TransactionAddAccountChanged(res));
     }

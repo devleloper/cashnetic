@@ -43,6 +43,10 @@ class TransactionAddBloc
       return;
     }
     final accounts = accountsResult.getOrElse(() => []);
+    if (accounts.isEmpty) {
+      emit(TransactionAddError('Нет счетов'));
+      return;
+    }
     result.fold((failure) => emit(TransactionAddError(failure.toString())), (
       categories,
     ) {
@@ -62,9 +66,7 @@ class TransactionAddBloc
           categories: dtos,
           selectedCategory: dtos.isNotEmpty ? dtos.first : null,
           selectedDate: DateTime.now(),
-          account: accounts.isNotEmpty
-              ? accounts.first
-              : throw Exception('Нет счетов'),
+          account: accounts.first,
           amount: '',
           comment: '',
           accounts: accounts,

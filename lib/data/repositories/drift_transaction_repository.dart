@@ -6,21 +6,14 @@ import 'package:cashnetic/domain/failures/repository_failure.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 
 class DriftTransactionRepository implements TransactionRepository {
   final db.AppDatabase dbInstance;
 
   DriftTransactionRepository(this.dbInstance);
 
-  domain.Transaction _mapDbToDomain(db.Transaction t) => domain.Transaction(
-    id: t.id,
-    accountId: t.accountId,
-    categoryId: t.categoryId,
-    amount: t.amount,
-    timestamp: t.timestamp,
-    comment: t.comment,
-    timeInterval: throw UnimplementedError(), // доработать под свою модель
-  );
+  domain.Transaction _mapDbToDomain(db.Transaction t) => t.toDomain();
 
   @override
   Future<Either<Failure, domain.Transaction>> createTransaction(
@@ -41,8 +34,9 @@ class DriftTransactionRepository implements TransactionRepository {
         ),
       );
       final t = await dbInstance.getTransactionById(id);
-      if (t == null)
+      if (t == null) {
         return Left(RepositoryFailure('Transaction not found after insert'));
+      }
       return Right(_mapDbToDomain(t));
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
