@@ -33,7 +33,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
 
   Future<List<int>> _getAllAvailableYears(AnalysisType type) async {
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1,
+      0,
       DateTime(2000, 1, 1),
       DateTime(2100, 12, 31, 23, 59, 59),
     );
@@ -69,7 +69,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     final allYears = await _getAllAvailableYears(event.type);
     // Получаем только транзакции за выбранный год
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1,
+      0,
       start,
       end,
     );
@@ -178,7 +178,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       final start = DateTime(year, 1, 1);
       final end = DateTime(year, 12, 31, 23, 59, 59);
       final txResult = await transactionRepository.getTransactionsByPeriod(
-        1,
+        0,
         start,
         end,
       );

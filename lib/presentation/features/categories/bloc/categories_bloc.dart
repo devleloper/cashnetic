@@ -29,7 +29,7 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     emit(CategoriesLoading());
     final result = await categoryRepository.getAllCategories();
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1, // accountId (TODO: поддержка мультиаккаунтов)
+      0, // accountId=0 — все счета
       DateTime(2000),
       DateTime.now(),
     );
@@ -65,7 +65,7 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     emit(CategoriesLoading());
     final result = await categoryRepository.getAllCategories();
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1, // accountId (TODO: поддержка мультиаккаунтов)
+      0, // accountId=0 — все счета
       DateTime(2000),
       DateTime.now(),
     );
@@ -159,7 +159,7 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     if (state is! CategoriesLoaded) return;
     final loaded = state as CategoriesLoaded;
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1, // accountId (TODO: поддержка мультиаккаунтов)
+      0, // accountId=0 — все счета
       DateTime(2000),
       DateTime.now(),
     );
