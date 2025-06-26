@@ -229,9 +229,9 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                             Navigator.pop(context, '₽'),
                                       ),
                                       ListTile(
-                                        title: const Text('\u0004 Доллар'),
+                                        title: Text('\$ Доллар'),
                                         onTap: () =>
-                                            Navigator.pop(context, '\u0004'),
+                                            Navigator.pop(context, '\$'),
                                       ),
                                       ListTile(
                                         title: const Text('€ Евро'),

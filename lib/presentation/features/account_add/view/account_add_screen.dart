@@ -45,8 +45,8 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: const Text('\$ Доллар'),
-            onTap: () => Navigator.pop(context, ''),
+            title: Text('\$ Доллар'),
+            onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(
             title: const Text('€ Евро'),

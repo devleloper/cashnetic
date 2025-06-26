@@ -301,7 +301,7 @@ class _AccountScreenState extends State<AccountScreen> {
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: const Text('\$ Доллар'),
+            title: Text('\$ Доллар'),
             onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(

@@ -20,8 +20,8 @@ class AccountCurrencyPicker extends StatelessWidget {
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: const Text(' Доллар'),
-            onTap: () => Navigator.pop(context, ''),
+            title: const Text('\$ Доллар'),
+            onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(
             title: const Text('€ Евро'),
