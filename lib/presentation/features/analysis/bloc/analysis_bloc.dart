@@ -129,6 +129,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       final percent = total > 0 ? (amount / total) * 100 : 0;
       data.add(
         CategoryChartData(
+          id: cat.id,
           categoryTitle: cat.name,
           categoryIcon: cat.emoji,
           amount: amount,
@@ -238,6 +239,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       final percent = total > 0 ? (amount / total) * 100 : 0;
       data.add(
         CategoryChartData(
+          id: cat.id,
           categoryTitle: cat.name,
           categoryIcon: cat.emoji,
           amount: amount,

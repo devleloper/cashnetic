@@ -1,6 +1,11 @@
+import 'package:cashnetic/data/database.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
+import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
+import 'package:cashnetic/presentation/features/categories/widgets/category_list.dart';
+import 'package:cashnetic/presentation/features/categories/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/period_row.dart';
@@ -8,6 +13,8 @@ import '../widgets/analysis_pie_chart.dart';
 import '../widgets/analysis_legend.dart';
 import '../widgets/analysis_category_list.dart';
 import 'package:flutter/rendering.dart';
+import 'package:cashnetic/data/mappers/category_mapper.dart';
+import 'package:cashnetic/domain/entities/category.dart' as domain;
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -88,16 +95,114 @@ class AnalysisScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(
                 child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
                   color: Colors.green.withOpacity(0.2),
                   child: Column(
                     children: [
-                      PeriodRow(
-                        label: 'Период: начало',
-                        value: _monthYear(result.periodStart),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Период: начало',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shadowColor: Colors.transparent,
+                              elevation: 0,
+                              backgroundColor: Colors.green.withOpacity(0.8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: result.periodStart,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                context.read<AnalysisBloc>().add(
+                                  ChangePeriod(
+                                    from: picked,
+                                    to: result.periodEnd,
+                                    type: type,
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text(
+                              '${result.periodStart.day.toString().padLeft(2, '0')}.${result.periodStart.month.toString().padLeft(2, '0')}.${result.periodStart.year}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      PeriodRow(
-                        label: 'Период: конец',
-                        value: _monthYear(result.periodEnd),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Период: конец',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              shadowColor: Colors.transparent,
+                              elevation: 0,
+                              backgroundColor: Colors.green.withOpacity(0.8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(32),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: result.periodEnd,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                context.read<AnalysisBloc>().add(
+                                  ChangePeriod(
+                                    from: result.periodStart,
+                                    to: picked,
+                                    type: type,
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text(
+                              '${result.periodEnd.day.toString().padLeft(2, '0')}.${result.periodEnd.month.toString().padLeft(2, '0')}.${result.periodEnd.year}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -131,8 +236,8 @@ class AnalysisScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: 28)),
-              if (result.total > 0)
+              SliverToBoxAdapter(child: SizedBox(height: 42)),
+              if (result.total > 0 && result.data.isNotEmpty)
                 SliverToBoxAdapter(child: AnalysisPieChart(data: result.data)),
               SliverToBoxAdapter(child: SizedBox(height: 28)),
               SliverPersistentHeader(
@@ -141,33 +246,60 @@ class AnalysisScreen extends StatelessWidget {
                   child: AnalysisLegend(data: result.data),
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: 16)),
-              SliverToBoxAdapter(
-                child: AnalysisCategoryList(data: result.data),
-              ),
+
+              if (result.data.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      'Нет данных для анализа',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, i) {
+                    final cat = result.data[i];
+                    final catDTO = CategoryDTO(
+                      id: cat.id ?? 0,
+                      name: cat.categoryTitle,
+                      emoji: cat.categoryIcon,
+                      isIncome: type == AnalysisType.income,
+                      color: '#E0E0E0',
+                    );
+                    return CategoryListTile(
+                      category: catDTO,
+                      txCount: 0,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TransactionListByCategoryScreen(
+                              category: catDTO.toDomain().getOrElse(
+                                () => domain.Category(
+                                  id: catDTO.id,
+                                  name: catDTO.name,
+                                  emoji: catDTO.emoji,
+                                  isIncome: catDTO.isIncome,
+                                  color: catDTO.color,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      amount: cat.amount,
+                      percent: cat.percent,
+                      showPercent: true,
+                    );
+                  }, childCount: result.data.length),
+                ),
             ],
           ),
         );
       },
     );
-  }
-
-  String _monthYear(DateTime dt) {
-    const names = [
-      'январь',
-      'февраль',
-      'март',
-      'апрель',
-      'май',
-      'июнь',
-      'июль',
-      'август',
-      'сентябрь',
-      'октябрь',
-      'ноябрь',
-      'декабрь',
-    ];
-    return '${names[dt.month - 1]} ${dt.year}';
   }
 }
 
@@ -182,7 +314,7 @@ class _LegendHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Material(
-      color: Colors.green.withOpacity(0.1),
+      color: Colors.white,
       child: SizedBox(height: maxExtent, child: child),
     );
   }
