@@ -4,7 +4,7 @@ class OptionRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Widget? trailing;
   final Widget? child;
   const OptionRow({
@@ -12,7 +12,7 @@ class OptionRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    required this.onTap,
+    this.onTap,
     this.trailing,
     this.child,
   });

@@ -130,7 +130,6 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                 balance: newBalance,
                               ),
                             );
-                            // Можно отправить UpdateAccount или аналогичный event
                             accountBloc.add(
                               UpdateAccount(
                                 AccountDTO(
@@ -147,8 +146,9 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                             );
                           }
                         }
-                        Navigator.pop(context);
+                        // После всех обновлений обязательно обновить список счетов
                         accountBloc.add(LoadAccount());
+                        Navigator.pop(context);
                       }
                     },
                   ),

@@ -24,6 +24,8 @@ class AccountLoaded extends AccountState {
   final List<Account> accounts;
   final int selectedAccountId;
   final List<int> selectedAccountIds;
+  final Map<String, double> aggregatedBalances;
+  final List<String> selectedCurrencies;
   const AccountLoaded({
     required this.account,
     required this.dailyPoints,
@@ -31,6 +33,8 @@ class AccountLoaded extends AccountState {
     required this.accounts,
     required this.selectedAccountId,
     required this.selectedAccountIds,
+    required this.aggregatedBalances,
+    required this.selectedCurrencies,
   });
   @override
   List<Object?> get props => [
@@ -40,6 +44,8 @@ class AccountLoaded extends AccountState {
     accounts,
     selectedAccountId,
     selectedAccountIds,
+    aggregatedBalances,
+    selectedCurrencies,
   ];
 }
 

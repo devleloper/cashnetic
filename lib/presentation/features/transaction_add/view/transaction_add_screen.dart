@@ -313,50 +313,26 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final bloc = context.read<TransactionAddBloc>();
     final res = await showModalBottomSheet<Account>(
       context: context,
-      isScrollControlled: true,
-      builder: (c) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (accounts.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Нет счетов'),
-              ),
-            ...accounts.map(
-              (acc) => ListTile(
-                title: Text(acc.name),
-                trailing: selectedAccount?.id == acc.id
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : null,
-                onTap: () => Navigator.pop(c, acc),
+      builder: (c) => AccountSelectSheet(
+        accounts: accounts,
+        onSelect: (acc) => Navigator.pop(c, acc),
+        onCreateAccount: () async {
+          Navigator.pop(c); // Закрыть bottom sheet
+          final created = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider(
+                create: (context) => AccountAddBloc(
+                  accountRepository: context.read<AccountRepository>(),
+                ),
+                child: const AccountAddScreen(),
               ),
             ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: const Text('Создать счет'),
-              onTap: () async {
-                Navigator.pop(c); // Закрыть bottom sheet
-                final created = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider(
-                      create: (context) => AccountAddBloc(
-                        accountRepository: context.read<AccountRepository>(),
-                      ),
-                      child: const AccountAddScreen(),
-                    ),
-                  ),
-                );
-                if (created == true) {
-                  // Обновить список счетов в BLoC
-                  bloc.add(TransactionAddInitialized(widget.isIncome));
-                }
-              },
-            ),
-          ],
-        ),
+          );
+          if (created == true) {
+            bloc.add(TransactionAddInitialized(widget.isIncome));
+          }
+        },
       ),
     );
     if (res != null) {

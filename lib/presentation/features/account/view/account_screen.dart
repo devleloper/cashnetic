@@ -62,6 +62,8 @@ class _AccountScreenState extends State<AccountScreen> {
         final accounts = state.accounts;
         final selectedAccountId = state.selectedAccountId;
         final selectedAccountIds = state.selectedAccountIds;
+        final aggregatedBalances = state.aggregatedBalances;
+        final selectedCurrencies = state.selectedCurrencies;
 
         return Scaffold(
           appBar: AppBar(
@@ -107,10 +109,15 @@ class _AccountScreenState extends State<AccountScreen> {
                             children: [
                               Text(acc.name),
                               const SizedBox(width: 6),
-                              Icon(
-                                Icons.account_balance_wallet,
-                                color: isSelected ? Colors.white : Colors.green,
-                                size: 20,
+                              Text(
+                                acc.moneyDetails.currency,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
                               ),
                             ],
                           ),
@@ -174,25 +181,97 @@ class _AccountScreenState extends State<AccountScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
-                            : Text(
-                                NumberFormat.currency(
-                                  symbol: account.currency,
-                                  decimalDigits: 0,
-                                ).format(double.tryParse(account.balance) ?? 0),
-                                key: const ValueKey('visible'),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                            : (selectedCurrencies.length == 1
+                                  ? Text(
+                                      NumberFormat.currency(
+                                        symbol: selectedCurrencies.first,
+                                        decimalDigits: 0,
+                                      ).format(state.computedBalance),
+                                      key: const ValueKey('visible'),
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: selectedCurrencies
+                                          .map(
+                                            (cur) => Text(
+                                              NumberFormat.currency(
+                                                symbol: cur,
+                                                decimalDigits: 0,
+                                              ).format(
+                                                accounts
+                                                    .where(
+                                                      (acc) =>
+                                                          acc
+                                                              .moneyDetails
+                                                              .currency ==
+                                                          cur,
+                                                    )
+                                                    .map((acc) {
+                                                      final accDTO = AccountDTO(
+                                                        id: acc.id,
+                                                        userId: acc.userId,
+                                                        name: acc.name,
+                                                        balance: acc
+                                                            .moneyDetails
+                                                            .balance
+                                                            .toString(),
+                                                        currency: acc
+                                                            .moneyDetails
+                                                            .currency,
+                                                        createdAt: acc
+                                                            .timeInterval
+                                                            .createdAt
+                                                            .toIso8601String(),
+                                                        updatedAt: acc
+                                                            .timeInterval
+                                                            .updatedAt
+                                                            .toIso8601String(),
+                                                      );
+                                                      final points =
+                                                          state.dailyPoints;
+                                                      if (selectedAccountIds
+                                                              .length ==
+                                                          1) {
+                                                        return state
+                                                            .computedBalance;
+                                                      } else {
+                                                        return aggregatedBalances[cur] ??
+                                                            0;
+                                                      }
+                                                    })
+                                                    .fold<double>(
+                                                      0,
+                                                      (a, b) => a + b,
+                                                    ),
+                                              ),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    )),
                       ),
                     ),
                     const Divider(height: 1),
                     OptionRow(
                       icon: Icons.currency_exchange,
                       label: 'Валюта',
-                      value: account.currency,
-                      onTap: () => _showCurrencyPicker(context, account),
+                      value: selectedCurrencies.length == 1
+                          ? selectedCurrencies.first
+                          : selectedCurrencies.join(', '),
+                      onTap: (selectedCurrencies.length == 1)
+                          ? () => _showCurrencyPicker(context, account)
+                          : null,
+                      trailing: selectedCurrencies.length == 1
+                          ? const Icon(Icons.chevron_right, color: Colors.grey)
+                          : const Icon(Icons.block, color: Colors.grey),
                     ),
                   ],
                 ),

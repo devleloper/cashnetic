@@ -41,7 +41,7 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: const Text(' Доллар'),
+            title: const Text('\$ Доллар'),
             onTap: () => Navigator.pop(context, ''),
           ),
           ListTile(
@@ -126,7 +126,47 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
                   ),
                 ),
               ),
-              BalanceEditRow(controller: _balanceController),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(child: Text('Баланс')),
+                    SizedBox(
+                      width: 100,
+                      child: TextFormField(
+                        controller: _balanceController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textAlign: TextAlign.end,
+                        decoration: const InputDecoration(
+                          labelText: 'Баланс',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        validator: (val) {
+                          if (val == null || val.isEmpty)
+                            return 'Введите число';
+                          final n = double.tryParse(val.replaceAll(',', '.'));
+                          if (n == null) return 'Только число';
+                          return null;
+                        },
+                        onChanged: (v) => context.read<AccountAddBloc>().add(
+                          AccountAddBalanceChanged(v),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
               InkWell(
                 onTap: () => _showCurrencyPicker(context, state.currency),

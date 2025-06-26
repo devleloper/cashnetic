@@ -39,10 +39,25 @@ class AccountSelectSheet extends StatelessWidget {
             children: [
               ...accounts.map(
                 (account) => ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.green.withOpacity(0.2),
+                    child: Text(
+                      account.moneyDetails.currency,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                   title: Text(account.name),
-                  subtitle: Text(account.moneyDetails?.currency ?? ''),
                   onTap: () => onSelect(account),
                 ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.add),
+                title: const Text('Создать счёт'),
+                onTap: onCreateAccount,
               ),
             ],
           ),
