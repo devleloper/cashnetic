@@ -8,6 +8,7 @@ class CategoryChartData {
   final double amount;
   final double percent;
   final Color color;
+  final DateTime? lastTransactionDate;
   CategoryChartData({
     this.id,
     required this.categoryTitle,
@@ -15,6 +16,7 @@ class CategoryChartData {
     required this.amount,
     required this.percent,
     required this.color,
+    this.lastTransactionDate,
   });
 }
 

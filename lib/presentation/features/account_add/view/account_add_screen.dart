@@ -4,6 +4,10 @@ import 'package:cashnetic/presentation/features/account_add/bloc/account_add_blo
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_event.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_state.dart';
 import 'package:cashnetic/presentation/features/account_edit/widgets/balance_edit_row.dart';
+import '../widgets/account_name_field.dart';
+import '../widgets/account_balance_field.dart';
+import '../widgets/account_currency_picker.dart';
+import '../widgets/account_add_submit_button.dart';
 
 class AccountAddScreen extends StatefulWidget {
   const AccountAddScreen({super.key});
@@ -110,111 +114,30 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
           ),
           body: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Название счёта',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (v) => context.read<AccountAddBloc>().add(
-                    AccountAddNameChanged(v),
-                  ),
+              AccountNameField(
+                controller: _nameController,
+                onChanged: (v) => context.read<AccountAddBloc>().add(
+                  AccountAddNameChanged(v),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.account_balance_wallet_outlined,
-                      color: Colors.green,
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(child: Text('Баланс')),
-                    SizedBox(
-                      width: 100,
-                      child: TextFormField(
-                        controller: _balanceController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        textAlign: TextAlign.end,
-                        decoration: const InputDecoration(
-                          labelText: 'Баланс',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        validator: (val) {
-                          if (val == null || val.isEmpty)
-                            return 'Введите число';
-                          final n = double.tryParse(val.replaceAll(',', '.'));
-                          if (n == null) return 'Только число';
-                          return null;
-                        },
-                        onChanged: (v) => context.read<AccountAddBloc>().add(
-                          AccountAddBalanceChanged(v),
-                        ),
-                      ),
-                    ),
-                  ],
+              AccountBalanceField(
+                controller: _balanceController,
+                onChanged: (v) => context.read<AccountAddBloc>().add(
+                  AccountAddBalanceChanged(v),
                 ),
               ),
               const SizedBox(height: 16),
-              InkWell(
-                onTap: () => _showCurrencyPicker(context, state.currency),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.currency_exchange, color: Colors.green),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text('Валюта', style: TextStyle(fontSize: 16)),
-                      ),
-                      Text(
-                        state.currency,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
-                  ),
+              AccountCurrencyPicker(
+                currency: state.currency,
+                onChanged: (val) => context.read<AccountAddBloc>().add(
+                  AccountAddCurrencyChanged(val),
                 ),
               ),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                    ),
-                    onPressed: () {
-                      context.read<AccountAddBloc>().add(AccountAddSubmitted());
-                    },
-                    child: const Text('Создать'),
-                  ),
-                ),
+              AccountAddSubmitButton(
+                onPressed: () {
+                  context.read<AccountAddBloc>().add(AccountAddSubmitted());
+                },
               ),
             ],
           ),

@@ -127,6 +127,9 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
+      final lastDate = txs.isNotEmpty
+          ? txs.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
       data.add(
         CategoryChartData(
           id: cat.id,
@@ -135,6 +138,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
           amount: amount,
           percent: percent.toDouble(),
           color: sectionColors[colorIdx % sectionColors.length],
+          lastTransactionDate: lastDate,
         ),
       );
       colorIdx++;
@@ -237,6 +241,9 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
+      final lastDate = txs.isNotEmpty
+          ? txs.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
       data.add(
         CategoryChartData(
           id: cat.id,
@@ -245,6 +252,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
           amount: amount,
           percent: percent.toDouble(),
           color: sectionColors[colorIdx % sectionColors.length],
+          lastTransactionDate: lastDate,
         ),
       );
       colorIdx++;

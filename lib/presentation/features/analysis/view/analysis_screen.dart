@@ -5,7 +5,7 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dar
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
 import 'package:cashnetic/presentation/features/categories/widgets/category_list.dart';
-import 'package:cashnetic/presentation/features/categories/widgets/category_list_tile.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/period_row.dart';
@@ -15,6 +15,10 @@ import '../widgets/analysis_category_list.dart';
 import 'package:flutter/rendering.dart';
 import 'package:cashnetic/data/mappers/category_mapper.dart';
 import 'package:cashnetic/domain/entities/category.dart' as domain;
+import '../widgets/analysis_year_filter_chips.dart';
+import '../widgets/analysis_period_selector.dart';
+import '../widgets/analysis_total_summary.dart';
+import '../widgets/analysis_category_sliver_list.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -37,6 +41,13 @@ class AnalysisScreen extends StatelessWidget {
         }
         final result = state.result;
         final selectedYears = state.selectedYears;
+        // Сортируем категории по дате последней транзакции
+        final sortedData = List<CategoryChartData>.from(result.data)
+          ..sort((a, b) {
+            final ad = a.lastTransactionDate ?? DateTime(1970);
+            final bd = b.lastTransactionDate ?? DateTime(1970);
+            return bd.compareTo(ad);
+          });
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -58,38 +69,15 @@ class AnalysisScreen extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Wrap(
-                    spacing: 8,
-                    children: state.availableYears.map((yr) {
-                      final selected = selectedYears.contains(yr);
-                      return FilterChip(
-                        elevation: 0,
-                        checkmarkColor: Colors.white,
-                        label: Text('$yr'),
-                        selected: selected,
-                        selectedColor: Colors.green,
-                        backgroundColor: Colors.white,
-                        labelStyle: TextStyle(
-                          color: selected ? Colors.white : Colors.black,
-                        ),
-                        onSelected: (val) {
-                          final newYears = List<int>.from(selectedYears);
-                          if (val) {
-                            newYears.add(yr);
-                          } else {
-                            newYears.remove(yr);
-                          }
-                          if (newYears.isNotEmpty) {
-                            context.read<AnalysisBloc>().add(
-                              ChangeYears(
-                                years: newYears.toSet().toList()..sort(),
-                                type: type,
-                              ),
-                            );
-                          }
-                        },
+                  child: AnalysisYearFilterChips(
+                    availableYears: state.availableYears,
+                    selectedYears: selectedYears,
+                    type: type,
+                    onChanged: (newYears) {
+                      context.read<AnalysisBloc>().add(
+                        ChangeYears(years: newYears, type: type),
                       );
-                    }).toList(),
+                    },
                   ),
                 ),
               ),
@@ -97,114 +85,15 @@ class AnalysisScreen extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   color: Colors.green.withOpacity(0.2),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Период: начало',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shadowColor: Colors.transparent,
-                              elevation: 0,
-                              backgroundColor: Colors.green.withOpacity(0.8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                            ),
-                            onPressed: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: result.periodStart,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime.now(),
-                              );
-                              if (picked != null) {
-                                context.read<AnalysisBloc>().add(
-                                  ChangePeriod(
-                                    from: picked,
-                                    to: result.periodEnd,
-                                    type: type,
-                                  ),
-                                );
-                              }
-                            },
-                            child: Text(
-                              '${result.periodStart.day.toString().padLeft(2, '0')}.${result.periodStart.month.toString().padLeft(2, '0')}.${result.periodStart.year}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Период: конец',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              shadowColor: Colors.transparent,
-                              elevation: 0,
-                              backgroundColor: Colors.green.withOpacity(0.8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                            ),
-                            onPressed: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: result.periodEnd,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime.now(),
-                              );
-                              if (picked != null) {
-                                context.read<AnalysisBloc>().add(
-                                  ChangePeriod(
-                                    from: result.periodStart,
-                                    to: picked,
-                                    type: type,
-                                  ),
-                                );
-                              }
-                            },
-                            child: Text(
-                              '${result.periodEnd.day.toString().padLeft(2, '0')}.${result.periodEnd.month.toString().padLeft(2, '0')}.${result.periodEnd.year}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: AnalysisPeriodSelector(
+                    periodStart: result.periodStart,
+                    periodEnd: result.periodEnd,
+                    type: type,
+                    onChanged: (from, to) {
+                      context.read<AnalysisBloc>().add(
+                        ChangePeriod(from: from, to: to, type: type),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -215,25 +104,7 @@ class AnalysisScreen extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Всего',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '${result.total.toStringAsFixed(0)} ₽',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: AnalysisTotalSummary(total: result.total),
                 ),
               ),
               SliverToBoxAdapter(child: SizedBox(height: 42)),
@@ -246,7 +117,6 @@ class AnalysisScreen extends StatelessWidget {
                   child: AnalysisLegend(data: result.data),
                 ),
               ),
-
               if (result.data.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
@@ -258,43 +128,7 @@ class AnalysisScreen extends StatelessWidget {
                   ),
                 )
               else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((context, i) {
-                    final cat = result.data[i];
-                    final catDTO = CategoryDTO(
-                      id: cat.id ?? 0,
-                      name: cat.categoryTitle,
-                      emoji: cat.categoryIcon,
-                      isIncome: type == AnalysisType.income,
-                      color: '#E0E0E0',
-                    );
-                    return CategoryListTile(
-                      category: catDTO,
-                      txCount: 0,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TransactionListByCategoryScreen(
-                              category: catDTO.toDomain().getOrElse(
-                                () => domain.Category(
-                                  id: catDTO.id,
-                                  name: catDTO.name,
-                                  emoji: catDTO.emoji,
-                                  isIncome: catDTO.isIncome,
-                                  color: catDTO.color,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      amount: cat.amount,
-                      percent: cat.percent,
-                      showPercent: true,
-                    );
-                  }, childCount: result.data.length),
-                ),
+                AnalysisCategorySliverList(sortedData: sortedData, type: type),
             ],
           ),
         );

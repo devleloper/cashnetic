@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'category_list_tile.dart';
+import '../../../widgets/category_list_tile.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 
 class CategoryList extends StatelessWidget {
