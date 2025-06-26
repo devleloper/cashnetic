@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transaction_list_by_category_screen.dart';
 import '../widgets/category_search_field.dart';
 import '../widgets/category_list.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -19,11 +20,25 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   String _search = '';
+  late final TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = TextEditingController();
     context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
+    _controller.addListener(() {
+      if (_controller.text.isEmpty && _search.isNotEmpty) {
+        setState(() => _search = '');
+        context.read<CategoriesBloc>().add(SearchCategories(''));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -54,54 +69,58 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           return const SizedBox.shrink();
         }
         final txByCategory = state.txByCategory;
-        final categories =
-            state.categories
-                .where(
-                  (c) =>
-                      _search.isEmpty ||
-                      c.name.toLowerCase().contains(_search.toLowerCase()),
-                )
-                .toList()
-              ..sort(
-                (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
-                  txByCategory[a.id]?.length ?? 0,
-                ),
-              );
+        final List<CategoryDTO> categories =
+            List<CategoryDTO>.from(state.categories)..sort(
+              (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
+                txByCategory[a.id]?.length ?? 0,
+              ),
+            );
         return Scaffold(
           appBar: AppBar(title: const Text('Категории')),
           body: Column(
             children: [
               CategorySearchField(
-                value: _search,
-                onChanged: (v) => setState(() => _search = v),
+                controller: _controller,
+                onChanged: (v) {
+                  setState(() => _search = v);
+                  context.read<CategoriesBloc>().add(SearchCategories(v));
+                },
               ),
               Expanded(
-                child: CategoryList(
-                  categories: categories,
-                  txByCategory: txByCategory,
-                  onCategoryTap: (cat) async {
-                    context.read<CategoriesBloc>().add(
-                      LoadTransactionsForCategory(cat.id),
-                    );
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TransactionListByCategoryScreen(
-                          category: Category(
-                            id: cat.id,
-                            name: cat.name,
-                            emoji: cat.emoji,
-                            isIncome: cat.isIncome,
-                            color: cat.color,
-                          ),
+                child: categories.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Нет категорий по вашему запросу',
+
+                          textAlign: TextAlign.center,
                         ),
+                      )
+                    : CategoryList(
+                        categories: categories,
+                        txByCategory: txByCategory,
+                        onCategoryTap: (cat) async {
+                          context.read<CategoriesBloc>().add(
+                            LoadTransactionsForCategory(cat.id),
+                          );
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TransactionListByCategoryScreen(
+                                category: Category(
+                                  id: cat.id,
+                                  name: cat.name,
+                                  emoji: cat.emoji,
+                                  isIncome: cat.isIncome,
+                                  color: cat.color,
+                                ),
+                              ),
+                            ),
+                          );
+                          context.read<CategoriesBloc>().add(
+                            LoadTransactionsForCategory(cat.id),
+                          );
+                        },
                       ),
-                    );
-                    context.read<CategoriesBloc>().add(
-                      LoadTransactionsForCategory(cat.id),
-                    );
-                  },
-                ),
               ),
             ],
           ),

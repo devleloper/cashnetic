@@ -12,10 +12,12 @@ class CategoriesLoading extends CategoriesState {}
 
 class CategoriesLoaded extends CategoriesState {
   final List<CategoryDTO> categories;
+  final List<CategoryDTO> allCategories;
   final String searchQuery;
   final Map<int, List<Transaction>> txByCategory;
   const CategoriesLoaded({
     required this.categories,
+    required this.allCategories,
     this.searchQuery = '',
     this.txByCategory = const {},
   });

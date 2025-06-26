@@ -5,6 +5,7 @@ import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'categories_event.dart';
 import 'categories_state.dart';
+import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 
 class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   final CategoryRepository categoryRepository;
@@ -54,7 +55,13 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
             .where((t) => t.categoryId == cat.id)
             .toList();
       }
-      emit(CategoriesLoaded(categories: dtos, txByCategory: txByCategory));
+      emit(
+        CategoriesLoaded(
+          categories: dtos,
+          allCategories: dtos,
+          txByCategory: txByCategory,
+        ),
+      );
     });
   }
 
@@ -92,7 +99,13 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
             .where((t) => t.categoryId == cat.id)
             .toList();
       }
-      emit(CategoriesLoaded(categories: dtos, txByCategory: txByCategory));
+      emit(
+        CategoriesLoaded(
+          categories: dtos,
+          allCategories: dtos,
+          txByCategory: txByCategory,
+        ),
+      );
     });
   }
 
@@ -102,16 +115,26 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   ) async {
     if (state is! CategoriesLoaded) return;
     final loaded = state as CategoriesLoaded;
-    final filtered = event.query.isEmpty
-        ? loaded.categories
-        : loaded.categories
-              .where(
-                (c) => c.name.toLowerCase().contains(event.query.toLowerCase()),
-              )
-              .toList();
+    List<CategoryDTO> filtered;
+    if (event.query.isEmpty) {
+      filtered = loaded.allCategories;
+    } else {
+      final choices = loaded.allCategories.map((c) => c.name).toList();
+      final results = extractTop(
+        query: event.query,
+        choices: choices,
+        limit: 20,
+        cutoff: 60,
+      );
+      final names = results.map((r) => r.choice).toSet();
+      filtered = loaded.allCategories
+          .where((c) => names.contains(c.name))
+          .toList();
+    }
     emit(
       CategoriesLoaded(
         categories: filtered,
+        allCategories: loaded.allCategories,
         searchQuery: event.query,
         txByCategory: loaded.txByCategory,
       ),
@@ -172,6 +195,7 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     emit(
       CategoriesLoaded(
         categories: loaded.categories,
+        allCategories: loaded.allCategories,
         searchQuery: loaded.searchQuery,
         txByCategory: newTxByCat,
       ),
