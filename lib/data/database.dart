@@ -42,12 +42,18 @@ class Transactions extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-@DriftDatabase(tables: [Accounts, Categories, Transactions])
+// Таблица поисковых запросов для категорий
+class SearchQueries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get query => text()();
+}
+
+@DriftDatabase(tables: [Accounts, Categories, Transactions, SearchQueries])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   // Accounts DAO
   Future<int> insertAccount(AccountsCompanion entry) =>
@@ -81,6 +87,24 @@ class AppDatabase extends _$AppDatabase {
       update(transactions).replace(entry);
   Future<int> deleteTransaction(int id) =>
       (delete(transactions)..where((tbl) => tbl.id.equals(id))).go();
+
+  // SearchQueries DAO
+  Future<void> saveSearchQuery(String query) async {
+    // Очищаем старое значение (у нас всегда только 1)
+    await delete(this.searchQueries).go();
+    await into(
+      this.searchQueries,
+    ).insert(SearchQueriesCompanion(query: Value(query)));
+  }
+
+  Future<String?> getLastSearchQuery() async {
+    final res = await select(this.searchQueries).getSingleOrNull();
+    return res?.query;
+  }
+
+  Future<void> deleteSearchQuery() async {
+    await delete(this.searchQueries).go();
+  }
 }
 
 LazyDatabase _openConnection() {

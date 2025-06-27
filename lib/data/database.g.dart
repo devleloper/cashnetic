@@ -1233,12 +1233,205 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   }
 }
 
+class $SearchQueriesTable extends SearchQueries
+    with TableInfo<$SearchQueriesTable, SearchQuery> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SearchQueriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _queryMeta = const VerificationMeta('query');
+  @override
+  late final GeneratedColumn<String> query = GeneratedColumn<String>(
+    'query',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, query];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'search_queries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SearchQuery> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('query')) {
+      context.handle(
+        _queryMeta,
+        query.isAcceptableOrUnknown(data['query']!, _queryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_queryMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SearchQuery map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SearchQuery(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      query: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}query'],
+      )!,
+    );
+  }
+
+  @override
+  $SearchQueriesTable createAlias(String alias) {
+    return $SearchQueriesTable(attachedDatabase, alias);
+  }
+}
+
+class SearchQuery extends DataClass implements Insertable<SearchQuery> {
+  final int id;
+  final String query;
+  const SearchQuery({required this.id, required this.query});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['query'] = Variable<String>(query);
+    return map;
+  }
+
+  SearchQueriesCompanion toCompanion(bool nullToAbsent) {
+    return SearchQueriesCompanion(id: Value(id), query: Value(query));
+  }
+
+  factory SearchQuery.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SearchQuery(
+      id: serializer.fromJson<int>(json['id']),
+      query: serializer.fromJson<String>(json['query']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'query': serializer.toJson<String>(query),
+    };
+  }
+
+  SearchQuery copyWith({int? id, String? query}) =>
+      SearchQuery(id: id ?? this.id, query: query ?? this.query);
+  SearchQuery copyWithCompanion(SearchQueriesCompanion data) {
+    return SearchQuery(
+      id: data.id.present ? data.id.value : this.id,
+      query: data.query.present ? data.query.value : this.query,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SearchQuery(')
+          ..write('id: $id, ')
+          ..write('query: $query')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, query);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SearchQuery &&
+          other.id == this.id &&
+          other.query == this.query);
+}
+
+class SearchQueriesCompanion extends UpdateCompanion<SearchQuery> {
+  final Value<int> id;
+  final Value<String> query;
+  const SearchQueriesCompanion({
+    this.id = const Value.absent(),
+    this.query = const Value.absent(),
+  });
+  SearchQueriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String query,
+  }) : query = Value(query);
+  static Insertable<SearchQuery> custom({
+    Expression<int>? id,
+    Expression<String>? query,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (query != null) 'query': query,
+    });
+  }
+
+  SearchQueriesCompanion copyWith({Value<int>? id, Value<String>? query}) {
+    return SearchQueriesCompanion(
+      id: id ?? this.id,
+      query: query ?? this.query,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (query.present) {
+      map['query'] = Variable<String>(query.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SearchQueriesCompanion(')
+          ..write('id: $id, ')
+          ..write('query: $query')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
+  late final $SearchQueriesTable searchQueries = $SearchQueriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1247,6 +1440,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accounts,
     categories,
     transactions,
+    searchQueries,
   ];
 }
 
@@ -2319,6 +2513,129 @@ typedef $$TransactionsTableProcessedTableManager =
       Transaction,
       PrefetchHooks Function({bool accountId, bool categoryId})
     >;
+typedef $$SearchQueriesTableCreateCompanionBuilder =
+    SearchQueriesCompanion Function({Value<int> id, required String query});
+typedef $$SearchQueriesTableUpdateCompanionBuilder =
+    SearchQueriesCompanion Function({Value<int> id, Value<String> query});
+
+class $$SearchQueriesTableFilterComposer
+    extends Composer<_$AppDatabase, $SearchQueriesTable> {
+  $$SearchQueriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SearchQueriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SearchQueriesTable> {
+  $$SearchQueriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get query => $composableBuilder(
+    column: $table.query,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SearchQueriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SearchQueriesTable> {
+  $$SearchQueriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get query =>
+      $composableBuilder(column: $table.query, builder: (column) => column);
+}
+
+class $$SearchQueriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SearchQueriesTable,
+          SearchQuery,
+          $$SearchQueriesTableFilterComposer,
+          $$SearchQueriesTableOrderingComposer,
+          $$SearchQueriesTableAnnotationComposer,
+          $$SearchQueriesTableCreateCompanionBuilder,
+          $$SearchQueriesTableUpdateCompanionBuilder,
+          (
+            SearchQuery,
+            BaseReferences<_$AppDatabase, $SearchQueriesTable, SearchQuery>,
+          ),
+          SearchQuery,
+          PrefetchHooks Function()
+        > {
+  $$SearchQueriesTableTableManager(_$AppDatabase db, $SearchQueriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SearchQueriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SearchQueriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SearchQueriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> query = const Value.absent(),
+              }) => SearchQueriesCompanion(id: id, query: query),
+          createCompanionCallback:
+              ({Value<int> id = const Value.absent(), required String query}) =>
+                  SearchQueriesCompanion.insert(id: id, query: query),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SearchQueriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SearchQueriesTable,
+      SearchQuery,
+      $$SearchQueriesTableFilterComposer,
+      $$SearchQueriesTableOrderingComposer,
+      $$SearchQueriesTableAnnotationComposer,
+      $$SearchQueriesTableCreateCompanionBuilder,
+      $$SearchQueriesTableUpdateCompanionBuilder,
+      (
+        SearchQuery,
+        BaseReferences<_$AppDatabase, $SearchQueriesTable, SearchQuery>,
+      ),
+      SearchQuery,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2329,4 +2646,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db, _db.transactions);
+  $$SearchQueriesTableTableManager get searchQueries =>
+      $$SearchQueriesTableTableManager(_db, _db.searchQueries);
 }

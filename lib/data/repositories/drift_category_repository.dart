@@ -160,4 +160,16 @@ class DriftCategoryRepository implements CategoryRepository {
       return Left(RepositoryFailure(e.toString()));
     }
   }
+
+  Future<void> saveSearchQuery(String query) async {
+    await dbInstance.saveSearchQuery(query);
+  }
+
+  Future<String?> getLastSearchQuery() async {
+    return dbInstance.getLastSearchQuery();
+  }
+
+  Future<void> deleteSearchQuery() async {
+    await dbInstance.deleteSearchQuery();
+  }
 }

@@ -46,10 +46,13 @@ class _CashneticAppState extends State<CashneticApp> {
 
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<DriftCategoryRepository>.value(
+          value: categoriesRepo,
+        ),
+        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
         RepositoryProvider<TransactionRepository>.value(
           value: transactionsRepo,
         ),
-        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
         RepositoryProvider<AccountRepository>.value(value: accountsRepo),
       ],
       child: MultiBlocProvider(
