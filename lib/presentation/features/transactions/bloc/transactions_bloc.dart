@@ -32,7 +32,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     final start = event.startDate ?? _startOfDay(now);
     final end = event.endDate ?? _endOfDay(now);
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1, // TODO: accountId
+      event.accountId,
       start,
       end,
     );
@@ -104,6 +104,9 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         isIncome: (state as TransactionsLoaded).categories.isNotEmpty
             ? (state as TransactionsLoaded).categories.first.isIncome
             : false,
+        accountId: (state as TransactionsLoaded).transactions.isNotEmpty
+            ? (state as TransactionsLoaded).transactions.first.accountId
+            : 1,
         startDate: start,
         endDate: end,
       ),

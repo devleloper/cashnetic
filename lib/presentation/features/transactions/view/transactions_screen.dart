@@ -17,6 +17,8 @@ import '../widgets/transactions_total_row.dart';
 import '../widgets/transactions_list_view.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -132,11 +134,13 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // accountId всегда 0 — показываем все транзакции
+
     return BlocProvider(
       create: (context) => TransactionsBloc(
         transactionRepository: context.read<TransactionRepository>(),
         categoryRepository: context.read<CategoryRepository>(),
-      )..add(TransactionsLoad(isIncome: isIncome)),
+      )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
           if (state is TransactionsLoading) {
@@ -182,6 +186,18 @@ class TransactionsScreen extends StatelessWidget {
                     categories: categories,
                     isIncome: isIncome,
                     onTap: (t, cat) async {
+                      // Получаем имя и валюту аккаунта из AccountBloc
+                      String accountName = 'Счет';
+                      String currency = 'RUB';
+                      final accountState = context.read<AccountBloc>().state;
+                      if (accountState is AccountLoaded) {
+                        final acc = accountState.accounts.firstWhere(
+                          (a) => a.id == t.accountId,
+                          orElse: () => accountState.accounts.first,
+                        );
+                        accountName = acc.name;
+                        currency = acc.moneyDetails.currency;
+                      }
                       final model = TransactionDomainMapper.domainToModel(
                         t,
                         CategoryDTO(
@@ -191,7 +207,8 @@ class TransactionsScreen extends StatelessWidget {
                           isIncome: cat.isIncome,
                           color: cat.color,
                         ),
-                        'Сбербанк',
+                        accountName,
+                        currency: currency,
                       );
                       await Navigator.push(
                         context,
@@ -201,7 +218,7 @@ class TransactionsScreen extends StatelessWidget {
                         ),
                       );
                       context.read<TransactionsBloc>().add(
-                        TransactionsLoad(isIncome: isIncome),
+                        TransactionsLoad(isIncome: isIncome, accountId: 0),
                       );
                     },
                   ),
@@ -219,7 +236,7 @@ class TransactionsScreen extends StatelessWidget {
                   ),
                 );
                 context.read<TransactionsBloc>().add(
-                  TransactionsLoad(isIncome: isIncome),
+                  TransactionsLoad(isIncome: isIncome, accountId: 0),
                 );
                 if (result != null &&
                     result is Map &&

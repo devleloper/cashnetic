@@ -26,11 +26,13 @@ class TransactionsListView extends StatelessWidget {
         ),
       );
     }
+    final sorted = List<Transaction>.from(transactions)
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return ListView.separated(
-      itemCount: transactions.length,
+      itemCount: sorted.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final t = transactions[index];
+        final t = sorted[index];
         final cat = categories.firstWhere(
           (c) => c.id == t.categoryId,
           orElse: () => Category(

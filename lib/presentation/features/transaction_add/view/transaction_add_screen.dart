@@ -16,6 +16,10 @@ import '../../../widgets/validation_error_sheet.dart';
 import '../../../widgets/amount_input_dialog.dart';
 import '../../../widgets/account_select_sheet.dart';
 import '../../../widgets/category_select_sheet.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
+import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
+import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   final bool isIncome;
@@ -55,6 +59,82 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
               state is TransactionAddLoading) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
+            );
+          } else if (state is TransactionAddError &&
+              state.message == 'Нет счетов') {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Нет счетов'),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final created = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              create: (context) => AccountAddBloc(
+                                accountRepository: context
+                                    .read<AccountRepository>(),
+                              ),
+                              child: const AccountAddScreen(),
+                            ),
+                          ),
+                        );
+                        if (created == true) {
+                          context.read<TransactionAddBloc>().add(
+                            TransactionAddInitialized(widget.isIncome),
+                          );
+                        }
+                      },
+                      child: const Text('Создать счет'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else if (state is TransactionAddError &&
+              state.message == 'Нет категорий') {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Нет категорий'),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await showDialog(
+                          context: context,
+                          builder: (context) => CustomCategoryDialog(
+                            isIncome: widget.isIncome,
+                            onCancel: () => Navigator.pop(context),
+                            onCreate: (name, emoji) {
+                              if (name.isNotEmpty) {
+                                context.read<TransactionAddBloc>().add(
+                                  TransactionAddCustomCategoryCreated(
+                                    name: name,
+                                    emoji: emoji.isNotEmpty ? emoji : '💰',
+                                    isIncome: widget.isIncome,
+                                    color: '#E0E0E0',
+                                  ),
+                                );
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        );
+                        context.read<TransactionAddBloc>().add(
+                          TransactionAddInitialized(widget.isIncome),
+                        );
+                      },
+                      child: const Text('Создать категорию'),
+                    ),
+                  ],
+                ),
+              ),
             );
           } else if (state is TransactionAddError) {
             return Scaffold(
@@ -140,10 +220,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         children: [
           MyListTileRow(
             title: 'Счёт',
-            value: state.account?.name ?? '',
+            value: state.account?.name ?? '—',
             onTap: isSaving
                 ? () {}
-                : () => _selectAccount(context, state.accounts),
+                : () => _selectAccount(context, state.accounts, state.account),
           ),
           MyListTileRow(
             title: 'Категория',
@@ -194,6 +274,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
     final errors = <String>[];
 
+    if (state.account == null) {
+      errors.add('Выберите счет');
+    }
+
     if (state.selectedCategory == null) {
       errors.add('Выберите категорию');
     }
@@ -224,17 +308,35 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   Future<void> _selectAccount(
     BuildContext context,
     List<Account> accounts,
+    Account? selectedAccount,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
     final res = await showModalBottomSheet<Account>(
       context: context,
       builder: (c) => AccountSelectSheet(
         accounts: accounts,
-        onSelect: (account) => Navigator.pop(c, account),
+        onSelect: (acc) => Navigator.pop(c, acc),
+        onCreateAccount: () async {
+          Navigator.pop(c); // Закрыть bottom sheet
+          final created = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider(
+                create: (context) => AccountAddBloc(
+                  accountRepository: context.read<AccountRepository>(),
+                ),
+                child: const AccountAddScreen(),
+              ),
+            ),
+          );
+          if (created == true) {
+            bloc.add(TransactionAddInitialized(widget.isIncome));
+          }
+        },
       ),
     );
-
     if (res != null) {
+      context.read<AccountBloc>().add(SelectAccount(res.id));
       bloc.add(TransactionAddAccountChanged(res));
     }
   }

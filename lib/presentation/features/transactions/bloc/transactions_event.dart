@@ -10,15 +10,17 @@ abstract class TransactionsEvent extends Equatable {
 
 class TransactionsLoad extends TransactionsEvent {
   final bool isIncome;
+  final int accountId;
   final DateTime? startDate;
   final DateTime? endDate;
   const TransactionsLoad({
     required this.isIncome,
+    required this.accountId,
     this.startDate,
     this.endDate,
   });
   @override
-  List<Object?> get props => [isIncome, startDate, endDate];
+  List<Object?> get props => [isIncome, accountId, startDate, endDate];
 }
 
 class TransactionsChangeSort extends TransactionsEvent {

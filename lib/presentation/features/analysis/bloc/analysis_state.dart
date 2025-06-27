@@ -2,17 +2,21 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 class CategoryChartData {
+  final int? id;
   final String categoryTitle;
   final String categoryIcon;
   final double amount;
   final double percent;
   final Color color;
+  final DateTime? lastTransactionDate;
   CategoryChartData({
+    this.id,
     required this.categoryTitle,
     required this.categoryIcon,
     required this.amount,
     required this.percent,
     required this.color,
+    this.lastTransactionDate,
   });
 }
 

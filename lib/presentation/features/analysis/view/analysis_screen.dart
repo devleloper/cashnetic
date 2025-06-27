@@ -1,6 +1,11 @@
+import 'package:cashnetic/data/database.dart';
+import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
+import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
+import 'package:cashnetic/presentation/features/categories/widgets/category_list.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../widgets/period_row.dart';
@@ -8,6 +13,12 @@ import '../widgets/analysis_pie_chart.dart';
 import '../widgets/analysis_legend.dart';
 import '../widgets/analysis_category_list.dart';
 import 'package:flutter/rendering.dart';
+import 'package:cashnetic/data/mappers/category_mapper.dart';
+import 'package:cashnetic/domain/entities/category.dart' as domain;
+import '../widgets/analysis_year_filter_chips.dart';
+import '../widgets/analysis_period_selector.dart';
+import '../widgets/analysis_total_summary.dart';
+import '../widgets/analysis_category_sliver_list.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -30,6 +41,13 @@ class AnalysisScreen extends StatelessWidget {
         }
         final result = state.result;
         final selectedYears = state.selectedYears;
+        // Сортируем категории по дате последней транзакции
+        final sortedData = List<CategoryChartData>.from(result.data)
+          ..sort((a, b) {
+            final ad = a.lastTransactionDate ?? DateTime(1970);
+            final bd = b.lastTransactionDate ?? DateTime(1970);
+            return bd.compareTo(ad);
+          });
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -51,55 +69,31 @@ class AnalysisScreen extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Wrap(
-                    spacing: 8,
-                    children: state.availableYears.map((yr) {
-                      final selected = selectedYears.contains(yr);
-                      return FilterChip(
-                        elevation: 0,
-                        checkmarkColor: Colors.white,
-                        label: Text('$yr'),
-                        selected: selected,
-                        selectedColor: Colors.green,
-                        backgroundColor: Colors.white,
-                        labelStyle: TextStyle(
-                          color: selected ? Colors.white : Colors.black,
-                        ),
-                        onSelected: (val) {
-                          final newYears = List<int>.from(selectedYears);
-                          if (val) {
-                            newYears.add(yr);
-                          } else {
-                            newYears.remove(yr);
-                          }
-                          if (newYears.isNotEmpty) {
-                            context.read<AnalysisBloc>().add(
-                              ChangeYears(
-                                years: newYears.toSet().toList()..sort(),
-                                type: type,
-                              ),
-                            );
-                          }
-                        },
+                  child: AnalysisYearFilterChips(
+                    availableYears: state.availableYears,
+                    selectedYears: selectedYears,
+                    type: type,
+                    onChanged: (newYears) {
+                      context.read<AnalysisBloc>().add(
+                        ChangeYears(years: newYears, type: type),
                       );
-                    }).toList(),
+                    },
                   ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
                   color: Colors.green.withOpacity(0.2),
-                  child: Column(
-                    children: [
-                      PeriodRow(
-                        label: 'Период: начало',
-                        value: _monthYear(result.periodStart),
-                      ),
-                      PeriodRow(
-                        label: 'Период: конец',
-                        value: _monthYear(result.periodEnd),
-                      ),
-                    ],
+                  child: AnalysisPeriodSelector(
+                    periodStart: result.periodStart,
+                    periodEnd: result.periodEnd,
+                    type: type,
+                    onChanged: (from, to) {
+                      context.read<AnalysisBloc>().add(
+                        ChangePeriod(from: from, to: to, type: type),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -110,29 +104,11 @@ class AnalysisScreen extends StatelessWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Всего',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '${result.total.toStringAsFixed(0)} ₽',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: AnalysisTotalSummary(total: result.total),
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: 28)),
-              if (result.total > 0)
+              SliverToBoxAdapter(child: SizedBox(height: 42)),
+              if (result.total > 0 && result.data.isNotEmpty)
                 SliverToBoxAdapter(child: AnalysisPieChart(data: result.data)),
               SliverToBoxAdapter(child: SizedBox(height: 28)),
               SliverPersistentHeader(
@@ -141,33 +117,23 @@ class AnalysisScreen extends StatelessWidget {
                   child: AnalysisLegend(data: result.data),
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: 16)),
-              SliverToBoxAdapter(
-                child: AnalysisCategoryList(data: result.data),
-              ),
+              if (result.data.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      'Нет данных для анализа',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                AnalysisCategorySliverList(sortedData: sortedData, type: type),
             ],
           ),
         );
       },
     );
-  }
-
-  String _monthYear(DateTime dt) {
-    const names = [
-      'январь',
-      'февраль',
-      'март',
-      'апрель',
-      'май',
-      'июнь',
-      'июль',
-      'август',
-      'сентябрь',
-      'октябрь',
-      'ноябрь',
-      'декабрь',
-    ];
-    return '${names[dt.month - 1]} ${dt.year}';
   }
 }
 
@@ -182,7 +148,7 @@ class _LegendHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Material(
-      color: Colors.green.withOpacity(0.1),
+      color: Colors.white,
       child: SizedBox(height: maxExtent, child: child),
     );
   }

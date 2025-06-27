@@ -7,6 +7,7 @@ import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'transaction_add_event.dart';
 import 'transaction_add_state.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'package:collection/collection.dart';
 
 class TransactionAddBloc
     extends Bloc<TransactionAddEvent, TransactionAddState> {
@@ -57,14 +58,19 @@ class TransactionAddBloc
             ),
           )
           .toList();
+      final filtered = dtos
+          .where((cat) => cat.isIncome == event.isIncome)
+          .toList();
+      if (filtered.isEmpty) {
+        emit(TransactionAddError('Нет категорий'));
+        return;
+      }
       emit(
         TransactionAddLoaded(
           categories: dtos,
-          selectedCategory: dtos.isNotEmpty ? dtos.first : null,
+          selectedCategory: filtered.first,
           selectedDate: DateTime.now(),
-          account: accounts.isNotEmpty
-              ? accounts.first
-              : throw Exception('Нет счетов'),
+          account: accounts.isNotEmpty ? accounts.last : null,
           amount: '',
           comment: '',
           accounts: accounts,
@@ -194,7 +200,11 @@ class TransactionAddBloc
     );
 
     try {
-      final accountId = current.account.id;
+      final accountId = current.account?.id;
+      if (accountId == null) {
+        emit(TransactionAddError('Сначала создайте счет'));
+        return;
+      }
 
       // Создаем форму транзакции
       final transactionForm = TransactionForm(

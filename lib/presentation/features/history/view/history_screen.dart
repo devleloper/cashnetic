@@ -4,7 +4,8 @@ import 'package:cashnetic/presentation/features/history/bloc/history_state.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.dart';
-import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
+import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart'
+    hide ChangePeriod;
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/category_repository.dart';

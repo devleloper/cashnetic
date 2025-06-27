@@ -31,3 +31,16 @@ class ChangeYears extends AnalysisEvent {
   @override
   List<Object?> get props => [years, type];
 }
+
+class ChangePeriod extends AnalysisEvent {
+  final DateTime from;
+  final DateTime to;
+  final AnalysisType type;
+  const ChangePeriod({
+    required this.from,
+    required this.to,
+    required this.type,
+  });
+  @override
+  List<Object?> get props => [from, to, type];
+}
