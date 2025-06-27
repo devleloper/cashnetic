@@ -17,7 +17,7 @@ class TransactionAddLoaded extends TransactionAddState {
   final List<CategoryDTO> categories;
   final CategoryDTO? selectedCategory;
   final DateTime selectedDate;
-  final Account account;
+  final Account? account;
   final String amount;
   final String comment;
   final List<Account> accounts;
@@ -26,7 +26,7 @@ class TransactionAddLoaded extends TransactionAddState {
     required this.categories,
     this.selectedCategory,
     required this.selectedDate,
-    required this.account,
+    this.account,
     required this.amount,
     required this.comment,
     required this.accounts,
@@ -48,7 +48,7 @@ class TransactionAddSaving extends TransactionAddState {
   final List<CategoryDTO> categories;
   final CategoryDTO? selectedCategory;
   final DateTime selectedDate;
-  final Account account;
+  final Account? account;
   final String amount;
   final String comment;
   final List<Account> accounts;
@@ -57,7 +57,7 @@ class TransactionAddSaving extends TransactionAddState {
     required this.categories,
     this.selectedCategory,
     required this.selectedDate,
-    required this.account,
+    this.account,
     required this.amount,
     required this.comment,
     required this.accounts,

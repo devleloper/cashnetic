@@ -2,31 +2,33 @@ import 'value_objects/money_details.dart';
 import 'value_objects/time_interval.dart';
 
 class Account {
-  final int _id;
-  final int _userId;
-  final String _name;
-  final MoneyDetails _moneyDetails;
-  final TimeInterval _timeInterval;
+  final int id;
+  final int userId;
+  final String name;
+  final MoneyDetails moneyDetails;
+  final TimeInterval timeInterval;
 
   Account({
-    required int id,
-    required int userId,
-    required String name,
-    required MoneyDetails moneyDetails,
-    required TimeInterval timeInterval,
-  }) : _id = id,
-       _userId = userId,
-       _name = name,
-       _moneyDetails = moneyDetails,
-       _timeInterval = timeInterval;
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.moneyDetails,
+    required this.timeInterval,
+  });
 
-  TimeInterval get timeInterval => _timeInterval;
-
-  MoneyDetails get moneyDetails => _moneyDetails;
-
-  String get name => _name;
-
-  int get userId => _userId;
-
-  int get id => _id;
+  Account copyWith({
+    int? id,
+    int? userId,
+    String? name,
+    MoneyDetails? moneyDetails,
+    TimeInterval? timeInterval,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      moneyDetails: moneyDetails ?? this.moneyDetails,
+      timeInterval: timeInterval ?? this.timeInterval,
+    );
+  }
 }

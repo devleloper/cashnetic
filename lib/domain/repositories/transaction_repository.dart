@@ -22,4 +22,13 @@ abstract interface class TransactionRepository {
     DateTime startDate,
     DateTime endDate,
   );
+
+  // Получить все транзакции по счету
+  Future<List<Transaction>> getTransactionsByAccount(int accountId);
+
+  // Перенести все транзакции с одного счета на другой
+  Future<void> moveTransactionsToAccount(int fromAccountId, int toAccountId);
+
+  // Удалить все транзакции по счету
+  Future<void> deleteTransactionsByAccount(int accountId);
 }

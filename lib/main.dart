@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:io';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -9,28 +10,19 @@ import 'domain/repositories/category_repository.dart';
 import 'domain/repositories/transaction_repository.dart';
 import 'domain/repositories/account_repository.dart';
 
-// Репозитории (моки)
-import 'data/repositories/mocks/mocked_account_repository.dart';
-import 'data/repositories/shared_prefs_transaction_repository.dart';
-import 'data/repositories/shared_prefs_category_repository.dart';
-
 // BLoC
 import 'presentation/features/account/bloc/account_bloc.dart';
 import 'presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'presentation/features/categories/bloc/categories_bloc.dart';
 import 'presentation/features/history/bloc/history_bloc.dart';
 
+import 'package:cashnetic/data/database.dart';
+import 'package:cashnetic/data/repositories/drift_account_repository.dart';
+import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
+import 'package:cashnetic/data/repositories/drift_category_repository.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
   await initializeDateFormatting('ru');
   runApp(const CashneticApp());
 }
@@ -47,16 +39,20 @@ class _CashneticAppState extends State<CashneticApp> {
 
   @override
   Widget build(BuildContext context) {
-    final transactionsRepo = SharedPreferencesTransactionRepository();
-    final accountsRepo = MockedAccountRepository();
-    final categoriesRepo = SharedPrefsCategoryRepository();
+    final db = appDatabaseSingleton;
+    final transactionsRepo = DriftTransactionRepository(db);
+    final accountsRepo = DriftAccountRepository(db);
+    final categoriesRepo = DriftCategoryRepository(db);
 
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<DriftCategoryRepository>.value(
+          value: categoriesRepo,
+        ),
+        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
         RepositoryProvider<TransactionRepository>.value(
           value: transactionsRepo,
         ),
-        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
         RepositoryProvider<AccountRepository>.value(value: accountsRepo),
       ],
       child: MultiBlocProvider(

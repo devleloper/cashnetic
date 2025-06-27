@@ -36,3 +36,17 @@ class UpdateAccount extends AccountEvent {
   @override
   List<Object?> get props => [updated];
 }
+
+class SelectAccount extends AccountEvent {
+  final int accountId;
+  const SelectAccount(this.accountId);
+  @override
+  List<Object?> get props => [accountId];
+}
+
+class SelectAccounts extends AccountEvent {
+  final List<int> accountIds;
+  const SelectAccounts(this.accountIds);
+  @override
+  List<Object?> get props => [accountIds];
+}

@@ -89,10 +89,10 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   }) async {
     if (reset) emit(HistoryLoading());
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1,
+      0,
       _from,
       _to,
-    ); // accountId=1 (TODO: поддержка мультиаккаунтов)
+    ); // accountId=0 — все счета
     final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
     final catResult = await categoryRepository.getAllCategories();
     final categories = catResult.fold((_) => <dynamic>[], (cats) => cats);

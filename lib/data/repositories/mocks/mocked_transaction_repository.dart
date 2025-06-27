@@ -115,4 +115,34 @@ class MockedTransactionRepository implements TransactionRepository {
     _transactions[index] = updated;
     return right(updated);
   }
+
+  @override
+  Future<List<Transaction>> getTransactionsByAccount(int accountId) async {
+    return _transactions.where((t) => t.accountId == accountId).toList();
+  }
+
+  @override
+  Future<void> moveTransactionsToAccount(
+    int fromAccountId,
+    int toAccountId,
+  ) async {
+    for (var i = 0; i < _transactions.length; i++) {
+      if (_transactions[i].accountId == fromAccountId) {
+        _transactions[i] = Transaction(
+          id: _transactions[i].id,
+          accountId: toAccountId,
+          categoryId: _transactions[i].categoryId,
+          comment: _transactions[i].comment,
+          amount: _transactions[i].amount,
+          timestamp: _transactions[i].timestamp,
+          timeInterval: _transactions[i].timeInterval,
+        );
+      }
+    }
+  }
+
+  @override
+  Future<void> deleteTransactionsByAccount(int accountId) async {
+    _transactions.removeWhere((t) => t.accountId == accountId);
+  }
 }

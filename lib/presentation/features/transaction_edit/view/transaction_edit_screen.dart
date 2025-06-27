@@ -18,6 +18,10 @@ import '../../../widgets/validation_error_sheet.dart';
 import '../../../widgets/amount_input_dialog.dart';
 import '../../../widgets/account_select_sheet.dart';
 import '../../../widgets/category_select_sheet.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
+import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
+import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final TransactionResponseDTO transaction;
@@ -54,6 +58,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {
           if (state is TransactionEditSuccess) {
+            // После успешного сохранения транзакции обновить выбранный аккаунт глобально
+            final loaded = context.read<TransactionEditBloc>().state;
+            if (loaded is TransactionEditLoaded) {
+              context.read<AccountBloc>().add(SelectAccount(loaded.account.id));
+            }
             Navigator.pop(context, true);
           } else if (state is TransactionEditDeleted) {
             Navigator.pop(context, true);
@@ -246,10 +255,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       builder: (c) => AccountSelectSheet(
         accounts: accounts,
         onSelect: (account) => Navigator.pop(c, account),
+        onCreateAccount: () async {
+          Navigator.pop(c); // Закрыть bottom sheet
+          final created = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider(
+                create: (context) => AccountAddBloc(
+                  accountRepository: context.read<AccountRepository>(),
+                ),
+                child: const AccountAddScreen(),
+              ),
+            ),
+          );
+          if (created == true) {
+            bloc.add(TransactionEditInitialized(widget.transaction));
+          }
+        },
       ),
     );
 
     if (res != null) {
+      context.read<AccountBloc>().add(SelectAccount(res.id));
       bloc.add(TransactionEditAccountChanged(res));
     }
   }

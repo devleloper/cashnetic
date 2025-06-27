@@ -33,7 +33,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
 
   Future<List<int>> _getAllAvailableYears(AnalysisType type) async {
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1,
+      0,
       DateTime(2000, 1, 1),
       DateTime(2100, 12, 31, 23, 59, 59),
     );
@@ -69,7 +69,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     final allYears = await _getAllAvailableYears(event.type);
     // Получаем только транзакции за выбранный год
     final txResult = await transactionRepository.getTransactionsByPeriod(
-      1,
+      0,
       start,
       end,
     );
@@ -127,13 +127,18 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
+      final lastDate = txs.isNotEmpty
+          ? txs.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
       data.add(
         CategoryChartData(
+          id: cat.id,
           categoryTitle: cat.name,
           categoryIcon: cat.emoji,
           amount: amount,
           percent: percent.toDouble(),
           color: sectionColors[colorIdx % sectionColors.length],
+          lastTransactionDate: lastDate,
         ),
       );
       colorIdx++;
@@ -178,7 +183,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       final start = DateTime(year, 1, 1);
       final end = DateTime(year, 12, 31, 23, 59, 59);
       final txResult = await transactionRepository.getTransactionsByPeriod(
-        1,
+        0,
         start,
         end,
       );
@@ -236,13 +241,18 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
       );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
+      final lastDate = txs.isNotEmpty
+          ? txs.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
       data.add(
         CategoryChartData(
+          id: cat.id,
           categoryTitle: cat.name,
           categoryIcon: cat.emoji,
           amount: amount,
           percent: percent.toDouble(),
           color: sectionColors[colorIdx % sectionColors.length],
+          lastTransactionDate: lastDate,
         ),
       );
       colorIdx++;

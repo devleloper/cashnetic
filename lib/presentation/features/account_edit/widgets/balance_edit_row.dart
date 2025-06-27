@@ -11,7 +11,10 @@ class BalanceEditRow extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 16),
-          const Icon(Icons.account_balance_wallet_outlined),
+          const Icon(
+            Icons.account_balance_wallet_outlined,
+            color: Colors.green,
+          ),
           const SizedBox(width: 16),
           const Expanded(child: Text('Баланс')),
           SizedBox(
@@ -23,7 +26,12 @@ class BalanceEditRow extends StatelessWidget {
                 decimal: true,
               ),
               decoration: const InputDecoration(
-                border: InputBorder.none,
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 8,
+                ),
                 suffixText: '₽',
               ),
             ),

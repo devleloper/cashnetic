@@ -18,4 +18,6 @@ abstract interface class AccountRepository {
   );
 
   Future<Either<Failure, AccountHistory>> getAccountHistory(int id);
+
+  Future<void> deleteAccount(int id);
 }

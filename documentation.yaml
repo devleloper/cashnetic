@@ -1,0 +1,711 @@
+openapi: "3.0.3"
+info:
+  title: "SHMR Finance API"
+  description: "API для мобильного приложения по отслеживанию расходов"
+  version: "1.0.0"
+  contact:
+    name: "Artur Vasilov"
+    email: "avasilov@example.com"
+
+servers:
+  - url: "https://shmr-finance.ru/api/v1"
+    description: "Development server"
+
+paths:
+  /accounts:
+    get:
+      summary: "Получить все счета пользователя"
+      description: "Возвращает список всех счетов текущего пользователя"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Список счетов"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+        '401':
+          description: "Неавторизованный доступ"
+
+    post:
+      summary: "Создать новый счет"
+      description: "Создает новый счет для текущего пользователя"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCreateRequest"
+      responses:
+        '201':
+          description: "Созданный счет"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        '400':
+          description: "Некорректные данные"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /accounts/{id}:
+    get:
+      summary: "Получить счет по ID"
+      description: "Возвращает информацию о конкретном счете, включая статистику"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID счета"
+      responses:
+        '200':
+          description: "Счет"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountResponse"
+        '404':
+          description: "Счет не найден"
+        '400':
+          description: "Неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+    put:
+      summary: "Обновить счет"
+      description: "Обновляет данные существующего счета"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID счета"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdateRequest"
+      responses:
+        '200':
+          description: "Обновленный счет"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        '404':
+          description: "Счет не найден"
+        '400':
+          description: "Некорректные данные или неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+    delete:
+      summary: "Удалить счет"
+      description: "Удаляет счет пользователя. Счет можно удалить только если у него нет связанных транзакций."
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID счета"
+      responses:
+        '204':
+          description: "Счет успешно удален"
+        '400':
+          description: "Некорректный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+        '404':
+          description: "Счет не найден"
+        '409':
+          description: "Конфликт - у счета есть транзакции"
+        '500':
+          description: "Внутренняя ошибка сервера"
+
+  /accounts/{id}/history:
+    get:
+      summary: "Получить историю изменений счета"
+      description: "Возвращает историю изменений баланса и других параметров счета, произведенных вне транзакций (при создании или изменении счета)"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID счета"
+      responses:
+        '200':
+          description: "История изменений счета"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountHistoryResponse"
+        '404':
+          description: "Счет не найден"
+        '400':
+          description: "Неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /categories:
+    get:
+      summary: "Получить все категории"
+      description: "Возвращает список всех категорий (доходов и расходов)"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Список категорий"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /categories/type/{isIncome}:
+    get:
+      summary: "Получить категории по типу"
+      description: "Возвращает список категорий доходов или расходов"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: isIncome
+          in: path
+          required: true
+          schema:
+            type: boolean
+          description: "Тип категорий: true - доходы, false - расходы"
+      responses:
+        '200':
+          description: "Список категорий"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        '400':
+          description: "Некорректный параметр"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /transactions:
+    post:
+      summary: "Создать новую транзакцию"
+      description: "Создает новую транзакцию (доход или расход)"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        '201':
+          description: "Созданная транзакция"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        '400':
+          description: "Некорректные данные"
+        '404':
+          description: "Счет или категория не найдены"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /transactions/{id}:
+    get:
+      summary: "Получить транзакцию по ID"
+      description: "Возвращает детальную информацию о транзакции"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID транзакции"
+      responses:
+        '200':
+          description: "Транзакция"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        '404':
+          description: "Транзакция не найдена"
+        '400':
+          description: "Неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+    put:
+      summary: "Обновить транзакцию"
+      description: "Обновляет существующую транзакцию"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID транзакции"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionRequest"
+      responses:
+        '200':
+          description: "Обновленная транзакция"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        '404':
+          description: "Транзакция, счет или категория не найдены"
+        '400':
+          description: "Некорректные данные или неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+    delete:
+      summary: "Удалить транзакцию"
+      description: "Удаляет транзакцию с возможностью возврата средств на счет"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID транзакции"
+      responses:
+        '204':
+          description: "Транзакция успешно удалена"
+        '404':
+          description: "Транзакция не найдена"
+        '400':
+          description: "Неверный формат ID"
+        '401':
+          description: "Неавторизованный доступ"
+
+  /transactions/account/{accountId}/period:
+    get:
+      summary: "Получить транзакции по счету за период"
+      description: "Возвращает список транзакций для указанного счета за указанный период"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: "ID счета"
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: "Начальная дата периода (YYYY-MM-DD). Если не указана, используется начало текущего месяца."
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: "Конечная дата периода (YYYY-MM-DD). Если не указана, используется конец текущего месяца."
+      responses:
+        '200':
+          description: "Список транзакций за указанный период"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionResponse"
+        '400':
+          description: "Неверный формат ID счета или некорректный формат дат"
+        '401':
+          description: "Неавторизованный доступ"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Основной счёт"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "RUB"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - name
+        - balance
+        - currency
+        - createdAt
+        - updatedAt
+
+    AccountCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Основной счёт"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "RUB"
+      required:
+        - name
+        - balance
+        - currency
+
+    AccountUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Новое название счёта"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "USD"
+      required:
+        - name
+        - balance
+        - currency
+
+    AccountResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Основной счёт"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "RUB"
+        incomeStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatItem"
+        expenseStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatItem"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - balance
+        - currency
+        - incomeStats
+        - expenseStats
+        - createdAt
+        - updatedAt
+
+    AccountState:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Основной счет"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "USD"
+      required:
+        - id
+        - name
+        - balance
+        - currency
+
+    AccountHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        accountId:
+          type: integer
+          example: 1
+        changeType:
+          type: string
+          enum: [CREATION, MODIFICATION]
+          example: "MODIFICATION"
+        previousState:
+          $ref: "#/components/schemas/AccountState"
+          nullable: true
+        newState:
+          $ref: "#/components/schemas/AccountState"
+        changeTimestamp:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - accountId
+        - changeType
+        - newState
+        - changeTimestamp
+        - createdAt
+
+    AccountHistoryResponse:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          example: 1
+        accountName:
+          type: string
+          example: "Основной счет"
+        currency:
+          type: string
+          example: "USD"
+        currentBalance:
+          type: string
+          example: "2000.00"
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountHistory"
+      required:
+        - accountId
+        - accountName
+        - currency
+        - currentBalance
+        - history
+
+    StatItem:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+          example: 1
+        categoryName:
+          type: string
+          example: "Зарплата"
+        emoji:
+          type: string
+          example: "💰"
+        amount:
+          type: string
+          example: "5000.00"
+      required:
+        - categoryId
+        - categoryName
+        - emoji
+        - amount
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Зарплата"
+        emoji:
+          type: string
+          example: "💰"
+        isIncome:
+          type: boolean
+          example: true
+      required:
+        - id
+        - name
+        - emoji
+        - isIncome
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        accountId:
+          type: integer
+          example: 1
+        categoryId:
+          type: integer
+          example: 1
+        amount:
+          type: string
+          example: "500.00"
+        transactionDate:
+          type: string
+          format: date-time
+        comment:
+          type: string
+          nullable: true
+          example: "Зарплата за месяц"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - accountId
+        - categoryId
+        - amount
+        - transactionDate
+        - createdAt
+        - updatedAt
+
+    TransactionRequest:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          example: 1
+        categoryId:
+          type: integer
+          example: 1
+        amount:
+          type: string
+          example: "500.00"
+        transactionDate:
+          type: string
+          format: date-time
+        comment:
+          type: string
+          nullable: true
+          example: "Зарплата за месяц"
+      required:
+        - accountId
+        - categoryId
+        - amount
+        - transactionDate
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        account:
+          $ref: "#/components/schemas/AccountBrief"
+        category:
+          $ref: "#/components/schemas/Category"
+        amount:
+          type: string
+          example: "500.00"
+        transactionDate:
+          type: string
+          format: date-time
+        comment:
+          type: string
+          nullable: true
+          example: "Зарплата за месяц"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - account
+        - category
+        - amount
+        - transactionDate
+        - createdAt
+        - updatedAt
+
+    AccountBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Основной счёт"
+        balance:
+          type: string
+          example: "1000.00"
+        currency:
+          type: string
+          example: "RUB"
+      required:
+        - id
+        - name
+        - balance
+        - currency

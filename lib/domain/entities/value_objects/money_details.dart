@@ -1,12 +1,13 @@
 class MoneyDetails {
-  final double _balance;
-  final String _currency;
+  final double balance;
+  final String currency;
 
-  MoneyDetails({required double balance, required String currency})
-    : _balance = balance,
-      _currency = currency;
+  MoneyDetails({required this.balance, required this.currency});
 
-  double get balance => _balance;
-
-  String get currency => _currency;
+  MoneyDetails copyWith({double? balance, String? currency}) {
+    return MoneyDetails(
+      balance: balance ?? this.balance,
+      currency: currency ?? this.currency,
+    );
+  }
 }
