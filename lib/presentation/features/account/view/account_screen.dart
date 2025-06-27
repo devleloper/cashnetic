@@ -328,7 +328,7 @@ class _BalanceSpoiler extends StatelessWidget {
             particleColor: Colors.green,
             isEnabled: isHidden,
             enableFadeAnimation: true,
-            enableGestureReveal: true,
+            enableGestureReveal: false,
             textStyle: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -346,7 +346,7 @@ class _BalanceSpoiler extends StatelessWidget {
             particleColor: Colors.green,
             isEnabled: isHidden,
             enableFadeAnimation: true,
-            enableGestureReveal: true,
+            enableGestureReveal: false,
             fadeRadius: 3,
             imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           ),

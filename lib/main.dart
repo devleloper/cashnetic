@@ -23,19 +23,6 @@ import 'package:cashnetic/data/repositories/drift_category_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemUiOverlayStyle overlayStyle = const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.black,
-    systemNavigationBarIconBrightness: Brightness.light,
-  );
-  if (Platform.isAndroid) {
-    overlayStyle = overlayStyle.copyWith(
-      systemNavigationBarColor: Colors.green,
-    );
-  }
-  SystemChrome.setSystemUIOverlayStyle(overlayStyle);
   await initializeDateFormatting('ru');
   runApp(const CashneticApp());
 }
