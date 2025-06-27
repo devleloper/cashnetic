@@ -737,7 +737,7 @@ packages:
     source: hosted
     version: "4.1.0"
   sensors_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: sensors_plus
       sha256: "905282c917c6bb731c242f928665c2ea15445aa491249dea9d98d7c79dc8fd39"
@@ -893,6 +893,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.1"
+  spoiler_widget:
+    dependency: "direct dev"
+    description:
+      name: spoiler_widget
+      sha256: cb6487aba644f20e0227885d1c50e8e96c91afb3156e4f5e899234bbd24bcd42
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.12"
   sqlite3:
     dependency: transitive
     description:
