@@ -29,6 +29,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
     on<LoadAnalysis>(_onLoadAnalysis);
     on<ChangeYear>(_onChangeYear);
     on<ChangeYears>(_onChangeYears);
+    on<ChangePeriod>(_onChangePeriod);
   }
 
   Future<List<int>> _getAllAvailableYears(AnalysisType type) async {
@@ -268,6 +269,104 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
         selectedYear: event.years.first,
         selectedYears: event.years,
         availableYears: allYears.isEmpty ? event.years : allYears,
+      ),
+    );
+  }
+
+  Future<void> _onChangePeriod(
+    ChangePeriod event,
+    Emitter<AnalysisState> emit,
+  ) async {
+    emit(AnalysisLoading());
+    // Получаем все года с транзакциями нужного типа
+    final allYears = await _getAllAvailableYears(event.type);
+    // Получаем только транзакции за выбранный период
+    final txResult = await transactionRepository.getTransactionsByPeriod(
+      0,
+      event.from,
+      event.to,
+    );
+    final catResult = await categoryRepository.getAllCategories();
+    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
+    final cats = catResult.fold((_) => <Category>[], (cats) => cats);
+    // Фильтруем по типу
+    final filtered = txs.where((t) {
+      final cat = cats.firstWhere(
+        (c) => c.id == t.categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: '',
+          emoji: '',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
+      );
+      return event.type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
+    }).toList();
+    if (filtered.isEmpty) {
+      emit(
+        AnalysisLoaded(
+          result: AnalysisResult(
+            data: [],
+            total: 0,
+            periodStart: event.from,
+            periodEnd: event.to,
+          ),
+          selectedYear: event.from.year,
+          selectedYears: [event.from.year],
+          availableYears: allYears.isEmpty ? [event.from.year] : allYears,
+        ),
+      );
+      return;
+    }
+    // Группируем по категориям
+    final Map<int, List<Transaction>> byCategory = {};
+    for (final t in filtered) {
+      byCategory.putIfAbsent(t.categoryId ?? 0, () => []).add(t);
+    }
+    final total = filtered.fold<double>(0, (sum, t) => sum + t.amount);
+    final data = <CategoryChartData>[];
+    int colorIdx = 0;
+    byCategory.forEach((catId, txs) {
+      final cat = cats.firstWhere(
+        (c) => c.id == catId,
+        orElse: () => Category(
+          id: 0,
+          name: 'Другое',
+          emoji: '',
+          isIncome: false,
+          color: '#E0E0E0',
+        ),
+      );
+      final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
+      final percent = total > 0 ? (amount / total) * 100 : 0;
+      final lastDate = txs.isNotEmpty
+          ? txs.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
+      data.add(
+        CategoryChartData(
+          id: cat.id,
+          categoryTitle: cat.name,
+          categoryIcon: cat.emoji,
+          amount: amount,
+          percent: percent.toDouble(),
+          color: sectionColors[colorIdx % sectionColors.length],
+          lastTransactionDate: lastDate,
+        ),
+      );
+      colorIdx++;
+    });
+    emit(
+      AnalysisLoaded(
+        result: AnalysisResult(
+          data: data,
+          total: total,
+          periodStart: event.from,
+          periodEnd: event.to,
+        ),
+        selectedYear: event.from.year,
+        selectedYears: [event.from.year],
+        availableYears: allYears.isEmpty ? [event.from.year] : allYears,
       ),
     );
   }
