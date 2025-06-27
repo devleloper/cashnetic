@@ -35,13 +35,16 @@ class _AccountScreenState extends State<AccountScreen> {
   void initState() {
     super.initState();
     _shakeDetector = ShakeDetector.autoStart(
-      onPhoneShake: (detector) {
+      onPhoneShake: (event) {
         if (mounted) {
           setState(() {
             _isBalanceHidden = !_isBalanceHidden;
           });
         }
       },
+      minimumShakeCount: 2,
+      shakeSlopTimeMS: 800,
+      shakeThresholdGravity: 2.2,
     );
     _accelSub = accelerometerEvents.listen((event) {
       // z < 0 — экран вниз, z > 0 — экран вверх
@@ -217,6 +220,11 @@ class _AccountScreenState extends State<AccountScreen> {
                           selectedAccountIds: selectedAccountIds,
                           aggregatedBalances: aggregatedBalances,
                           selectedCurrencies: selectedCurrencies,
+                          onTap: () {
+                            setState(() {
+                              _isBalanceHidden = !_isBalanceHidden;
+                            });
+                          },
                         ),
                       ),
                     ),
@@ -290,6 +298,7 @@ class _BalanceSpoiler extends StatelessWidget {
   final List<int> selectedAccountIds;
   final Map<String, double> aggregatedBalances;
   final List<String> selectedCurrencies;
+  final VoidCallback onTap;
 
   const _BalanceSpoiler({
     Key? key,
@@ -299,6 +308,7 @@ class _BalanceSpoiler extends StatelessWidget {
     required this.selectedAccountIds,
     required this.aggregatedBalances,
     required this.selectedCurrencies,
+    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -306,60 +316,66 @@ class _BalanceSpoiler extends StatelessWidget {
     if (state is! AccountLoaded) return const SizedBox.shrink();
     final loaded = state as AccountLoaded;
     if (selectedCurrencies.length == 1) {
-      return SpoilerText(
-        text: NumberFormat.currency(
-          symbol: selectedCurrencies.first,
-          decimalDigits: 0,
-        ).format(loaded.computedBalance),
-        config: TextSpoilerConfig(
-          particleDensity: 2,
-          particleColor: Colors.green,
-          isEnabled: isHidden,
-          enableFadeAnimation: true,
-          enableGestureReveal: true,
-          textStyle: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+      return GestureDetector(
+        onTap: onTap,
+        child: SpoilerText(
+          text: NumberFormat.currency(
+            symbol: selectedCurrencies.first,
+            decimalDigits: 0,
+          ).format(loaded.computedBalance),
+          config: TextSpoilerConfig(
+            particleDensity: 2,
+            particleColor: Colors.green,
+            isEnabled: isHidden,
+            enableFadeAnimation: true,
+            enableGestureReveal: true,
+            textStyle: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
           ),
         ),
       );
     } else {
-      return SpoilerOverlay(
-        config: WidgetSpoilerConfig(
-          particleDensity: 2,
-          particleColor: Colors.green,
-          isEnabled: isHidden,
-          enableFadeAnimation: true,
-          enableGestureReveal: true,
-          fadeRadius: 3,
-          imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: selectedCurrencies
-              .map(
-                (cur) => Text(
-                  NumberFormat.currency(symbol: cur, decimalDigits: 0).format(
-                    accounts
-                        .where((acc) => acc.moneyDetails?.currency == cur)
-                        .map((acc) {
-                          if (selectedAccountIds.length == 1) {
-                            return loaded.computedBalance;
-                          } else {
-                            return aggregatedBalances[cur] ?? 0;
-                          }
-                        })
-                        .fold<double>(0, (a, b) => a + (b is num ? b : 0)),
+      return GestureDetector(
+        onTap: onTap,
+        child: SpoilerOverlay(
+          config: WidgetSpoilerConfig(
+            particleDensity: 2,
+            particleColor: Colors.green,
+            isEnabled: isHidden,
+            enableFadeAnimation: true,
+            enableGestureReveal: true,
+            fadeRadius: 3,
+            imageFilter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: selectedCurrencies
+                .map(
+                  (cur) => Text(
+                    NumberFormat.currency(symbol: cur, decimalDigits: 0).format(
+                      accounts
+                          .where((acc) => acc.moneyDetails?.currency == cur)
+                          .map((acc) {
+                            if (selectedAccountIds.length == 1) {
+                              return loaded.computedBalance;
+                            } else {
+                              return aggregatedBalances[cur] ?? 0;
+                            }
+                          })
+                          .fold<double>(0, (a, b) => a + (b is num ? b : 0)),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              )
-              .toList(),
+                )
+                .toList(),
+          ),
         ),
       );
     }

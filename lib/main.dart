@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:io';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -22,15 +23,19 @@ import 'package:cashnetic/data/repositories/drift_category_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
+  SystemUiOverlayStyle overlayStyle = const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: Colors.black,
+    systemNavigationBarIconBrightness: Brightness.light,
   );
+  if (Platform.isAndroid) {
+    overlayStyle = overlayStyle.copyWith(
+      systemNavigationBarColor: Colors.green,
+    );
+  }
+  SystemChrome.setSystemUIOverlayStyle(overlayStyle);
   await initializeDateFormatting('ru');
   runApp(const CashneticApp());
 }
