@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class TransactionsTotalRow extends StatelessWidget {
@@ -12,8 +13,8 @@ class TransactionsTotalRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Всего',
+          Text(
+            S.of(context).total,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,7 +23,7 @@ class HistoryPeriodSelector extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Период: начало',
+              'Period: start',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -58,8 +59,8 @@ class HistoryPeriodSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Период: конец',
+            Text(
+              S.of(context).periodEnd,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

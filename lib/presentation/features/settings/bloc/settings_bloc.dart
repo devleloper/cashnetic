@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_event.dart';
 import 'settings_state.dart';
+import 'package:flutter/widgets.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   static const String _darkThemeKey = 'dark_theme';
@@ -28,18 +29,26 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     emit(SettingsLoading());
-
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final isDarkTheme = prefs.getBool(_darkThemeKey) ?? false;
-      final primaryColor =
-          prefs.getInt(_primaryColorKey) ?? 0xFF2196F3; // Default blue
+      final primaryColor = prefs.getInt(_primaryColorKey) ?? 0xFF2196F3;
       final soundsEnabled = prefs.getBool(_soundsKey) ?? true;
       final hapticsEnabled = prefs.getBool(_hapticsKey) ?? true;
       final passcode = prefs.getString(_passcodeKey);
       final syncEnabled = prefs.getBool(_syncKey) ?? false;
-      final language = prefs.getString(_languageKey) ?? 'ru';
+      String? language = prefs.getString(_languageKey);
+
+      if (language == null) {
+        final systemLocale =
+            WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        if (['en', 'ru', 'de'].contains(systemLocale)) {
+          language = systemLocale;
+        } else {
+          language = 'en';
+        }
+        await prefs.setString(_languageKey, language);
+      }
 
       emit(
         SettingsLoaded(
@@ -179,11 +188,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     if (state is SettingsLoaded) {
       final currentState = state as SettingsLoaded;
-
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_languageKey, event.language);
-
         emit(currentState.copyWith(language: event.language));
       } catch (e) {
         emit(SettingsError('Failed to save language setting: $e'));

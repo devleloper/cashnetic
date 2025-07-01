@@ -22,6 +22,7 @@ import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
+import 'package:cashnetic/generated/l10n.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final TransactionResponseDTO transaction;
@@ -79,9 +80,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           } else if (state is TransactionEditError) {
-            return Scaffold(
-              body: Center(child: Text('Ошибка: ${state.message}')),
-            );
+            return Scaffold(body: Center(child: Text(state.message)));
           } else if (state is TransactionEditLoaded ||
               state is TransactionEditSaving ||
               state is TransactionEditDeleting) {
@@ -97,8 +96,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          return const Scaffold(
-            body: Center(child: Text('Неизвестное состояние')),
+          return Scaffold(
+            body: Center(child: Text(S.of(context).unknownState)),
           );
         },
       ),
@@ -109,8 +108,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
     final title = state.transaction.category.isIncome
-        ? 'Редактировать доход'
-        : 'Редактировать расход';
+        ? S.of(context).addIncome
+        : S.of(context).addExpense;
     final isSaving = state is TransactionEditSaving;
     final isDeleting = state is TransactionEditDeleting;
     final isProcessing = isSaving || isDeleting;
@@ -144,35 +143,37 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
           MyListTileRow(
-            title: 'Счёт',
+            title: S.of(context).account,
             value: state.account?.name ?? '',
             onTap: isProcessing
                 ? () {}
                 : () => _selectAccount(context, state.accounts),
           ),
           MyListTileRow(
-            title: 'Категория',
+            title: S.of(context).category,
             value: state.selectedCategory?.name ?? '',
             onTap: isProcessing
                 ? () {}
                 : () => _selectCategory(context, state.categories),
           ),
           MyListTileRow(
-            title: 'Сумма',
-            value: state.amount.isEmpty ? 'Введите' : '${state.amount} ₽',
+            title: S.of(context).amount,
+            value: state.amount.isEmpty
+                ? S.of(context).enter
+                : '${state.amount} ₽',
             onTap: isProcessing
                 ? () {}
                 : () => _selectAmount(context, state.amount),
           ),
           MyListTileRow(
-            title: 'Дата',
+            title: S.of(context).date,
             value: dateStr,
             onTap: isProcessing
                 ? () {}
                 : () => _selectDate(context, state.selectedDate),
           ),
           MyListTileRow(
-            title: 'Время',
+            title: S.of(context).time,
             value: timeStr,
             onTap: isProcessing
                 ? () {}
@@ -208,7 +209,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('Удалить', style: TextStyle(color: Colors.white)),
+                : Text(
+                    S.of(context).deleteAccount,
+                    style: TextStyle(color: Colors.white),
+                  ),
           ),
         ],
       ),
@@ -219,15 +223,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final errors = <String>[];
 
     if (state.selectedCategory == null) {
-      errors.add('Выберите категорию');
+      errors.add(S.of(context).selectCategory);
     }
 
     if (state.amount.isEmpty) {
-      errors.add('Введите сумму');
+      errors.add(S.of(context).enterAmount);
     } else {
       final parsed = double.tryParse(state.amount.replaceAll(',', '.'));
       if (parsed == null || parsed <= 0) {
-        errors.add('Сумма должна быть положительным числом');
+        errors.add(S.of(context).amountMustBeAPositiveNumber);
       }
     }
 

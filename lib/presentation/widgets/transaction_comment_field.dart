@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class TransactionCommentField extends StatelessWidget {
@@ -14,8 +15,8 @@ class TransactionCommentField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      decoration: const InputDecoration(
-        labelText: 'Комментарий',
+      decoration: InputDecoration(
+        labelText: S.of(context).comment,
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,

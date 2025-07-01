@@ -1,20 +1,11 @@
-import 'package:cashnetic/data/database.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
-import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
-import 'package:cashnetic/presentation/features/categories/widgets/category_list.dart';
-import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/period_row.dart';
 import '../widgets/analysis_pie_chart.dart';
 import '../widgets/analysis_legend.dart';
-import '../widgets/analysis_category_list.dart';
-import 'package:flutter/rendering.dart';
-import 'package:cashnetic/data/mappers/category_mapper.dart';
-import 'package:cashnetic/domain/entities/category.dart' as domain;
 import '../widgets/analysis_year_filter_chips.dart';
 import '../widgets/analysis_period_selector.dart';
 import '../widgets/analysis_total_summary.dart';
@@ -41,7 +32,7 @@ class AnalysisScreen extends StatelessWidget {
         }
         final result = state.result;
         final selectedYears = state.selectedYears;
-        // Сортируем категории по дате последней транзакции
+
         final sortedData = List<CategoryChartData>.from(result.data)
           ..sort((a, b) {
             final ad = a.lastTransactionDate ?? DateTime(1970);
@@ -52,8 +43,8 @@ class AnalysisScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(
               type == AnalysisType.expense
-                  ? 'Анализ расходов'
-                  : 'Анализ доходов',
+                  ? S.of(context).expenseAnalysis
+                  : S.of(context).incomeAnalysis,
               style: const TextStyle(fontSize: 20, color: Colors.white),
             ),
             centerTitle: true,
@@ -122,7 +113,7 @@ class AnalysisScreen extends StatelessWidget {
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
-                      'Нет данных для анализа',
+                      S.of(context).noDataForAnalysis,
                       style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                   ),

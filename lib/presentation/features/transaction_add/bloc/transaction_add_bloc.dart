@@ -40,7 +40,7 @@ class TransactionAddBloc
     );
     final accountsResult = await accountRepository.getAllAccounts();
     if (accountsResult.isLeft()) {
-      emit(TransactionAddError('Ошибка загрузки счетов'));
+      emit(TransactionAddError('Failed to load accounts'));
       return;
     }
     final accounts = accountsResult.getOrElse(() => []);
@@ -62,7 +62,7 @@ class TransactionAddBloc
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
       if (filtered.isEmpty) {
-        emit(TransactionAddError('Нет категорий'));
+        emit(TransactionAddError('No categories'));
         return;
       }
       emit(
@@ -183,7 +183,7 @@ class TransactionAddBloc
 
     final parsed = double.tryParse(current.amount.replaceAll(',', '.'));
     if (parsed == null || current.selectedCategory == null) {
-      emit(TransactionAddError('Заполните все поля корректно'));
+      emit(TransactionAddError('Please fill in all fields correctly'));
       return;
     }
 
@@ -202,7 +202,7 @@ class TransactionAddBloc
     try {
       final accountId = current.account?.id;
       if (accountId == null) {
-        emit(TransactionAddError('Сначала создайте счет'));
+        emit(TransactionAddError('Create an account first'));
         return;
       }
 
@@ -236,7 +236,7 @@ class TransactionAddBloc
         emit(TransactionAddSuccess(dto));
       });
     } catch (e) {
-      emit(TransactionAddError('Ошибка при сохранении: $e'));
+      emit(TransactionAddError('Error while saving: $e'));
     }
   }
 
@@ -255,7 +255,7 @@ class TransactionAddBloc
     );
     await addResult.fold(
       (failure) {
-        emit(TransactionAddError('Ошибка при добавлении категории: $failure'));
+        emit(TransactionAddError('Error while adding category: $failure'));
       },
       (newCat) async {
         // После добавления — обновляем список и выбираем новую категорию

@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class CustomCategoryDialog extends StatefulWidget {
@@ -36,29 +37,32 @@ class _CustomCategoryDialogState extends State<CustomCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Создать категорию'),
+      title: Text(S.of(context).createCategory),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Название категории',
-              hintText: 'Введите название',
+            decoration: InputDecoration(
+              labelText: S.of(context).categoryName,
+              hintText: S.of(context).enterName,
             ),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: emojiController,
-            decoration: const InputDecoration(
-              labelText: 'Эмоджи',
+            decoration: InputDecoration(
+              labelText: S.of(context).emoji,
               hintText: '💰',
             ),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: widget.onCancel, child: const Text('Отмена')),
+        TextButton(
+          onPressed: widget.onCancel,
+          child: Text(S.of(context).cancel),
+        ),
         TextButton(
           onPressed: () {
             if (nameController.text.isNotEmpty) {
@@ -68,7 +72,7 @@ class _CustomCategoryDialogState extends State<CustomCategoryDialog> {
               );
             }
           },
-          child: const Text('Создать'),
+          child: Text(S.of(context).create),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cashnetic/generated/l10n.dart';
 
 class ValidationErrorSheet extends StatelessWidget {
   final List<String> errors;
@@ -17,8 +18,8 @@ class ValidationErrorSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Ошибки валидации:',
+          Text(
+            S.of(context).validationErrors,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -37,10 +38,7 @@ class ValidationErrorSheet extends StatelessWidget {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onClose,
-              child: const Text('Понятно'),
-            ),
+            child: ElevatedButton(onPressed: onClose, child: const Text('OK')),
           ),
         ],
       ),

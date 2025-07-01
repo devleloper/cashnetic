@@ -1,4 +1,5 @@
 import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 
@@ -46,7 +47,9 @@ class CategoryListTile extends StatelessWidget {
                 ],
               ],
             )
-          : (txCount > 0 ? Text('Транзакций: $txCount') : null),
+          : (txCount > 0
+                ? Text(S.of(context).transactionsTxcount(txCount))
+                : null),
       trailing: showPercent
           ? null
           : const Icon(Icons.chevron_right, color: Colors.grey),

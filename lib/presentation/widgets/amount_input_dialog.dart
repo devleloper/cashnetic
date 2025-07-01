@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class AmountInputDialog extends StatelessWidget {
@@ -13,7 +14,7 @@ class AmountInputDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TextEditingController(text: currentAmount);
     return AlertDialog(
-      title: const Text('Введите сумму'),
+      title: Text(S.of(context).enterAmount),
       content: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
@@ -26,7 +27,7 @@ class AmountInputDialog extends StatelessWidget {
             onSubmit(controller.text);
             Navigator.pop(context);
           },
-          child: const Text('ОК'),
+          child: const Text('OK'),
         ),
       ],
     );

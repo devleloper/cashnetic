@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:flutter/material.dart';
@@ -70,15 +71,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 18,
                         ),
                         gap: 6,
-                        tabs: const [
-                          GButton(icon: Icons.bar_chart, text: 'Расходы'),
-                          GButton(icon: Icons.show_chart, text: 'Доходы'),
+                        tabs: [
+                          GButton(
+                            icon: Icons.bar_chart,
+                            text: S.of(context).expenses,
+                          ),
+                          GButton(
+                            icon: Icons.show_chart,
+                            text: S.of(context).income,
+                          ),
                           GButton(
                             icon: Icons.account_balance_wallet,
-                            text: 'Счёт',
+                            text: S.of(context).account,
                           ),
-                          GButton(icon: Icons.list_alt, text: 'Статьи'),
-                          GButton(icon: Icons.settings, text: 'Настройки'),
+                          GButton(
+                            icon: Icons.list_alt,
+                            text: S.of(context).categories,
+                          ),
+                          GButton(
+                            icon: Icons.settings,
+                            text: S.of(context).settings,
+                          ),
                         ],
                       ),
                     ),

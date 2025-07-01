@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/data/models/account/account.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
@@ -101,7 +102,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Мой счета'),
+            title: Text(S.of(context).myAccounts),
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.white),
@@ -121,7 +122,7 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
-            tooltip: 'Обновить',
+            tooltip: 'Refresh',
             child: const Icon(Icons.refresh, color: Colors.white),
           ),
           body: Column(
@@ -190,7 +191,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   children: [
                     OptionRow(
                       icon: Icons.account_balance_wallet,
-                      label: 'Баланс',
+                      label: S.of(context).balance,
                       value: '',
                       onTap: () {
                         setState(() {
@@ -231,7 +232,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     const Divider(height: 1),
                     OptionRow(
                       icon: Icons.currency_exchange,
-                      label: 'Валюта',
+                      label: S.of(context).currency,
                       value: selectedCurrencies.length == 1
                           ? selectedCurrencies.first
                           : selectedCurrencies.join(', '),
@@ -266,20 +267,20 @@ class _AccountScreenState extends State<AccountScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: const Text('₽ Российский рубль'),
+            title: Text(S.of(context).russianRuble),
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: Text('\$ Доллар'),
+            title: Text(S.of(context).dollar),
             onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(
-            title: const Text('€ Евро'),
+            title: const Text('€ Euro'),
             onTap: () => Navigator.pop(context, '€'),
           ),
           const Divider(),
           ListTile(
-            title: const Text('Отмена'),
+            title: Text(S.of(context).cancel),
             onTap: () => Navigator.pop(context),
           ),
         ],

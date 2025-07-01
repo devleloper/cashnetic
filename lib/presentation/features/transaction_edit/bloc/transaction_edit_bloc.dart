@@ -39,7 +39,7 @@ class TransactionEditBloc
     );
     final accountsResult = await accountRepository.getAllAccounts();
     if (accountsResult.isLeft()) {
-      emit(TransactionEditError('Ошибка загрузки счетов'));
+      emit(TransactionEditError('Failed to load accounts'));
       return;
     }
     final accounts = accountsResult.getOrElse(() => []);
@@ -84,7 +84,7 @@ class TransactionEditBloc
         (a) => a.id == event.transaction.account.id,
         orElse: () => accounts.isNotEmpty
             ? accounts.first
-            : throw Exception('Нет счетов'),
+            : throw Exception('No accounts'),
       );
 
       emit(
@@ -211,7 +211,7 @@ class TransactionEditBloc
 
     final parsed = double.tryParse(current.amount.replaceAll(',', '.'));
     if (parsed == null || current.selectedCategory == null) {
-      emit(TransactionEditError('Заполните все поля корректно'));
+      emit(TransactionEditError('Please fill in all fields correctly'));
       return;
     }
 
@@ -247,11 +247,11 @@ class TransactionEditBloc
       );
 
       result.fold(
-        (failure) => emit(TransactionEditError(failure.toString())),
+        (failure) => emit(TransactionEditError('Error while saving: $failure')),
         (transaction) => emit(TransactionEditSuccess()),
       );
     } catch (e) {
-      emit(TransactionEditError('Ошибка при сохранении: $e'));
+      emit(TransactionEditError('Error while saving: $e'));
     }
   }
 
@@ -282,11 +282,12 @@ class TransactionEditBloc
       );
 
       result.fold(
-        (failure) => emit(TransactionEditError(failure.toString())),
+        (failure) =>
+            emit(TransactionEditError('Error while deleting: $failure')),
         (_) => emit(TransactionEditDeleted()),
       );
     } catch (e) {
-      emit(TransactionEditError('Ошибка при удалении: $e'));
+      emit(TransactionEditError('Error while deleting: $e'));
     }
   }
 
@@ -305,7 +306,7 @@ class TransactionEditBloc
     );
     await addResult.fold(
       (failure) {
-        emit(TransactionEditError('Ошибка при добавлении категории: $failure'));
+        emit(TransactionEditError('Error while adding category: $failure'));
       },
       (newCat) async {
         // После добавления — обновляем список и выбираем новую категорию

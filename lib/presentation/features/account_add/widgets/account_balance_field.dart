@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class AccountBalanceField extends StatelessWidget {
@@ -20,7 +21,7 @@ class AccountBalanceField extends StatelessWidget {
             color: Colors.green,
           ),
           const SizedBox(width: 16),
-          const Expanded(child: Text('Баланс')),
+          Expanded(child: Text(S.of(context).balance)),
           SizedBox(
             width: 100,
             child: TextFormField(
@@ -29,15 +30,17 @@ class AccountBalanceField extends StatelessWidget {
                 decimal: true,
               ),
               textAlign: TextAlign.end,
-              decoration: const InputDecoration(
-                labelText: 'Баланс',
+              decoration: InputDecoration(
+                labelText: S.of(context).balance,
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
               validator: (val) {
-                if (val == null || val.isEmpty) return 'Введите число';
+                if (val == null || val.isEmpty) {
+                  return S.of(context).enterANumber;
+                }
                 final n = double.tryParse(val.replaceAll(',', '.'));
-                if (n == null) return 'Только число';
+                if (n == null) return S.of(context).onlyANumber;
                 return null;
               },
               onChanged: onChanged,

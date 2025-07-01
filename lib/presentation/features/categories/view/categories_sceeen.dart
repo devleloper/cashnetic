@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
@@ -76,7 +77,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
             );
         return Scaffold(
-          appBar: AppBar(title: const Text('Категории')),
+          appBar: AppBar(title: Text(S.of(context).categories)),
           body: Column(
             children: [
               CategorySearchField(
@@ -88,10 +89,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               Expanded(
                 child: categories.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          'Нет категорий по вашему запросу',
-
+                          S.of(context).noCategoriesFoundForYourQuery,
                           textAlign: TextAlign.center,
                         ),
                       )

@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_bloc.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
@@ -97,7 +98,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                  widget.isIncome ? 'Доходы за месяц' : 'Расходы за месяц',
+                  widget.isIncome
+                      ? S.of(context).incomeForTheMonth
+                      : S.of(context).expensesForTheMonth,
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -153,8 +156,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Период: начало',
+                            Text(
+                              S.of(context).periodStart,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -191,8 +194,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Период: конец',
+                            Text(
+                              S.of(context).periodEnd,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -245,8 +248,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Сумма',
+                            Text(
+                              S.of(context).total,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -270,8 +273,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ? Center(
                             child: Text(
                               widget.isIncome
-                                  ? 'Нет доходов за последний месяц'
-                                  : 'Нет расходов за последний месяц',
+                                  ? S.of(context).noIncomeForTheLastMonth
+                                  : S.of(context).noExpensesForTheLastMonth,
                             ),
                           )
                         : HistoryListView(
@@ -279,7 +282,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             categories: categories,
                             isIncome: widget.isIncome,
                             onEdited: () {
-                              // Обновляем историю после редактирования/удаления
                               context.read<HistoryBloc>().add(
                                 LoadHistory(
                                   widget.isIncome
@@ -296,28 +298,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
         );
       },
-    );
-  }
-}
-
-class _HistoryPeriodRow extends StatelessWidget {
-  final String label, value;
-  const _HistoryPeriodRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
     );
   }
 }

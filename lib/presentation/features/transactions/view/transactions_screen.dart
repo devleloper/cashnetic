@@ -1,3 +1,5 @@
+import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/transactions_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transactions_bloc.dart';
@@ -14,7 +16,6 @@ import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
 import '../widgets/transactions_total_row.dart';
-import '../widgets/transactions_list_view.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
@@ -55,7 +56,7 @@ class TransactionsScreen extends StatelessWidget {
 
     if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
     String emoji = '💸';
-    String categoryName = 'Расход';
+    String categoryName = S.of(context).expense;
     Color bgColor = Colors.green.withOpacity(0.2);
     try {
       emoji = _getCategoryEmoji(context, tx.categoryId);
@@ -121,7 +122,7 @@ class TransactionsScreen extends StatelessWidget {
         (c) => c.id == categoryId,
         orElse: () => Category(
           id: 0,
-          name: 'Расход',
+          name: S.of(context).expense,
           emoji: '💸',
           isIncome: false,
           color: '#E0E0E0',
@@ -129,7 +130,7 @@ class TransactionsScreen extends StatelessWidget {
       );
       return cat.name;
     }
-    return 'Расход';
+    return S.of(context).expense;
   }
 
   @override
@@ -159,7 +160,11 @@ class TransactionsScreen extends StatelessWidget {
           final total = state.total;
           return Scaffold(
             appBar: AppBar(
-              title: Text(isIncome ? 'Доходы сегодня' : 'Расходы сегодня'),
+              title: Text(
+                isIncome
+                    ? S.of(context).incomeToday
+                    : S.of(context).expensesToday,
+              ),
               actions: [
                 IconButton(
                   key: historyIconKey,
@@ -187,7 +192,7 @@ class TransactionsScreen extends StatelessWidget {
                     isIncome: isIncome,
                     onTap: (t, cat) async {
                       // Получаем имя и валюту аккаунта из AccountBloc
-                      String accountName = 'Счет';
+                      String accountName = S.of(context).account;
                       String currency = 'RUB';
                       final accountState = context.read<AccountBloc>().state;
                       if (accountState is AccountLoaded) {

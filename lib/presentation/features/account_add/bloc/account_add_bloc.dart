@@ -67,7 +67,7 @@ class AccountAddBloc extends Bloc<AccountAddEvent, AccountAddState> {
     if (state is! AccountAddLoaded) return;
     final current = state as AccountAddLoaded;
     if (current.name.trim().isEmpty) {
-      emit(const AccountAddError('Введите название счета'));
+      emit(const AccountAddError('Enter account name'));
       return;
     }
     final balance =

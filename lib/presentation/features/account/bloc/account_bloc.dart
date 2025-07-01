@@ -38,7 +38,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       (failure) async => emit(AccountError(failure.toString())),
       (accounts) async {
         if (accounts.isEmpty) {
-          emit(AccountError('Нет аккаунтов'));
+          emit(AccountError('No accounts'));
           return;
         }
         final selected = accounts.first;

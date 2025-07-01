@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class HistoryTotalRow extends StatelessWidget {
@@ -11,8 +12,8 @@ class HistoryTotalRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Сумма',
+          Text(
+            S.of(context).total,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

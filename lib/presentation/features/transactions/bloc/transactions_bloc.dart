@@ -40,7 +40,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       event.isIncome,
     );
     if (txResult.isLeft() || catResult.isLeft()) {
-      emit(TransactionsError('Ошибка загрузки данных'));
+      emit(TransactionsError('Failed to load data'));
       return;
     }
     final txs = txResult.getOrElse(() => []);

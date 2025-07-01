@@ -1,6 +1,6 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/data/models/account/account.dart';
-import '../widgets/balance_edit_row.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
@@ -8,7 +8,6 @@ import 'package:cashnetic/presentation/features/account/bloc/account_state.dart'
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/presentation/features/account_add/widgets/account_currency_picker.dart';
 import 'dart:async';
 
 class AccountEditScreen extends StatefulWidget {
@@ -47,7 +46,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     return showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Выберите счет для переноса'),
+        title: Text(S.of(context).selectAccountToTransfer),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView(
@@ -95,7 +94,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
           children: [
             Scaffold(
               appBar: AppBar(
-                title: const Text('Редактировать счета'),
+                title: Text(S.of(context).editAccounts),
                 leading: IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
                   onPressed: () => Navigator.pop(context),
@@ -130,7 +129,6 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                             );
                           }
                         }
-                        // После всех обновлений обязательно обновить список счетов
                         accountBloc.add(LoadAccount());
                         Navigator.pop(context);
                       }
@@ -224,23 +222,23 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       ListTile(
-                                        title: const Text('₽ Российский рубль'),
+                                        title: Text(S.of(context).russianRuble),
                                         onTap: () =>
                                             Navigator.pop(context, '₽'),
                                       ),
                                       ListTile(
-                                        title: Text('\$ Доллар'),
+                                        title: Text(S.of(context).dollar),
                                         onTap: () =>
                                             Navigator.pop(context, '\$'),
                                       ),
                                       ListTile(
-                                        title: const Text('€ Евро'),
+                                        title: Text(S.of(context).euro),
                                         onTap: () =>
                                             Navigator.pop(context, '€'),
                                       ),
                                       const Divider(),
                                       ListTile(
-                                        title: const Text('Отмена'),
+                                        title: Text(S.of(context).cancel),
                                         onTap: () => Navigator.pop(context),
                                       ),
                                     ],
@@ -277,18 +275,20 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                 keyboardType: TextInputType.numberWithOptions(
                                   decimal: true,
                                 ),
-                                decoration: const InputDecoration(
-                                  labelText: 'Баланс',
+                                decoration: InputDecoration(
+                                  labelText: S.of(context).balance,
                                   border: OutlineInputBorder(),
                                   isDense: true,
                                 ),
                                 validator: (val) {
-                                  if (val == null || val.isEmpty)
-                                    return 'Введите число';
+                                  if (val == null || val.isEmpty) {
+                                    return 'Enter a number';
+                                  }
                                   final n = double.tryParse(
                                     val.replaceAll(',', '.'),
                                   );
-                                  if (n == null) return 'Только число';
+                                  if (n == null)
+                                    return S.of(context).onlyANumber;
                                   return null;
                                 },
                               ),
@@ -300,9 +300,11 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                 final action = await showDialog<_DeleteAction>(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
-                                    title: const Text('Удалить счет?'),
-                                    content: const Text(
-                                      'Перенести все транзакции на другой счет?',
+                                    title: Text(S.of(context).deleteAccount),
+                                    content: Text(
+                                      S
+                                          .of(context)
+                                          .moveAllTransactionsToAnotherAccount,
                                     ),
                                     actions: [
                                       TextButton(
@@ -310,14 +312,14 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                                           ctx,
                                           _DeleteAction.move,
                                         ),
-                                        child: const Text(
-                                          'Перенести на другой счет',
+                                        child: Text(
+                                          S.of(context).moveToAnotherAccount,
                                         ),
                                       ),
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(ctx, null),
-                                        child: const Text('Отмена'),
+                                        child: Text(S.of(context).cancel),
                                       ),
                                     ],
                                   ),

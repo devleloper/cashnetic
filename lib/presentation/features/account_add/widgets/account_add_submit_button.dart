@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class AccountAddSubmitButton extends StatelessWidget {
@@ -20,7 +21,7 @@ class AccountAddSubmitButton extends StatelessWidget {
             ),
           ),
           onPressed: onPressed,
-          child: const Text('Создать'),
+          child: Text(S.of(context).create),
         ),
       ),
     );

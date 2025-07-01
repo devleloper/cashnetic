@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class BalanceEditRow extends StatelessWidget {
@@ -16,7 +17,7 @@ class BalanceEditRow extends StatelessWidget {
             color: Colors.green,
           ),
           const SizedBox(width: 16),
-          const Expanded(child: Text('Баланс')),
+          Expanded(child: Text(S.of(context).balance)),
           SizedBox(
             width: 120,
             child: TextField(

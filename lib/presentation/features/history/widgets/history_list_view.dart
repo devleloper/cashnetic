@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
@@ -26,8 +27,8 @@ class HistoryListView extends StatelessWidget {
       return Center(
         child: Text(
           isIncome
-              ? 'Нет доходов за последний месяц'
-              : 'Нет расходов за последний месяц',
+              ? S.of(context).noIncomeForTheLastMonth
+              : S.of(context).noExpensesForTheLastMonth,
         ),
       );
     }
@@ -53,7 +54,7 @@ class HistoryListView extends StatelessWidget {
             id: e.id,
             account: AccountBriefDTO(
               id: 1,
-              name: 'Основной счёт',
+              name: S.of(context).mainAccount,
               balance: '0',
               currency: '₽',
             ),

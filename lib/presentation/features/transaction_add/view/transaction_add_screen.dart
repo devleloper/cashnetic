@@ -1,4 +1,5 @@
 import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -60,14 +61,13 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
-          } else if (state is TransactionAddError &&
-              state.message == 'Нет счетов') {
+          } else if (state is TransactionAddError) {
             return Scaffold(
               body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Нет счетов'),
+                    Text(S.of(context).noAccounts),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () async {
@@ -89,20 +89,19 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
                           );
                         }
                       },
-                      child: const Text('Создать счет'),
+                      child: Text(S.of(context).createAccount),
                     ),
                   ],
                 ),
               ),
             );
-          } else if (state is TransactionAddError &&
-              state.message == 'Нет категорий') {
+          } else if (state is TransactionAddError) {
             return Scaffold(
               body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Нет категорий'),
+                    Text(S.of(context).noCategories),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () async {
@@ -130,7 +129,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
                           TransactionAddInitialized(widget.isIncome),
                         );
                       },
-                      child: const Text('Создать категорию'),
+                      child: Text(S.of(context).createCategory),
                     ),
                   ],
                 ),
@@ -138,7 +137,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             );
           } else if (state is TransactionAddError) {
             return Scaffold(
-              body: Center(child: Text('Ошибка: ${state.message}')),
+              body: Center(child: Text('Error: ${state.message}')),
             );
           } else if (state is TransactionAddLoaded ||
               state is TransactionAddSaving) {
@@ -154,8 +153,8 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          return const Scaffold(
-            body: Center(child: Text('Неизвестное состояние')),
+          return Scaffold(
+            body: Center(child: Text(S.of(context).unknownState)),
           );
         },
         listener: (context, state) {
@@ -184,12 +183,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   Widget _buildContent(BuildContext context, dynamic state) {
     // Ensure state is either TransactionAddLoaded or TransactionAddSaving
     if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
-      return const Scaffold(body: Center(child: Text('Неизвестное состояние')));
+      return Scaffold(body: Center(child: Text(S.of(context).unknownState)));
     }
 
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
-    final title = widget.isIncome ? 'Добавить доход' : 'Добавить расход';
+    final title = widget.isIncome
+        ? S.of(context).addIncome
+        : S.of(context).addExpense;
     final isSaving = state is TransactionAddSaving;
 
     return Scaffold(
@@ -219,35 +220,37 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         children: [
           MyListTileRow(
-            title: 'Счёт',
+            title: S.of(context).account,
             value: state.account?.name ?? '—',
             onTap: isSaving
                 ? () {}
                 : () => _selectAccount(context, state.accounts, state.account),
           ),
           MyListTileRow(
-            title: 'Категория',
+            title: S.of(context).category,
             value: state.selectedCategory?.name ?? '',
             onTap: isSaving
                 ? () {}
                 : () => _selectCategory(context, state.categories),
           ),
           MyListTileRow(
-            title: 'Сумма',
-            value: state.amount.isEmpty ? 'Введите' : '${state.amount} ₽',
+            title: S.of(context).amount,
+            value: state.amount.isEmpty
+                ? S.of(context).enter
+                : '${state.amount} ₽',
             onTap: isSaving
                 ? () {}
                 : () => _selectAmount(context, state.amount),
           ),
           MyListTileRow(
-            title: 'Дата',
+            title: S.of(context).date,
             value: dateStr,
             onTap: isSaving
                 ? () {}
                 : () => _selectDate(context, state.selectedDate),
           ),
           MyListTileRow(
-            title: 'Время',
+            title: S.of(context).time,
             value: timeStr,
             onTap: isSaving
                 ? () {}
@@ -267,7 +270,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   }
 
   void _validateAndSave(BuildContext context, dynamic state) {
-    // Ensure state is either TransactionAddLoaded or TransactionAddSaving
     if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
       return;
     }
@@ -275,19 +277,19 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final errors = <String>[];
 
     if (state.account == null) {
-      errors.add('Выберите счет');
+      errors.add(S.of(context).selectAccount);
     }
 
     if (state.selectedCategory == null) {
-      errors.add('Выберите категорию');
+      errors.add(S.of(context).selectCategory);
     }
 
     if (state.amount.isEmpty) {
-      errors.add('Введите сумму');
+      errors.add(S.of(context).enterAmount);
     } else {
       final parsed = double.tryParse(state.amount.replaceAll(',', '.'));
       if (parsed == null || parsed <= 0) {
-        errors.add('Сумма должна быть положительным числом');
+        errors.add(S.of(context).amountMustBeAPositiveNumber);
       }
     }
 
@@ -317,7 +319,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         accounts: accounts,
         onSelect: (acc) => Navigator.pop(c, acc),
         onCreateAccount: () async {
-          Navigator.pop(c); // Закрыть bottom sheet
+          Navigator.pop(c);
           final created = await Navigator.push(
             context,
             MaterialPageRoute(

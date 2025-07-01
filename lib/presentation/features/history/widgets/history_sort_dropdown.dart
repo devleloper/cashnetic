@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 
@@ -34,14 +35,14 @@ class HistorySortDropdown extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(8),
             isDense: true,
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: HistorySort.dateDesc,
                 child: Row(
                   children: [
                     Icon(Icons.calendar_today, size: 16, color: Colors.green),
                     SizedBox(width: 4),
-                    Text('По дате (сначала новые)'),
+                    Text(S.of(context).byDateNewestFirst),
                   ],
                 ),
               ),
@@ -51,7 +52,7 @@ class HistorySortDropdown extends StatelessWidget {
                   children: [
                     Icon(Icons.calendar_today, size: 16, color: Colors.green),
                     SizedBox(width: 4),
-                    Text('По дате (сначала старые)'),
+                    Text(S.of(context).byDateOldestFirst),
                   ],
                 ),
               ),
@@ -61,7 +62,7 @@ class HistorySortDropdown extends StatelessWidget {
                   children: [
                     Icon(Icons.attach_money, size: 16, color: Colors.green),
                     SizedBox(width: 4),
-                    Text('По сумме (убыв.)'),
+                    Text(S.of(context).byAmountDesc),
                   ],
                 ),
               ),
@@ -71,7 +72,7 @@ class HistorySortDropdown extends StatelessWidget {
                   children: [
                     Icon(Icons.attach_money, size: 16, color: Colors.green),
                     SizedBox(width: 4),
-                    Text('По сумме (возр.)'),
+                    Text(S.of(context).byAmountAsc),
                   ],
                 ),
               ),

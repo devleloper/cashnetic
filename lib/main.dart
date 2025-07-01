@@ -1,8 +1,9 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -73,19 +74,39 @@ class _CashneticAppState extends State<CashneticApp> {
               transactionRepository: transactionsRepo,
             ),
           ),
-
           BlocProvider(
             create: (context) => HistoryBloc(
               transactionRepository: transactionsRepo,
               categoryRepository: categoriesRepo,
             ),
           ),
-          // BLoC для добавления/редактирования транзакций создаются локально в соответствующих экранах
+          BlocProvider(
+            create: (context) => SettingsBloc()..add(const LoadSettings()),
+          ),
         ],
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          theme: themeData(),
-          routerConfig: _router.config(),
+        child: BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, state) {
+            Locale? locale;
+            Key? appKey;
+            if (state is SettingsLoaded) {
+              locale = Locale(state.language);
+              appKey = ValueKey(state.language);
+            }
+            return MaterialApp.router(
+              key: appKey,
+              locale: locale,
+              localizationsDelegates: const [
+                S.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: S.delegate.supportedLocales,
+              debugShowCheckedModeBanner: false,
+              theme: themeData(),
+              routerConfig: _router.config(),
+            );
+          },
         ),
       ),
     );

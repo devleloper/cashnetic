@@ -119,7 +119,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
         (c) => c.id == catId,
         orElse: () => Category(
           id: 0,
-          name: 'Другое',
+          name: 'Other',
           emoji: '',
           isIncome: false,
           color: '#E0E0E0',
@@ -171,7 +171,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
   ) async {
     emit(AnalysisLoading());
     if (event.years.isEmpty) {
-      emit(const AnalysisError('Не выбран ни один год.'));
+      emit(const AnalysisError('No year selected.'));
       return;
     }
     // Получаем все года с транзакциями нужного типа
@@ -233,7 +233,7 @@ class AnalysisBloc extends Bloc<AnalysisEvent, AnalysisState> {
         (c) => c.id == catId,
         orElse: () => Category(
           id: 0,
-          name: 'Другое',
+          name: 'Other',
           emoji: '',
           isIncome: false,
           color: '#E0E0E0',

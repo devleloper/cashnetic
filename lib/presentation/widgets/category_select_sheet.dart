@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/utils/category_utils.dart';
@@ -28,14 +29,14 @@ class CategorySelectSheet extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Выберите категорию',
+              Text(
+                S.of(context).selectCategory,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.black, weight: 60),
                 onPressed: onCreateCategory,
-                tooltip: 'Создать категорию',
+                tooltip: S.of(context).createCategory,
               ),
             ],
           ),
@@ -59,7 +60,7 @@ class CategorySelectSheet extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('Создать категорию'),
+                title: Text(S.of(context).createCategory),
                 onTap: onCreateCategory,
               ),
             ],

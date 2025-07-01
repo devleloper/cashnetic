@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 
@@ -22,14 +23,14 @@ class AccountSelectSheet extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Выберите счёт',
+              Text(
+                S.of(context).selectAccount,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.black, weight: 60),
                 onPressed: onCreateAccount,
-                tooltip: 'Создать счёт',
+                tooltip: S.of(context).createAccount,
               ),
             ],
           ),
@@ -56,7 +57,7 @@ class AccountSelectSheet extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('Создать счёт'),
+                title: Text(S.of(context).createAccount),
                 onTap: onCreateAccount,
               ),
             ],

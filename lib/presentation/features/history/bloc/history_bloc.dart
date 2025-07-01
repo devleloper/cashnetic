@@ -102,7 +102,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
         (c) => c.id == t.categoryId,
         orElse: () => Category(
           id: 0,
-          name: 'Неизвестно',
+          name: 'Unknown',
           emoji: '❓',
           isIncome: false,
           color: '#E0E0E0',
