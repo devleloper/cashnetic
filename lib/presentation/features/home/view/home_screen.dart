@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -39,64 +40,66 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: Container(
-            color: Colors.green,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: constraints.maxWidth,
-                      ),
-                      child: GNav(
-                        selectedIndex: tabsRouter.activeIndex,
-                        onTabChange: (index) {
-                          tabsRouter.setActiveIndex(index);
-                          if (index == 2) {
-                            context.read<AccountBloc>().add(LoadAccount());
-                          }
-                        },
-                        backgroundColor: Colors.green,
-                        tabBackgroundColor: Colors.white,
-                        activeColor: Colors.green,
-                        color: Colors.white,
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 18,
+        return ThemeSwitchingArea(
+          child: Scaffold(
+            body: child,
+            bottomNavigationBar: Container(
+              color: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
                         ),
-                        gap: 6,
-                        tabs: [
-                          GButton(
-                            icon: Icons.bar_chart,
-                            text: S.of(context).expenses,
+                        child: GNav(
+                          selectedIndex: tabsRouter.activeIndex,
+                          onTabChange: (index) {
+                            tabsRouter.setActiveIndex(index);
+                            if (index == 2) {
+                              context.read<AccountBloc>().add(LoadAccount());
+                            }
+                          },
+                          backgroundColor: Colors.green,
+                          tabBackgroundColor: Colors.white,
+                          activeColor: Colors.green,
+                          color: Colors.white,
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 18,
                           ),
-                          GButton(
-                            icon: Icons.show_chart,
-                            text: S.of(context).income,
-                          ),
-                          GButton(
-                            icon: Icons.account_balance_wallet,
-                            text: S.of(context).account,
-                          ),
-                          GButton(
-                            icon: Icons.list_alt,
-                            text: S.of(context).categories,
-                          ),
-                          GButton(
-                            icon: Icons.settings,
-                            text: S.of(context).settings,
-                          ),
-                        ],
+                          gap: 6,
+                          tabs: [
+                            GButton(
+                              icon: Icons.bar_chart,
+                              text: S.of(context).expenses,
+                            ),
+                            GButton(
+                              icon: Icons.show_chart,
+                              text: S.of(context).income,
+                            ),
+                            GButton(
+                              icon: Icons.account_balance_wallet,
+                              text: S.of(context).account,
+                            ),
+                            GButton(
+                              icon: Icons.list_alt,
+                              text: S.of(context).categories,
+                            ),
+                            GButton(
+                              icon: Icons.settings,
+                              text: S.of(context).settings,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -21,6 +22,7 @@ import 'package:cashnetic/data/database.dart';
 import 'package:cashnetic/data/repositories/drift_account_repository.dart';
 import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
 import 'package:cashnetic/data/repositories/drift_category_repository.dart';
+import 'presentation/theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,56 +47,49 @@ class _CashneticAppState extends State<CashneticApp> {
     final accountsRepo = DriftAccountRepository(db);
     final categoriesRepo = DriftCategoryRepository(db);
 
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<TransactionRepository>.value(
-          value: transactionsRepo,
-        ),
-        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
-        RepositoryProvider<AccountRepository>.value(value: accountsRepo),
-      ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => AccountBloc(
-              accountRepository: accountsRepo,
-              transactionRepository: transactionsRepo,
-              categoryRepository: categoriesRepo,
+    return ThemeProvider(
+      initTheme: lightThemeData(),
+      builder: (context, theme) {
+        return MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<TransactionRepository>.value(
+              value: transactionsRepo,
             ),
-          ),
-          BlocProvider(
-            create: (context) => AnalysisBloc(
-              transactionRepository: transactionsRepo,
-              categoryRepository: categoriesRepo,
-            ),
-          ),
-          BlocProvider(
-            create: (context) => CategoriesBloc(
-              categoryRepository: categoriesRepo,
-              transactionRepository: transactionsRepo,
-            ),
-          ),
-          BlocProvider(
-            create: (context) => HistoryBloc(
-              transactionRepository: transactionsRepo,
-              categoryRepository: categoriesRepo,
-            ),
-          ),
-          BlocProvider(
-            create: (context) => SettingsBloc()..add(const LoadSettings()),
-          ),
-        ],
-        child: BlocBuilder<SettingsBloc, SettingsState>(
-          builder: (context, state) {
-            Locale? locale;
-            Key? appKey;
-            if (state is SettingsLoaded) {
-              locale = Locale(state.language);
-              appKey = ValueKey(state.language);
-            }
-            return MaterialApp.router(
-              key: appKey,
-              locale: locale,
+            RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
+            RepositoryProvider<AccountRepository>.value(value: accountsRepo),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (context) => AccountBloc(
+                  accountRepository: accountsRepo,
+                  transactionRepository: transactionsRepo,
+                  categoryRepository: categoriesRepo,
+                ),
+              ),
+              BlocProvider(
+                create: (context) => AnalysisBloc(
+                  transactionRepository: transactionsRepo,
+                  categoryRepository: categoriesRepo,
+                ),
+              ),
+              BlocProvider(
+                create: (context) => CategoriesBloc(
+                  categoryRepository: categoriesRepo,
+                  transactionRepository: transactionsRepo,
+                ),
+              ),
+              BlocProvider(
+                create: (context) => HistoryBloc(
+                  transactionRepository: transactionsRepo,
+                  categoryRepository: categoriesRepo,
+                ),
+              ),
+              BlocProvider(
+                create: (context) => SettingsBloc()..add(const LoadSettings()),
+              ),
+            ],
+            child: MaterialApp.router(
               localizationsDelegates: const [
                 S.delegate,
                 GlobalMaterialLocalizations.delegate,
@@ -103,12 +98,12 @@ class _CashneticAppState extends State<CashneticApp> {
               ],
               supportedLocales: S.delegate.supportedLocales,
               debugShowCheckedModeBanner: false,
-              theme: themeData(),
+              theme: theme,
               routerConfig: _router.config(),
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

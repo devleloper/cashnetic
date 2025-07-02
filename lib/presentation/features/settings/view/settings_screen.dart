@@ -1,8 +1,10 @@
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../theme/theme.dart';
 import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
@@ -34,6 +36,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var darkTheme = darkThemeData();
+    var lightTheme = lightThemeData();
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).settings)),
       body: BlocConsumer<SettingsBloc, SettingsState>(
@@ -52,11 +56,36 @@ class SettingsScreen extends StatelessWidget {
           if (state is SettingsLoaded) {
             return ListView(
               children: [
-                SwitchListTile(
-                  title: Text(S.of(context).darkTheme),
-                  value: state.isDarkTheme,
-                  onChanged: (_) {
-                    context.read<SettingsBloc>().add(const ToggleDarkTheme());
+                ThemeSwitcher(
+                  clipper: ThemeSwitcherCircleClipper(),
+                  builder: (context) {
+                    final switchKey = GlobalKey();
+                    return SettingsSwitchListTile(
+                      switchKey: switchKey,
+                      title: Text(S.of(context).darkTheme),
+                      value:
+                          ThemeModelInheritedNotifier.of(
+                            context,
+                          ).theme.brightness ==
+                          Brightness.dark,
+                      onChanged: (isDark) {
+                        final theme = isDark ? darkTheme : lightTheme;
+                        final renderBox =
+                            switchKey.currentContext?.findRenderObject()
+                                as RenderBox?;
+                        final offset = renderBox != null
+                            ? renderBox.localToGlobal(
+                                Offset(
+                                  renderBox.size.width,
+                                  renderBox.size.height / 2,
+                                ),
+                              )
+                            : Offset.zero;
+                        ThemeSwitcher.of(
+                          context,
+                        ).changeTheme(theme: theme, offset: offset);
+                      },
+                    );
                   },
                 ),
                 const Divider(height: 1),
