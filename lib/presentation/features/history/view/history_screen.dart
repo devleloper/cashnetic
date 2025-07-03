@@ -114,20 +114,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => BlocProvider(
-                            create: (context) =>
-                                AnalysisBloc(
-                                  transactionRepository: context
-                                      .read<TransactionRepository>(),
-                                  categoryRepository: context
-                                      .read<CategoryRepository>(),
-                                )..add(
-                                  LoadAnalysis(
-                                    year: DateTime.now().year,
-                                    type: widget.isIncome
-                                        ? AnalysisType.income
-                                        : AnalysisType.expense,
-                                  ),
+                            create: (context) => AnalysisBloc()
+                              ..add(
+                                LoadAnalysis(
+                                  year: DateTime.now().year,
+                                  type: widget.isIncome
+                                      ? AnalysisType.income
+                                      : AnalysisType.expense,
                                 ),
+                              ),
                             child: AnalysisScreen(
                               type: widget.isIncome
                                   ? AnalysisType.income

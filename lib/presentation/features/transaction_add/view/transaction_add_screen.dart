@@ -21,6 +21,7 @@ import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
 import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   final bool isIncome;
@@ -49,11 +50,8 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TransactionAddBloc(
-        categoryRepository: context.read<CategoryRepository>(),
-        transactionRepository: context.read<TransactionRepository>(),
-        accountRepository: context.read<AccountRepository>(),
-      )..add(TransactionAddInitialized(widget.isIncome)),
+      create: (context) =>
+          TransactionAddBloc()..add(TransactionAddInitialized(widget.isIncome)),
       child: BlocConsumer<TransactionAddBloc, TransactionAddState>(
         builder: (context, state) {
           if (state is TransactionAddInitial ||
@@ -75,10 +73,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => BlocProvider(
-                              create: (context) => AccountAddBloc(
-                                accountRepository: context
-                                    .read<AccountRepository>(),
-                              ),
+                              create: (context) => AccountAddBloc(),
                               child: const AccountAddScreen(),
                             ),
                           ),
@@ -159,17 +154,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         },
         listener: (context, state) {
           if (state is TransactionAddSuccess) {
-            final today = DateTime.now();
-            final txDate = DateTime.tryParse(state.transaction.transactionDate);
-            final isToday =
-                txDate != null &&
-                txDate.year == today.year &&
-                txDate.month == today.month &&
-                txDate.day == today.day;
-            Navigator.pop(context, {
-              'transaction': state.transaction,
-              'animateToHistory': !isToday,
-            });
+            Navigator.pop(context, true);
           } else if (state is TransactionAddError) {
             ScaffoldMessenger.of(
               context,
@@ -324,9 +309,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => BlocProvider(
-                create: (context) => AccountAddBloc(
-                  accountRepository: context.read<AccountRepository>(),
-                ),
+                create: (context) => AccountAddBloc(),
                 child: const AccountAddScreen(),
               ),
             ),
@@ -345,14 +328,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   Future<void> _selectCategory(
     BuildContext context,
-    List<CategoryDTO> categories,
+    List<Category> categories,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
     final filteredCategories = categories
         .where((c) => c.isIncome == widget.isIncome)
         .toList();
 
-    final res = await showModalBottomSheet<CategoryDTO>(
+    final res = await showModalBottomSheet<Category>(
       context: context,
       builder: (c) => CategorySelectSheet(
         categories: filteredCategories,

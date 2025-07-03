@@ -54,6 +54,7 @@ dependencies:
   fuzzywuzzy: ^1.2.0
   sensors_plus: ^6.1.1
   animated_theme_switcher: ^2.0.10
+  get_it: ^8.0.3
   flutter_localizations:
     sdk: flutter
 

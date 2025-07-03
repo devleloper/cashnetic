@@ -91,11 +91,13 @@ class AnalysisPeriodSelector extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
+                final now = DateTime.now();
+                final initial = periodEnd.isAfter(now) ? now : periodEnd;
                 final picked = await showDatePicker(
                   context: context,
-                  initialDate: periodEnd,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
+                  initialDate: initial,
+                  firstDate: periodStart,
+                  lastDate: now,
                 );
                 if (picked != null) {
                   onChanged(periodStart, picked);

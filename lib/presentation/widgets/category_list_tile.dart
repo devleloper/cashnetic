@@ -1,11 +1,11 @@
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class CategoryListTile extends StatelessWidget {
-  final CategoryDTO category;
+  final Category category;
   final VoidCallback onTap;
   final int txCount;
   final double? amount;

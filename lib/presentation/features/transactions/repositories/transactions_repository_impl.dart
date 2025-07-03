@@ -1,0 +1,60 @@
+import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/domain/entities/account.dart';
+import 'transactions_repository.dart';
+import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
+import 'package:cashnetic/data/repositories/drift_category_repository.dart';
+import 'package:cashnetic/data/repositories/drift_account_repository.dart';
+import 'package:cashnetic/di/di.dart';
+import 'package:cashnetic/domain/failures/failure.dart';
+
+class TransactionsRepositoryImpl implements TransactionsRepository {
+  final _transactionRepo = getIt<DriftTransactionRepository>();
+  final _categoryRepo = getIt<DriftCategoryRepository>();
+  final _accountRepo = getIt<DriftAccountRepository>();
+
+  @override
+  Future<List<Transaction>> getTransactions({
+    int? accountId,
+    int? categoryId,
+    DateTime? from,
+    DateTime? to,
+    int? page,
+    int? pageSize,
+  }) async {
+    final result = await _transactionRepo.getTransactionsByPeriod(
+      accountId ?? 0,
+      from ?? DateTime.now().subtract(const Duration(days: 30)),
+      to ?? DateTime.now(),
+    );
+    final txs = result.fold((_) => <Transaction>[], (txs) => txs);
+    var filtered = txs;
+    if (categoryId != null) {
+      filtered = filtered.where((t) => t.categoryId == categoryId).toList();
+    }
+    if (page != null && pageSize != null) {
+      final start = page * pageSize;
+      final end = start + pageSize;
+      filtered = filtered.skip(start).take(pageSize).toList();
+    }
+    return filtered;
+  }
+
+  @override
+  Future<List<Category>> getCategories() async {
+    final result = await _categoryRepo.getAllCategories();
+    return result.fold((_) => <Category>[], (cats) => cats);
+  }
+
+  @override
+  Future<List<Account>> getAccounts() async {
+    final result = await _accountRepo.getAllAccounts();
+    return result.fold((_) => <Account>[], (accs) => accs);
+  }
+
+  @override
+  Future<void> deleteTransaction(int id) async {
+    final result = await _transactionRepo.deleteTransaction(id);
+    result.fold((failure) => throw Exception(failure.toString()), (_) => null);
+  }
+}

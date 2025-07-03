@@ -31,7 +31,7 @@ class UpdateAccountBalance extends AccountEvent {
 }
 
 class UpdateAccount extends AccountEvent {
-  final dynamic updated; // тип уточним после интеграции domain/data
+  final dynamic updated;
   const UpdateAccount(this.updated);
   @override
   List<Object?> get props => [updated];

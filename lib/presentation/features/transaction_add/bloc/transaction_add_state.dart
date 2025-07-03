@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 
 abstract class TransactionAddState extends Equatable {
   const TransactionAddState();
@@ -14,8 +14,8 @@ class TransactionAddInitial extends TransactionAddState {}
 class TransactionAddLoading extends TransactionAddState {}
 
 class TransactionAddLoaded extends TransactionAddState {
-  final List<CategoryDTO> categories;
-  final CategoryDTO? selectedCategory;
+  final List<Category> categories;
+  final Category? selectedCategory;
   final DateTime selectedDate;
   final Account? account;
   final String amount;
@@ -45,8 +45,8 @@ class TransactionAddLoaded extends TransactionAddState {
 }
 
 class TransactionAddSaving extends TransactionAddState {
-  final List<CategoryDTO> categories;
-  final CategoryDTO? selectedCategory;
+  final List<Category> categories;
+  final Category? selectedCategory;
   final DateTime selectedDate;
   final Account? account;
   final String amount;
@@ -83,8 +83,7 @@ class TransactionAddError extends TransactionAddState {
 }
 
 class TransactionAddSuccess extends TransactionAddState {
-  final TransactionDTO transaction;
-  const TransactionAddSuccess(this.transaction);
+  const TransactionAddSuccess();
   @override
-  List<Object?> get props => [transaction];
+  List<Object?> get props => [];
 }

@@ -260,7 +260,7 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  void _showCurrencyPicker(BuildContext context, AccountDTO account) async {
+  void _showCurrencyPicker(BuildContext context, Account account) async {
     final sel = await showModalBottomSheet<String>(
       context: context,
       builder: (_) => Column(
@@ -286,7 +286,7 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
       ),
     );
-    if (sel != null && sel != account.currency) {
+    if (sel != null && sel != account.moneyDetails.currency) {
       context.read<AccountBloc>().add(UpdateAccountCurrency(sel));
     }
   }

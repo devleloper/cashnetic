@@ -5,6 +5,7 @@ import 'package:cashnetic/data/models/transaction/transaction.dart';
 import 'package:cashnetic/domain/entities/transaction.dart' as domain;
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
+import 'package:cashnetic/domain/entities/category.dart' as domain;
 
 import '../models/transaction_response/transaction_response.dart';
 import '../models/category/category.dart';
@@ -82,7 +83,7 @@ extension TransactionResponseMapper on TransactionResponseDTO {
 class TransactionDomainMapper {
   static TransactionResponseDTO domainToModel(
     domain.Transaction transaction,
-    CategoryDTO category,
+    domain.Category category,
     String accountName, {
     String? currency,
   }) {
@@ -94,7 +95,13 @@ class TransactionDomainMapper {
         balance: '0', // Default balance
         currency: currency ?? 'RUB',
       ),
-      category: category,
+      category: CategoryDTO(
+        id: category.id,
+        name: category.name,
+        emoji: category.emoji,
+        isIncome: category.isIncome,
+        color: category.color,
+      ),
       amount: transaction.amount.toString(),
       transactionDate: transaction.timestamp.toIso8601String(),
       comment: transaction.comment,

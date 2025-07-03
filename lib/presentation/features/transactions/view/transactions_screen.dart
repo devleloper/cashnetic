@@ -12,14 +12,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
-import 'package:cashnetic/data/mappers/transaction_mapper.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 import '../widgets/transactions_total_row.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
+import 'package:cashnetic/di/di.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -29,7 +28,7 @@ class TransactionsScreen extends StatelessWidget {
 
   void _animateTransactionToHistory(
     BuildContext context,
-    TransactionDTO tx,
+    Transaction tx,
   ) async {
     final overlay = Overlay.of(context);
 
@@ -59,8 +58,8 @@ class TransactionsScreen extends StatelessWidget {
     String categoryName = S.of(context).expense;
     Color bgColor = Color(0xFFE6F4EA);
     try {
-      emoji = _getCategoryEmoji(context, tx.categoryId);
-      categoryName = _getCategoryName(context, tx.categoryId);
+      emoji = _getCategoryEmoji(context, tx.categoryId ?? 0);
+      categoryName = _getCategoryName(context, tx.categoryId ?? 0);
       bgColor = colorFor(categoryName).withOpacity(0.2);
     } catch (_) {}
     if (emoji.isEmpty) emoji = '💸';
@@ -84,32 +83,17 @@ class TransactionsScreen extends StatelessWidget {
     final state = BlocProvider.of<TransactionsBloc>(context).state;
     if (state is TransactionsLoaded) {
       if (state.categories.isEmpty) return '❓';
-      final first = state.categories.first;
-      if (first is CategoryDTO) {
-        final cat = (state.categories as List<CategoryDTO>).firstWhere(
-          (c) => c.id == categoryId,
-          orElse: () => CategoryDTO(
-            id: 0,
-            name: '',
-            emoji: '❓',
-            isIncome: isIncome,
-            color: '#FFF',
-          ),
-        );
-        return cat.emoji;
-      } else {
-        final cat = state.categories.firstWhere(
-          (c) => c.id == categoryId,
-          orElse: () => Category(
-            id: 0,
-            name: '',
-            emoji: '❓',
-            isIncome: isIncome,
-            color: '#FFF',
-          ),
-        );
-        return cat.emoji;
-      }
+      final cat = state.categories.firstWhere(
+        (c) => c.id == categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: '',
+          emoji: '❓',
+          isIncome: isIncome,
+          color: '#FFF',
+        ),
+      );
+      return cat.emoji;
     }
     return '❓';
   }
@@ -139,8 +123,8 @@ class TransactionsScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => TransactionsBloc(
-        transactionRepository: context.read<TransactionRepository>(),
-        categoryRepository: context.read<CategoryRepository>(),
+        transactionRepository: getIt<TransactionRepository>(),
+        categoryRepository: getIt<CategoryRepository>(),
       )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
@@ -203,23 +187,12 @@ class TransactionsScreen extends StatelessWidget {
                         accountName = acc.name;
                         currency = acc.moneyDetails.currency;
                       }
-                      final model = TransactionDomainMapper.domainToModel(
-                        t,
-                        CategoryDTO(
-                          id: cat.id,
-                          name: cat.name,
-                          emoji: cat.emoji,
-                          isIncome: cat.isIncome,
-                          color: cat.color,
-                        ),
-                        accountName,
-                        currency: currency,
-                      );
+                      // Pass only the transaction id to the edit screen
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) =>
-                              TransactionEditScreen(transaction: model),
+                              TransactionEditScreen(transactionId: t.id),
                         ),
                       );
                       context.read<TransactionsBloc>().add(
@@ -248,7 +221,7 @@ class TransactionsScreen extends StatelessWidget {
                     result['animateToHistory'] == true) {
                   _animateTransactionToHistory(
                     context,
-                    result['transaction'] as TransactionDTO,
+                    result['transaction'] as Transaction,
                   );
                 }
               },

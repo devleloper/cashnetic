@@ -14,6 +14,18 @@ import '../widgets/my_settings_list_tile.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<SettingsBloc>(
+      create: (_) => SettingsBloc()..add(const LoadSettings()),
+      child: const _SettingsScreenBody(),
+    );
+  }
+}
+
+class _SettingsScreenBody extends StatelessWidget {
+  const _SettingsScreenBody({super.key});
+
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,

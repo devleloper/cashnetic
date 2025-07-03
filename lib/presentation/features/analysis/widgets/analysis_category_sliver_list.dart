@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
-import 'package:cashnetic/data/mappers/category_mapper.dart';
-import 'package:cashnetic/domain/entities/category.dart' as domain;
 import '../bloc/analysis_event.dart';
 import '../bloc/analysis_state.dart';
 
@@ -21,7 +19,7 @@ class AnalysisCategorySliverList extends StatelessWidget {
     return SliverList(
       delegate: SliverChildBuilderDelegate((context, i) {
         final cat = sortedData[i];
-        final catDTO = CategoryDTO(
+        final domainCat = Category(
           id: cat.id ?? 0,
           name: cat.categoryTitle,
           emoji: cat.categoryIcon,
@@ -29,23 +27,14 @@ class AnalysisCategorySliverList extends StatelessWidget {
           color: '#E0E0E0',
         );
         return CategoryListTile(
-          category: catDTO,
+          category: domainCat,
           txCount: 0,
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => TransactionListByCategoryScreen(
-                  category: catDTO.toDomain().getOrElse(
-                    () => domain.Category(
-                      id: catDTO.id,
-                      name: catDTO.name,
-                      emoji: catDTO.emoji,
-                      isIncome: catDTO.isIncome,
-                      color: catDTO.color,
-                    ),
-                  ),
-                ),
+                builder: (_) =>
+                    TransactionListByCategoryScreen(category: domainCat),
               ),
             );
           },

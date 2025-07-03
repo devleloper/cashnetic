@@ -9,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transaction_list_by_category_screen.dart';
 import '../widgets/category_search_field.dart';
 import '../widgets/category_list.dart';
-import 'package:cashnetic/data/models/category/category.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -70,12 +69,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           return const SizedBox.shrink();
         }
         final txByCategory = state.txByCategory;
-        final List<CategoryDTO> categories =
-            List<CategoryDTO>.from(state.categories)..sort(
-              (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
-                txByCategory[a.id]?.length ?? 0,
-              ),
-            );
+        final List<Category> categories = List<Category>.from(state.categories)
+          ..sort(
+            (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
+              txByCategory[a.id]?.length ?? 0,
+            ),
+          );
         return Scaffold(
           appBar: AppBar(title: Text(S.of(context).categories)),
           body: Column(
@@ -106,13 +105,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (_) => TransactionListByCategoryScreen(
-                                category: Category(
-                                  id: cat.id,
-                                  name: cat.name,
-                                  emoji: cat.emoji,
-                                  isIncome: cat.isIncome,
-                                  color: cat.color,
-                                ),
+                                category: cat,
                               ),
                             ),
                           );

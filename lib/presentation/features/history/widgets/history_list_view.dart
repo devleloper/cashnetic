@@ -3,9 +3,6 @@ import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/account_brief/account_brief.dart';
-import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/presentation/features/history/widgets/history_list_item.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/theme/light_color_for.dart';
@@ -52,34 +49,8 @@ class HistoryListView extends StatelessWidget {
         );
         final bgColor = lightColorFor(cat.name);
         return HistoryListItem(
-          transaction: TransactionResponseDTO(
-            id: e.id,
-            account: AccountBriefDTO(
-              id: 1,
-              name: S.of(context).mainAccount,
-              balance: '0',
-              currency: '₽',
-            ),
-            category: CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-            amount: e.amount.toString(),
-            transactionDate: e.timestamp.toIso8601String(),
-            comment: e.comment,
-            createdAt: e.timeInterval.createdAt.toIso8601String(),
-            updatedAt: e.timeInterval.updatedAt.toIso8601String(),
-          ),
-          category: CategoryDTO(
-            id: cat.id,
-            name: cat.name,
-            emoji: cat.emoji,
-            isIncome: cat.isIncome,
-            color: cat.color,
-          ),
+          transaction: e,
+          category: cat,
           bgColor: bgColor,
           onEdited: onEdited,
         );

@@ -1,5 +1,4 @@
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -25,9 +24,9 @@ import 'package:cashnetic/presentation/features/account_add/bloc/account_add_blo
 import 'package:cashnetic/generated/l10n.dart';
 
 class TransactionEditScreen extends StatefulWidget {
-  final TransactionResponseDTO transaction;
+  final int transactionId;
 
-  const TransactionEditScreen({super.key, required this.transaction});
+  const TransactionEditScreen({super.key, required this.transactionId});
 
   @override
   State<TransactionEditScreen> createState() => _TransactionEditScreenState();
@@ -51,11 +50,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TransactionEditBloc(
-        categoryRepository: context.read<CategoryRepository>(),
-        transactionRepository: context.read<TransactionRepository>(),
-        accountRepository: context.read<AccountRepository>(),
-      )..add(TransactionEditInitialized(widget.transaction)),
+      create: (context) =>
+          TransactionEditBloc()
+            ..add(TransactionEditInitialized(widget.transactionId)),
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {
           if (state is TransactionEditSuccess) {
@@ -107,7 +104,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildContent(BuildContext context, dynamic state) {
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
-    final title = state.transaction.category.isIncome
+    final title = (state.selectedCategory?.isIncome ?? false)
         ? S.of(context).addIncome
         : S.of(context).addExpense;
     final isSaving = state is TransactionEditSaving;
@@ -265,15 +262,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => BlocProvider(
-                create: (context) => AccountAddBloc(
-                  accountRepository: context.read<AccountRepository>(),
-                ),
+                create: (context) => AccountAddBloc(),
                 child: const AccountAddScreen(),
               ),
             ),
           );
           if (created == true) {
-            bloc.add(TransactionEditInitialized(widget.transaction));
+            bloc.add(TransactionEditInitialized(widget.transactionId));
           }
         },
       ),
@@ -287,10 +282,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Future<void> _selectCategory(
     BuildContext context,
-    List<CategoryDTO> categories,
+    List<Category> categories,
   ) async {
     final bloc = context.read<TransactionEditBloc>();
-    final res = await showModalBottomSheet<CategoryDTO>(
+    final res = await showModalBottomSheet<Category>(
       context: context,
       builder: (c) => CategorySelectSheet(
         categories: categories,
@@ -309,7 +304,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   void _showCustomCategoryDialog(
     BuildContext context,
     TransactionEditBloc bloc,
-    List<CategoryDTO> categories,
+    List<Category> categories,
   ) {
     final isIncome = categories.isNotEmpty ? categories.first.isIncome : false;
 

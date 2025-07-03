@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:cashnetic/data/models/account/account.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 
 class DailyBalancePoint {
@@ -18,7 +17,7 @@ abstract class AccountState extends Equatable {
 class AccountLoading extends AccountState {}
 
 class AccountLoaded extends AccountState {
-  final AccountDTO account;
+  final Account account;
   final List<DailyBalancePoint> dailyPoints;
   final double computedBalance;
   final List<Account> accounts;

@@ -1,20 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'categories_event.dart';
 import 'categories_state.dart';
-import 'package:fuzzywuzzy/fuzzywuzzy.dart';
+import 'package:cashnetic/di/di.dart';
 
 class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
-  final CategoryRepository categoryRepository;
-  final TransactionRepository transactionRepository;
+  final CategoriesRepository categoriesRepository =
+      getIt<CategoriesRepository>();
 
-  CategoriesBloc({
-    required this.categoryRepository,
-    required this.transactionRepository,
-  }) : super(CategoriesLoading()) {
+  CategoriesBloc() : super(CategoriesLoading()) {
     on<InitCategoriesWithTransactions>(_onInitCategoriesWithTransactions);
     on<LoadCategories>(_onLoadCategories);
     on<SearchCategories>(_onSearchCategories);
@@ -28,41 +22,26 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     Emitter<CategoriesState> emit,
   ) async {
     emit(CategoriesLoading());
-    final result = await categoryRepository.getAllCategories();
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0, // accountId=0 — все счета
-      DateTime(2000),
-      DateTime.now(),
+    final categoriesResult = await categoriesRepository.getAllCategories();
+    final txByCategoryResult = await categoriesRepository
+        .getTransactionsByCategory();
+    categoriesResult.fold(
+      (failure) => emit(CategoriesError(failure.toString())),
+      (categories) {
+        txByCategoryResult.fold(
+          (failure) => emit(CategoriesError(failure.toString())),
+          (txByCategory) {
+            emit(
+              CategoriesLoaded(
+                categories: categories,
+                allCategories: categories,
+                txByCategory: txByCategory,
+              ),
+            );
+          },
+        );
+      },
     );
-    final allTx = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    result.fold((failure) => emit(CategoriesError(failure.toString())), (
-      categories,
-    ) {
-      final dtos = categories
-          .map(
-            (cat) => CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-          )
-          .toList();
-      final Map<int, List<Transaction>> txByCategory = {};
-      for (final cat in dtos) {
-        txByCategory[cat.id] = allTx
-            .where((t) => t.categoryId == cat.id)
-            .toList();
-      }
-      emit(
-        CategoriesLoaded(
-          categories: dtos,
-          allCategories: dtos,
-          txByCategory: txByCategory,
-        ),
-      );
-    });
   }
 
   Future<void> _onLoadCategories(
@@ -70,43 +49,26 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     Emitter<CategoriesState> emit,
   ) async {
     emit(CategoriesLoading());
-    final result = await categoryRepository.getAllCategories();
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0, // accountId=0 — все счета
-      DateTime(2000),
-      DateTime.now(),
+    final categoriesResult = await categoriesRepository.getAllCategories();
+    final txByCategoryResult = await categoriesRepository
+        .getTransactionsByCategory();
+    categoriesResult.fold(
+      (failure) => emit(CategoriesError(failure.toString())),
+      (categories) {
+        txByCategoryResult.fold(
+          (failure) => emit(CategoriesError(failure.toString())),
+          (txByCategory) {
+            emit(
+              CategoriesLoaded(
+                categories: categories,
+                allCategories: categories,
+                txByCategory: txByCategory,
+              ),
+            );
+          },
+        );
+      },
     );
-    final allTx = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    result.fold((failure) => emit(CategoriesError(failure.toString())), (
-      categories,
-    ) {
-      // Преобразуем domain Category в CategoryDTO, если нужно
-      final dtos = categories
-          .map(
-            (cat) => CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-          )
-          .toList();
-      // Формируем txByCategory для всех категорий
-      final Map<int, List<Transaction>> txByCategory = {};
-      for (final cat in dtos) {
-        txByCategory[cat.id] = allTx
-            .where((t) => t.categoryId == cat.id)
-            .toList();
-      }
-      emit(
-        CategoriesLoaded(
-          categories: dtos,
-          allCategories: dtos,
-          txByCategory: txByCategory,
-        ),
-      );
-    });
   }
 
   Future<void> _onSearchCategories(
@@ -115,64 +77,41 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   ) async {
     if (state is! CategoriesLoaded) return;
     final loaded = state as CategoriesLoaded;
-    List<CategoryDTO> filtered;
-    if (event.query.isEmpty) {
-      filtered = loaded.allCategories;
-    } else {
-      final choices = loaded.allCategories.map((c) => c.name).toList();
-      final results = extractTop(
-        query: event.query,
-        choices: choices,
-        limit: 20,
-        cutoff: 60,
+    final result = await categoriesRepository.searchCategories(event.query);
+    result.fold((failure) => emit(CategoriesError(failure.toString())), (
+      filtered,
+    ) {
+      emit(
+        CategoriesLoaded(
+          categories: filtered,
+          allCategories: loaded.allCategories,
+          searchQuery: event.query,
+          txByCategory: loaded.txByCategory,
+        ),
       );
-      final names = results.map((r) => r.choice).toSet();
-      filtered = loaded.allCategories
-          .where((c) => names.contains(c.name))
-          .toList();
-    }
-    emit(
-      CategoriesLoaded(
-        categories: filtered,
-        allCategories: loaded.allCategories,
-        searchQuery: event.query,
-        txByCategory: loaded.txByCategory,
-      ),
-    );
+    });
   }
 
   Future<void> _onAddCategory(
     AddCategory event,
     Emitter<CategoriesState> emit,
   ) async {
-    // event.category должен быть типа CategoryDTO
-    final result = await categoryRepository.getAllCategories();
-    final categories = result.fold(
-      (_) => <CategoryDTO>[],
-      (cats) => cats
-          .map(
-            (cat) => CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-          )
-          .toList(),
+    final result = await categoriesRepository.addCategory(event.category);
+    result.fold(
+      (failure) => emit(CategoriesError(failure.toString())),
+      (_) => add(LoadCategories()),
     );
-    // Здесь должна быть логика добавления категории через репозиторий (реализовать в domain/data)
-    // После добавления перезагружаем список
-    add(LoadCategories());
   }
 
   Future<void> _onDeleteCategory(
     DeleteCategory event,
     Emitter<CategoriesState> emit,
   ) async {
-    // Здесь должна быть логика удаления категории через репозиторий (реализовать в domain/data)
-    // После удаления перезагружаем список
-    add(LoadCategories());
+    final result = await categoriesRepository.deleteCategory(event.categoryId);
+    result.fold(
+      (failure) => emit(CategoriesError(failure.toString())),
+      (_) => add(LoadCategories()),
+    );
   }
 
   Future<void> _onLoadTransactionsForCategory(
@@ -181,24 +120,20 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   ) async {
     if (state is! CategoriesLoaded) return;
     final loaded = state as CategoriesLoaded;
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0, // accountId=0 — все счета
-      DateTime(2000),
-      DateTime.now(),
-    );
-    final txs = txResult
-        .fold((_) => <Transaction>[], (txs) => txs)
-        .where((t) => t.categoryId == event.categoryId)
-        .toList();
-    final newTxByCat = Map<int, List<Transaction>>.from(loaded.txByCategory);
-    newTxByCat[event.categoryId] = txs;
-    emit(
-      CategoriesLoaded(
-        categories: loaded.categories,
-        allCategories: loaded.allCategories,
-        searchQuery: loaded.searchQuery,
-        txByCategory: newTxByCat,
-      ),
+    final txByCategoryResult = await categoriesRepository
+        .getTransactionsByCategory();
+    txByCategoryResult.fold(
+      (failure) => emit(CategoriesError(failure.toString())),
+      (txByCategory) {
+        emit(
+          CategoriesLoaded(
+            categories: loaded.categories,
+            allCategories: loaded.allCategories,
+            searchQuery: loaded.searchQuery,
+            txByCategory: txByCategory,
+          ),
+        );
+      },
     );
   }
 }
