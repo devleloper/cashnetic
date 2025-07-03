@@ -129,7 +129,7 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               Container(
                 width: double.infinity,
-                color: Colors.green.withOpacity(0.2),
+                color: Color(0xFFE6F4EA),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -186,7 +186,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               Container(
-                color: Colors.green.withOpacity(0.2),
+                color: Color(0xFFE6F4EA),
                 child: Column(
                   children: [
                     OptionRow(

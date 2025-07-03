@@ -8,7 +8,7 @@ class TransactionsTotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.green.withOpacity(0.2),
+      color: Color(0xFFE6F4EA),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

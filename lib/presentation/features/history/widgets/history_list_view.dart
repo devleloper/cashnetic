@@ -1,4 +1,5 @@
 import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
@@ -7,6 +8,7 @@ import 'package:cashnetic/data/models/account_brief/account_brief.dart';
 import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/presentation/features/history/widgets/history_list_item.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class HistoryListView extends StatelessWidget {
   final List<Transaction> transactions;
@@ -48,7 +50,7 @@ class HistoryListView extends StatelessWidget {
             color: '#E0E0E0',
           ),
         );
-        final bgColor = colorFor(cat.name).withOpacity(0.2);
+        final bgColor = lightColorFor(cat.name);
         return HistoryListItem(
           transaction: TransactionResponseDTO(
             id: e.id,

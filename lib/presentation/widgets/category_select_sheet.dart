@@ -1,7 +1,9 @@
 import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class CategorySelectSheet extends StatelessWidget {
   final List<CategoryDTO> categories;
@@ -47,7 +49,7 @@ class CategorySelectSheet extends StatelessWidget {
               ...filteredCategories.map(
                 (cat) => ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: colorFor(cat.name).withOpacity(0.2),
+                    backgroundColor: lightColorFor(cat.name),
                     child: Text(
                       cat.emoji,
                       style: const TextStyle(fontSize: 20),

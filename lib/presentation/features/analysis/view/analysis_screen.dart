@@ -55,7 +55,7 @@ class AnalysisScreen extends StatelessWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: Container(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -75,7 +75,7 @@ class AnalysisScreen extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   child: AnalysisPeriodSelector(
                     periodStart: result.periodStart,
                     periodEnd: result.periodEnd,
@@ -90,7 +90,7 @@ class AnalysisScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(
                 child: Container(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,

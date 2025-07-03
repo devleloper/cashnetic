@@ -1,4 +1,6 @@
 import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart'
+    show lightColorFor;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/categories_bloc.dart';
@@ -8,6 +10,7 @@ import '../../../presentation.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {
   final Category category;
@@ -51,7 +54,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                     isIncome: cat.isIncome,
                     color: cat.color,
                   ),
-                  bgColor: colorFor(cat.name).withOpacity(0.2),
+                  bgColor: lightColorFor(cat.name),
                   onTap: () async {
                     final model = TransactionDomainMapper.domainToModel(
                       t,

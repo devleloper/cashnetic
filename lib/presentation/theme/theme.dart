@@ -99,10 +99,68 @@ ThemeData darkThemeData() {
       fillColor: Color(0xFF23262F),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.green),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.green),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.green, width: 2),
       ),
       hintStyle: const TextStyle(color: Colors.white54),
       labelStyle: const TextStyle(color: Colors.white),
+    ),
+    popupMenuTheme: const PopupMenuThemeData(
+      color: Color(0xFF23262F),
+      textStyle: TextStyle(color: Colors.white),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(10)),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.green,
+        side: const BorderSide(color: Colors.green),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: const Color(0xFF23262F),
+      selectedColor: Colors.green,
+      labelStyle: const TextStyle(color: Colors.white),
+      secondaryLabelStyle: const TextStyle(color: Colors.white70),
+      brightness: Brightness.dark,
+      disabledColor: Colors.grey.shade800,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    ),
+    dividerTheme: const DividerThemeData(
+      color: Color(0xFF23262F),
+      thickness: 1,
+      space: 1,
+    ),
+    cardTheme: const CardThemeData(
+      color: Color(0xFF23262F),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ),
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: Colors.green,
+      selectionColor: Colors.green,
+      selectionHandleColor: Colors.greenAccent,
     ),
   );
 }

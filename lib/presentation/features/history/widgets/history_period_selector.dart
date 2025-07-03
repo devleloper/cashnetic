@@ -34,7 +34,7 @@ class HistoryPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -71,7 +71,7 @@ class HistoryPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 shadowColor: Colors.transparent,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),

@@ -2,6 +2,7 @@ import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class CategoryListTile extends StatelessWidget {
   final CategoryDTO category;
@@ -26,7 +27,7 @@ class CategoryListTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: CircleAvatar(
-        backgroundColor: colorFor(category.name).withOpacity(0.2),
+        backgroundColor: lightColorFor(category.name),
         child: Text(category.emoji, style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.name),

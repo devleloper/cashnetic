@@ -57,7 +57,7 @@ class TransactionsScreen extends StatelessWidget {
     if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
     String emoji = '💸';
     String categoryName = S.of(context).expense;
-    Color bgColor = Colors.green.withOpacity(0.2);
+    Color bgColor = Color(0xFFE6F4EA);
     try {
       emoji = _getCategoryEmoji(context, tx.categoryId);
       categoryName = _getCategoryName(context, tx.categoryId);

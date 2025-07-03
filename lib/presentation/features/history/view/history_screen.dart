@@ -168,7 +168,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Colors.green.withOpacity(0.8),
+                                backgroundColor: Color(0xFF43C97B),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
@@ -206,7 +206,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Colors.green.withOpacity(0.8),
+                                backgroundColor: Color(0xFF43C97B),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
