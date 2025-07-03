@@ -16,10 +16,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<SettingsBloc>(
-      create: (_) => SettingsBloc()..add(const LoadSettings()),
-      child: const _SettingsScreenBody(),
-    );
+    return const _SettingsScreenBody();
   }
 }
 

@@ -77,6 +77,7 @@ class _CashneticAppState extends State<CashneticApp> {
             initTheme: initTheme,
             builder: (context, _) {
               return MaterialApp.router(
+                locale: Locale(state.language),
                 localizationsDelegates: const [
                   S.delegate,
                   GlobalMaterialLocalizations.delegate,
