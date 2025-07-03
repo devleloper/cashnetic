@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 abstract class SettingsState extends Equatable {
   const SettingsState();
@@ -12,7 +13,7 @@ class SettingsInitial extends SettingsState {}
 class SettingsLoading extends SettingsState {}
 
 class SettingsLoaded extends SettingsState {
-  final bool isDarkTheme;
+  final ThemeMode themeMode;
   final int primaryColor;
   final bool soundsEnabled;
   final bool hapticsEnabled;
@@ -21,7 +22,7 @@ class SettingsLoaded extends SettingsState {
   final String language;
 
   const SettingsLoaded({
-    required this.isDarkTheme,
+    required this.themeMode,
     required this.primaryColor,
     required this.soundsEnabled,
     required this.hapticsEnabled,
@@ -32,7 +33,7 @@ class SettingsLoaded extends SettingsState {
 
   @override
   List<Object?> get props => [
-    isDarkTheme,
+    themeMode,
     primaryColor,
     soundsEnabled,
     hapticsEnabled,
@@ -42,7 +43,7 @@ class SettingsLoaded extends SettingsState {
   ];
 
   SettingsLoaded copyWith({
-    bool? isDarkTheme,
+    ThemeMode? themeMode,
     int? primaryColor,
     bool? soundsEnabled,
     bool? hapticsEnabled,
@@ -51,7 +52,7 @@ class SettingsLoaded extends SettingsState {
     String? language,
   }) {
     return SettingsLoaded(
-      isDarkTheme: isDarkTheme ?? this.isDarkTheme,
+      themeMode: themeMode ?? this.themeMode,
       primaryColor: primaryColor ?? this.primaryColor,
       soundsEnabled: soundsEnabled ?? this.soundsEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,

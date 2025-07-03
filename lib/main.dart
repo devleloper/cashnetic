@@ -47,63 +47,86 @@ class _CashneticAppState extends State<CashneticApp> {
     final accountsRepo = DriftAccountRepository(db);
     final categoriesRepo = DriftCategoryRepository(db);
 
-    return ThemeProvider(
-      initTheme: lightThemeData(),
-      builder: (context, theme) {
-        return MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<TransactionRepository>.value(
-              value: transactionsRepo,
-            ),
-            RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
-            RepositoryProvider<AccountRepository>.value(value: accountsRepo),
-          ],
-          child: MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (context) => AccountBloc(
-                  accountRepository: accountsRepo,
-                  transactionRepository: transactionsRepo,
-                  categoryRepository: categoriesRepo,
-                ),
-              ),
-              BlocProvider(
-                create: (context) => AnalysisBloc(
-                  transactionRepository: transactionsRepo,
-                  categoryRepository: categoriesRepo,
-                ),
-              ),
-              BlocProvider(
-                create: (context) => CategoriesBloc(
-                  categoryRepository: categoriesRepo,
-                  transactionRepository: transactionsRepo,
-                ),
-              ),
-              BlocProvider(
-                create: (context) => HistoryBloc(
-                  transactionRepository: transactionsRepo,
-                  categoryRepository: categoriesRepo,
-                ),
-              ),
-              BlocProvider(
-                create: (context) => SettingsBloc()..add(const LoadSettings()),
-              ),
-            ],
-            child: MaterialApp.router(
-              localizationsDelegates: const [
-                S.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: S.delegate.supportedLocales,
-              debugShowCheckedModeBanner: false,
-              theme: theme,
-              routerConfig: _router.config(),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<TransactionRepository>.value(
+          value: transactionsRepo,
+        ),
+        RepositoryProvider<CategoryRepository>.value(value: categoriesRepo),
+        RepositoryProvider<AccountRepository>.value(value: accountsRepo),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => AccountBloc(
+              accountRepository: accountsRepo,
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
             ),
           ),
-        );
-      },
+          BlocProvider(
+            create: (context) => AnalysisBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => CategoriesBloc(
+              categoryRepository: categoriesRepo,
+              transactionRepository: transactionsRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => HistoryBloc(
+              transactionRepository: transactionsRepo,
+              categoryRepository: categoriesRepo,
+            ),
+          ),
+          BlocProvider(
+            create: (context) => SettingsBloc()..add(const LoadSettings()),
+          ),
+        ],
+        child: BlocBuilder<SettingsBloc, SettingsState>(
+          builder: (context, state) {
+            if (state is! SettingsLoaded) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final themeMode = state.themeMode;
+            ThemeData initTheme;
+            if (themeMode == ThemeMode.dark) {
+              initTheme = darkThemeData();
+            } else if (themeMode == ThemeMode.light) {
+              initTheme = lightThemeData();
+            } else {
+              // system
+              final brightness =
+                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
+              initTheme = brightness == Brightness.dark
+                  ? darkThemeData()
+                  : lightThemeData();
+            }
+            return ThemeProvider(
+              initTheme: initTheme,
+              builder: (context, _) {
+                return MaterialApp.router(
+                  localizationsDelegates: const [
+                    S.delegate,
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  supportedLocales: S.delegate.supportedLocales,
+                  debugShowCheckedModeBanner: false,
+                  theme: lightThemeData(),
+                  darkTheme: darkThemeData(),
+                  themeMode: themeMode,
+                  routerConfig: _router.config(),
+                );
+              },
+            );
+          },
+        ),
+      ),
     );
   }
 }

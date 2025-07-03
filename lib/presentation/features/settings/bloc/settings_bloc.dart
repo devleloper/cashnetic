@@ -3,9 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_event.dart';
 import 'settings_state.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:cashnetic/data/repositories/theme_repository.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
-  static const String _darkThemeKey = 'dark_theme';
   static const String _primaryColorKey = 'primary_color';
   static const String _soundsKey = 'sounds_enabled';
   static const String _hapticsKey = 'haptics_enabled';
@@ -13,9 +14,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   static const String _syncKey = 'sync_enabled';
   static const String _languageKey = 'language';
 
+  final ThemeRepository _themeRepository = ThemeRepository();
+
   SettingsBloc() : super(SettingsInitial()) {
     on<LoadSettings>(_onLoadSettings);
-    on<ToggleDarkTheme>(_onToggleDarkTheme);
+    on<UpdateThemeMode>(_onUpdateThemeMode);
     on<UpdatePrimaryColor>(_onUpdatePrimaryColor);
     on<ToggleSounds>(_onToggleSounds);
     on<ToggleHaptics>(_onToggleHaptics);
@@ -31,7 +34,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     emit(SettingsLoading());
     try {
       final prefs = await SharedPreferences.getInstance();
-      final isDarkTheme = prefs.getBool(_darkThemeKey) ?? false;
+      final themeString = await _themeRepository.loadThemeMode();
+      ThemeMode themeMode;
+      if (themeString == 'light')
+        themeMode = ThemeMode.light;
+      else if (themeString == 'dark')
+        themeMode = ThemeMode.dark;
+      else
+        themeMode = ThemeMode.system;
+
       final primaryColor = prefs.getInt(_primaryColorKey) ?? 0xFF2196F3;
       final soundsEnabled = prefs.getBool(_soundsKey) ?? true;
       final hapticsEnabled = prefs.getBool(_hapticsKey) ?? true;
@@ -42,17 +53,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       if (language == null) {
         final systemLocale =
             WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-        if (['en', 'ru', 'de'].contains(systemLocale)) {
+        if (["en", "ru", "de"].contains(systemLocale)) {
           language = systemLocale;
         } else {
-          language = 'en';
+          language = "en";
         }
         await prefs.setString(_languageKey, language);
       }
 
       emit(
         SettingsLoaded(
-          isDarkTheme: isDarkTheme,
+          themeMode: themeMode,
           primaryColor: primaryColor,
           soundsEnabled: soundsEnabled,
           hapticsEnabled: hapticsEnabled,
@@ -66,21 +77,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Future<void> _onToggleDarkTheme(
-    ToggleDarkTheme event,
+  Future<void> _onUpdateThemeMode(
+    UpdateThemeMode event,
     Emitter<SettingsState> emit,
   ) async {
     if (state is SettingsLoaded) {
       final currentState = state as SettingsLoaded;
-      final newDarkTheme = !currentState.isDarkTheme;
-
       try {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool(_darkThemeKey, newDarkTheme);
-
-        emit(currentState.copyWith(isDarkTheme: newDarkTheme));
+        await _themeRepository.saveThemeMode(event.themeMode.name);
+        emit(currentState.copyWith(themeMode: event.themeMode));
       } catch (e) {
-        emit(SettingsError('Failed to save dark theme setting: $e'));
+        emit(SettingsError('Failed to save theme mode: $e'));
       }
     }
   }

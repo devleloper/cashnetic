@@ -84,6 +84,12 @@ class SettingsScreen extends StatelessWidget {
                         ThemeSwitcher.of(
                           context,
                         ).changeTheme(theme: theme, offset: offset);
+                        final newMode = isDark
+                            ? ThemeMode.dark
+                            : ThemeMode.light;
+                        context.read<SettingsBloc>().add(
+                          UpdateThemeMode(newMode),
+                        );
                       },
                     );
                   },
