@@ -143,27 +143,6 @@ class TransactionsScreen extends StatelessWidget {
           final categories = state.categories;
           final total = state.total;
           return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                isIncome
-                    ? S.of(context).incomeToday
-                    : S.of(context).expensesToday,
-              ),
-              actions: [
-                IconButton(
-                  key: historyIconKey,
-                  icon: const Icon(Icons.history, color: Colors.white),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => HistoryScreen(isIncome: isIncome),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
             body: Column(
               children: [
                 TransactionsTotalRow(total: total),

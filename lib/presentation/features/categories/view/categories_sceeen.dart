@@ -76,7 +76,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
           );
         return Scaffold(
-          appBar: AppBar(title: Text(S.of(context).categories)),
           body: Column(
             children: [
               CategorySearchField(

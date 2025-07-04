@@ -8,6 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
+import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -42,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return ThemeSwitchingArea(
           child: Scaffold(
+            appBar: _buildAppBar(context, tabsRouter.activeIndex),
             body: child,
             bottomNavigationBar: Container(
               color: Colors.green,
@@ -106,5 +110,62 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  PreferredSizeWidget? _buildAppBar(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        return AppBar(
+          title: Text(S.of(context).expenses),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => HistoryScreen(isIncome: false),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      case 1:
+        return AppBar(
+          title: Text(S.of(context).income),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => HistoryScreen(isIncome: true),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      case 2:
+        return AppBar(
+          title: Text(S.of(context).myAccounts),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () {
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => AccountEditScreen()));
+              },
+            ),
+          ],
+        );
+      case 3:
+        return AppBar(title: Text(S.of(context).categories));
+      case 4:
+        return AppBar(title: Text(S.of(context).settings));
+      default:
+        return null;
+    }
   }
 }

@@ -101,25 +101,6 @@ class _AccountScreenState extends State<AccountScreen> {
         final selectedCurrencies = state.selectedCurrencies;
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(S.of(context).myAccounts),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () async {
-                  final updatedModel = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => AccountEditScreen()),
-                  );
-                  if (updatedModel != null) {
-                    context.read<AccountBloc>().add(
-                      UpdateAccount(updatedModel),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
             tooltip: 'Refresh',

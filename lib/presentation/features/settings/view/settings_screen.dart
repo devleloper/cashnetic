@@ -48,7 +48,6 @@ class _SettingsScreenBody extends StatelessWidget {
     var darkTheme = darkThemeData();
     var lightTheme = lightThemeData();
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).settings)),
       body: BlocConsumer<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state is SettingsError) {
