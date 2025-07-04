@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'segmented_control.dart';
+import 'dart:async';
 
 class AccountBalanceChart extends StatefulWidget {
   final List<DailyBalancePoint> points;
@@ -18,6 +19,8 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
   AccountChartMode _mode = AccountChartMode.days;
   DateTime? _selectedMonth; // для режима дней
   int? _selectedYear; // для режима месяцев
+  int? _lastDialogBarIndex; // чтобы не показывать несколько диалогов подряд
+  Timer? _longPressTimer;
 
   List<DailyBalancePoint> get _chartData {
     if (widget.points.isEmpty) return [];
@@ -115,6 +118,12 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
         _selectedYear = picked.year;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _longPressTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -276,6 +285,31 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
                         );
                       },
                     ),
+                    touchCallback: (event, response) {
+                      if (response == null || response.spot == null) {
+                        _longPressTimer?.cancel();
+                        return;
+                      }
+                      final idx = response.spot!.touchedBarGroupIndex;
+                      if (_lastDialogBarIndex == idx) return;
+                      // Показываем AlertDialog только если палец удерживается 400 мс
+                      if (event is FlLongPressEnd || event is FlTapUpEvent) {
+                        _longPressTimer?.cancel();
+                        return;
+                      }
+                      _longPressTimer?.cancel();
+                      _longPressTimer = Timer(
+                        const Duration(milliseconds: 400),
+                        () {
+                          if (mounted) {
+                            _showBalanceDialog(points[idx]);
+                            setState(() {
+                              _lastDialogBarIndex = idx;
+                            });
+                          }
+                        },
+                      );
+                    },
                   ),
                   titlesData: FlTitlesData(
                     bottomTitles: AxisTitles(
@@ -357,6 +391,29 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
             ),
           ),
       ],
+    );
+  }
+
+  void _showBalanceDialog(DailyBalancePoint pt) {
+    final balance = pt.income - pt.expense;
+    final dateStr = DateFormat('dd.MM.yyyy').format(pt.date);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Баланс на $dateStr'),
+        content: Text('Баланс: ${balance.toStringAsFixed(2)}'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              setState(() {
+                _lastDialogBarIndex = null;
+              });
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 }
