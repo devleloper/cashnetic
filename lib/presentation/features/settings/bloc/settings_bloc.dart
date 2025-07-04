@@ -25,6 +25,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     emit(SettingsLoading());
+    await Future.delayed(Duration(seconds: 3));
     try {
       final themeMode = await settingsRepository.loadThemeMode();
       final primaryColor = await settingsRepository.loadPrimaryColor();

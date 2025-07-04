@@ -3,24 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
-// Удалить все импорты domain/repositories/*
-
-// BLoC
 import 'presentation/features/account/bloc/account_bloc.dart';
 import 'presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'presentation/features/categories/bloc/categories_bloc.dart';
 import 'presentation/features/history/bloc/history_bloc.dart';
-
-import 'package:cashnetic/data/database.dart';
-import 'package:cashnetic/data/repositories/drift_account_repository.dart';
-import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
-import 'package:cashnetic/data/repositories/drift_category_repository.dart';
-import 'presentation/theme/theme.dart';
 import 'di/di.dart';
 
 void main() async {
@@ -54,17 +45,18 @@ class _CashneticAppState extends State<CashneticApp> {
       ],
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, state) {
-          if (state is! SettingsLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final themeMode = state.themeMode;
+          ThemeMode themeMode = ThemeMode.system;
+          String language = 'en';
           ThemeData initTheme;
+          if (state is SettingsLoaded) {
+            themeMode = state.themeMode;
+            language = state.language;
+          }
           if (themeMode == ThemeMode.dark) {
             initTheme = darkThemeData();
           } else if (themeMode == ThemeMode.light) {
             initTheme = lightThemeData();
           } else {
-            // system
             final brightness =
                 WidgetsBinding.instance.platformDispatcher.platformBrightness;
             initTheme = brightness == Brightness.dark
@@ -75,7 +67,7 @@ class _CashneticAppState extends State<CashneticApp> {
             initTheme: initTheme,
             builder: (context, _) {
               return MaterialApp.router(
-                locale: Locale(state.language),
+                locale: Locale(language),
                 localizationsDelegates: const [
                   S.delegate,
                   GlobalMaterialLocalizations.delegate,
@@ -88,6 +80,21 @@ class _CashneticAppState extends State<CashneticApp> {
                 darkTheme: darkThemeData(),
                 themeMode: themeMode,
                 routerConfig: _router.config(),
+                builder: (context, child) {
+                  if (state is! SettingsLoaded) {
+                    return AnimatedSplashScreen(
+                      splash: 'assets/splash/logo.gif',
+                      nextScreen: const SizedBox.shrink(),
+                      splashIconSize: 400,
+                      backgroundColor: Color(0xFF4CAF50),
+                      splashTransition: SplashTransition.fadeTransition,
+                      duration: 1200,
+                      curve: Curves.easeInOut,
+                      centered: true,
+                    );
+                  }
+                  return child!;
+                },
               );
             },
           );

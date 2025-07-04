@@ -16,7 +16,8 @@ class TransactionCommentField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
-        labelText: S.of(context).comment,
+        hintText: S.of(context).comment,
+        hintStyle: const TextStyle(color: Colors.grey),
         border: OutlineInputBorder(),
         filled: true,
         fillColor: Colors.white,

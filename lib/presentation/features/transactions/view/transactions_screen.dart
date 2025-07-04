@@ -166,13 +166,25 @@ class TransactionsScreen extends StatelessWidget {
                         accountName = acc.name;
                         currency = acc.moneyDetails.currency;
                       }
-                      // Pass only the transaction id to the edit screen
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TransactionEditScreen(transactionId: t.id),
-                        ),
+                      // Открыть экран редактирования операции модально
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          final mq = MediaQuery.of(context);
+                          final maxChildSize =
+                              (mq.size.height - mq.padding.top) /
+                              mq.size.height;
+                          return DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.4,
+                            maxChildSize: maxChildSize,
+                            expand: false,
+                            builder: (context, scrollController) =>
+                                TransactionEditScreen(transactionId: t.id),
+                          );
+                        },
                       );
                       context.read<TransactionsBloc>().add(
                         TransactionsLoad(isIncome: isIncome, accountId: 0),
@@ -186,11 +198,23 @@ class TransactionsScreen extends StatelessWidget {
               heroTag: isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TransactionAddScreen(isIncome: isIncome),
-                  ),
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) {
+                    final mq = MediaQuery.of(context);
+                    final maxChildSize =
+                        (mq.size.height - mq.padding.top) / mq.size.height;
+                    return DraggableScrollableSheet(
+                      initialChildSize: 0.7,
+                      minChildSize: 0.4,
+                      maxChildSize: maxChildSize,
+                      expand: false,
+                      builder: (context, scrollController) =>
+                          TransactionAddScreen(isIncome: isIncome),
+                    );
+                  },
                 );
                 context.read<TransactionsBloc>().add(
                   TransactionsLoad(isIncome: isIncome, accountId: 0),

@@ -116,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (index) {
       case 0:
         return AppBar(
+          centerTitle: true,
           title: Text(S.of(context).expenses),
           actions: [
             IconButton(
@@ -132,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       case 1:
         return AppBar(
+          centerTitle: true,
           title: Text(S.of(context).income),
           actions: [
             IconButton(
@@ -148,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       case 2:
         return AppBar(
+          centerTitle: true,
           title: Text(S.of(context).myAccounts),
           actions: [
             IconButton(
@@ -161,9 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       case 3:
-        return AppBar(title: Text(S.of(context).categories));
+        return AppBar(title: Text(S.of(context).categories), centerTitle: true);
       case 4:
-        return AppBar(title: Text(S.of(context).settings));
+        return AppBar(title: Text(S.of(context).settings), centerTitle: true);
       default:
         return null;
     }

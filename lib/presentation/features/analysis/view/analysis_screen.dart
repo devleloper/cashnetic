@@ -4,12 +4,11 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dar
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/analysis_pie_chart.dart';
-import '../widgets/analysis_legend.dart';
 import '../widgets/analysis_year_filter_chips.dart';
 import '../widgets/analysis_period_selector.dart';
 import '../widgets/analysis_total_summary.dart';
 import '../widgets/analysis_category_sliver_list.dart';
+import '../widgets/cashnetic_pie_chart_widget.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -39,6 +38,18 @@ class AnalysisScreen extends StatelessWidget {
             final bd = b.lastTransactionDate ?? DateTime(1970);
             return bd.compareTo(ad);
           });
+
+        // Синхронизированный список для графика и легенды
+        final chartSections = result.data
+            .map(
+              (c) => AnalysisPieChartData(
+                amount: c.amount,
+                categoryTitle: c.categoryTitle,
+                color: c.color,
+                percent: c.percent,
+              ),
+            )
+            .toList();
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -100,14 +111,10 @@ class AnalysisScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(child: SizedBox(height: 42)),
               if (result.total > 0 && result.data.isNotEmpty)
-                SliverToBoxAdapter(child: AnalysisPieChart(data: result.data)),
-              SliverToBoxAdapter(child: SizedBox(height: 28)),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _LegendHeaderDelegate(
-                  child: AnalysisLegend(data: result.data),
+                SliverToBoxAdapter(
+                  child: CashneticPieChartWidget(data: chartSections),
                 ),
-              ),
+              SliverToBoxAdapter(child: SizedBox(height: 28)),
               if (result.data.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
