@@ -1,23 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'cashnetic_pie_chart_section.dart';
 
-class AnalysisPieChart extends StatefulWidget {
-  final List<dynamic> data;
-  const AnalysisPieChart({super.key, required this.data});
+/// Публичный виджет для отображения круговой диаграммы
+class CashneticPieChart extends StatefulWidget {
+  final List<CashneticPieChartSection> sections;
+  final double height;
+  final double? centerSpaceRadius;
+
+  /// [sections] — список секторов (значение, цвет, подпись)
+  /// [height] — высота графика
+  /// [centerSpaceRadius] — радиус центрального пространства (по умолчанию 50)
+  const CashneticPieChart({
+    Key? key,
+    required this.sections,
+    this.height = 220,
+    this.centerSpaceRadius,
+  }) : super(key: key);
 
   @override
-  State<AnalysisPieChart> createState() => _AnalysisPieChartState();
+  State<CashneticPieChart> createState() => _CashneticPieChartState();
 }
 
-class _AnalysisPieChartState extends State<AnalysisPieChart> {
-  int? touchedIndex;
+class _CashneticPieChartState extends State<CashneticPieChart> {
+  int? _touchedIndex;
 
   @override
   Widget build(BuildContext context) {
-    final data = widget.data;
+    final data = widget.sections;
     if (data.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 220,
+      height: widget.height,
       child: Stack(
         children: [
           PieChart(
@@ -27,10 +40,12 @@ class _AnalysisPieChartState extends State<AnalysisPieChart> {
               sections: data.asMap().entries.map((entry) {
                 final i = entry.key;
                 final c = entry.value;
-                final isTouched = i == touchedIndex;
+                final isTouched = i == _touchedIndex;
+                final total = data.fold<double>(0, (sum, s) => sum + s.value);
+                final percent = total > 0 ? (c.value / total) * 100 : 0.0;
                 return PieChartSectionData(
-                  value: c.amount,
-                  title: '${c.percent.toStringAsFixed(0)}%',
+                  value: c.value,
+                  title: '${(c.percent ?? percent).toStringAsFixed(0)}%',
                   radius: isTouched ? 70 : 60,
                   color: c.color,
                   titleStyle: const TextStyle(
@@ -43,7 +58,7 @@ class _AnalysisPieChartState extends State<AnalysisPieChart> {
                   badgeWidget: null,
                 );
               }).toList(),
-              centerSpaceRadius: 50,
+              centerSpaceRadius: widget.centerSpaceRadius ?? 50,
               sectionsSpace: 2,
               borderData: FlBorderData(show: false),
               pieTouchData: PieTouchData(
@@ -55,25 +70,27 @@ class _AnalysisPieChartState extends State<AnalysisPieChart> {
                         idx == null ||
                         idx < 0 ||
                         idx >= data.length) {
-                      touchedIndex = null;
+                      _touchedIndex = null;
                     } else {
-                      touchedIndex = idx;
+                      _touchedIndex = idx;
                     }
                   });
                 },
               ),
             ),
           ),
-          if (touchedIndex != null &&
-              touchedIndex! >= 0 &&
-              touchedIndex! < data.length)
+          if (_touchedIndex != null &&
+              _touchedIndex! >= 0 &&
+              _touchedIndex! < data.length)
             Positioned.fill(
               child: Center(
                 child: _PieTooltip(
-                  color: data[touchedIndex!].color,
-                  category: data[touchedIndex!].categoryTitle,
-                  amount: data[touchedIndex!].amount,
-                  percent: data[touchedIndex!].percent,
+                  color: data[_touchedIndex!].color,
+                  label: data[_touchedIndex!].label,
+                  value: data[_touchedIndex!].value,
+                  percent:
+                      data[_touchedIndex!].percent ??
+                      _calcPercent(data, _touchedIndex!),
                 ),
               ),
             ),
@@ -81,17 +98,23 @@ class _AnalysisPieChartState extends State<AnalysisPieChart> {
       ),
     );
   }
+
+  double _calcPercent(List<CashneticPieChartSection> data, int index) {
+    final total = data.fold<double>(0, (sum, s) => sum + s.value);
+    if (total == 0) return 0.0;
+    return (data[index].value / total) * 100;
+  }
 }
 
 class _PieTooltip extends StatelessWidget {
   final Color color;
-  final String category;
-  final double amount;
+  final String label;
+  final double value;
   final double percent;
   const _PieTooltip({
     required this.color,
-    required this.category,
-    required this.amount,
+    required this.label,
+    required this.value,
     required this.percent,
   });
 
@@ -118,7 +141,7 @@ class _PieTooltip extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              category,
+              label,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -129,7 +152,7 @@ class _PieTooltip extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${amount.toStringAsFixed(0)} ₽',
+              value.toStringAsFixed(0),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
