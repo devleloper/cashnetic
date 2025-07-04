@@ -58,9 +58,13 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => FractionallySizedBox(
-                        heightFactor: 1,
-                        child: TransactionEditScreen(transactionId: t.id),
+                      builder: (_) => DraggableScrollableSheet(
+                        initialChildSize: 0.7,
+                        minChildSize: 0.4,
+                        maxChildSize: 1.0,
+                        expand: false,
+                        builder: (context, scrollController) =>
+                            TransactionEditScreen(transactionId: t.id),
                       ),
                     );
                     context.read<CategoriesBloc>().add(

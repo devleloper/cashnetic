@@ -49,6 +49,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ScrollController? externalScrollController =
+        PrimaryScrollController.of(context);
     return BlocProvider(
       create: (context) =>
           TransactionEditBloc()
@@ -56,7 +58,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: BlocConsumer<TransactionEditBloc, TransactionEditState>(
         listener: (context, state) {
           if (state is TransactionEditSuccess) {
-            // После успешного сохранения транзакции обновить выбранный аккаунт глобально
             final loaded = context.read<TransactionEditBloc>().state;
             if (loaded is TransactionEditLoaded) {
               context.read<AccountBloc>().add(SelectAccount(loaded.account.id));
@@ -73,35 +74,48 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         builder: (context, state) {
           if (state is TransactionEditInitial ||
               state is TransactionEditLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Center(child: CircularProgressIndicator());
           } else if (state is TransactionEditError) {
-            return Scaffold(body: Center(child: Text(state.message)));
+            return Center(child: Text(state.message));
           } else if (state is TransactionEditLoaded ||
               state is TransactionEditSaving ||
               state is TransactionEditDeleting) {
             final loadedState = state as dynamic;
-            // Обновляем контроллер комментария
             if (_commentController.text != loadedState.comment) {
               _commentController.text = loadedState.comment;
             }
-            return _buildContent(context, loadedState);
+            return ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+              child: Container(
+                color: Colors.white,
+                child: SafeArea(
+                  top: false,
+                  child: _buildContent(
+                    context,
+                    loadedState,
+                    scrollController: externalScrollController,
+                  ),
+                ),
+              ),
+            );
           } else if (state is TransactionEditSuccess ||
               state is TransactionEditDeleted) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
-          return Scaffold(
-            body: Center(child: Text(S.of(context).unknownState)),
-          );
+          return Center(child: Text(S.of(context).unknownState));
         },
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, dynamic state) {
+  Widget _buildContent(
+    BuildContext context,
+    dynamic state, {
+    ScrollController? scrollController,
+  }) {
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
     final title = (state.selectedCategory?.isIncome ?? false)
@@ -111,107 +125,110 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final isDeleting = state is TransactionEditDeleting;
     final isProcessing = isSaving || isDeleting;
 
-    return Scaffold(
-      appBar: null,
-      body: Column(
-        children: [
-          SafeArea(
-            top: true,
-            child: Container(
-              color: Colors.green,
-              padding: const EdgeInsets.only(
-                left: 8,
-                right: 8,
-                top: 64,
-                bottom: 12,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  IconButton(
-                    icon: isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.check, color: Colors.white),
-                    onPressed: isProcessing
-                        ? null
-                        : () => _validateAndSave(context, state),
-                  ),
-                ],
-              ),
+    return ListView(
+      controller: scrollController,
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      children: [
+        // Шапка
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.green,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              children: [
-                MyListTileRow(
-                  title: S.of(context).account,
-                  value: state.account?.name ?? '',
-                  onTap: isProcessing
-                      ? () {}
-                      : () => _selectAccount(context, state.accounts),
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                MyListTileRow(
-                  title: S.of(context).category,
-                  value: state.selectedCategory?.name ?? '',
-                  onTap: isProcessing
-                      ? () {}
-                      : () => _selectCategory(context, state.categories),
+              ),
+              IconButton(
+                icon: isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check, color: Colors.white),
+                onPressed: isProcessing
+                    ? null
+                    : () => _validateAndSave(context, state),
+              ),
+            ],
+          ),
+        ),
+        // Форма
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              MyListTileRow(
+                title: S.of(context).account,
+                value: state.account?.name ?? '',
+                onTap: isProcessing
+                    ? () {}
+                    : () => _selectAccount(context, state.accounts),
+              ),
+              MyListTileRow(
+                title: S.of(context).category,
+                value: state.selectedCategory?.name ?? '',
+                onTap: isProcessing
+                    ? () {}
+                    : () => _selectCategory(context, state.categories),
+              ),
+              MyListTileRow(
+                title: S.of(context).amount,
+                value: state.amount.isEmpty
+                    ? S.of(context).enter
+                    : '${state.amount} ₽',
+                onTap: isProcessing
+                    ? () {}
+                    : () => _selectAmount(context, state.amount),
+              ),
+              MyListTileRow(
+                title: S.of(context).date,
+                value: dateStr,
+                onTap: isProcessing
+                    ? () {}
+                    : () => _selectDate(context, state.selectedDate),
+              ),
+              MyListTileRow(
+                title: S.of(context).time,
+                value: timeStr,
+                onTap: isProcessing
+                    ? () {}
+                    : () => _selectTime(context, state.selectedDate),
+              ),
+              const SizedBox(height: 16),
+              TransactionCommentField(
+                controller: _commentController,
+                enabled: !isProcessing,
+                onChanged: (comment) => context.read<TransactionEditBloc>().add(
+                  TransactionEditCommentChanged(comment),
                 ),
-                MyListTileRow(
-                  title: S.of(context).amount,
-                  value: state.amount.isEmpty
-                      ? S.of(context).enter
-                      : '${state.amount} ₽',
-                  onTap: isProcessing
-                      ? () {}
-                      : () => _selectAmount(context, state.amount),
-                ),
-                MyListTileRow(
-                  title: S.of(context).date,
-                  value: dateStr,
-                  onTap: isProcessing
-                      ? () {}
-                      : () => _selectDate(context, state.selectedDate),
-                ),
-                MyListTileRow(
-                  title: S.of(context).time,
-                  value: timeStr,
-                  onTap: isProcessing
-                      ? () {}
-                      : () => _selectTime(context, state.selectedDate),
-                ),
-                const SizedBox(height: 16),
-                TransactionCommentField(
-                  controller: _commentController,
-                  enabled: !isProcessing,
-                  onChanged: (comment) => context
-                      .read<TransactionEditBloc>()
-                      .add(TransactionEditCommentChanged(comment)),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     fixedSize: const Size.fromHeight(50),
                     backgroundColor: Colors.red,
@@ -237,11 +254,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           style: TextStyle(color: Colors.white),
                         ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

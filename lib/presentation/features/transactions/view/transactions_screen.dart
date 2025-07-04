@@ -171,10 +171,20 @@ class TransactionsScreen extends StatelessWidget {
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (context) => Container(
-                          height: MediaQuery.of(context).size.height,
-                          child: TransactionEditScreen(transactionId: t.id),
-                        ),
+                        builder: (context) {
+                          final mq = MediaQuery.of(context);
+                          final maxChildSize =
+                              (mq.size.height - mq.padding.top) /
+                              mq.size.height;
+                          return DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.4,
+                            maxChildSize: maxChildSize,
+                            expand: false,
+                            builder: (context, scrollController) =>
+                                TransactionEditScreen(transactionId: t.id),
+                          );
+                        },
                       );
                       context.read<TransactionsBloc>().add(
                         TransactionsLoad(isIncome: isIncome, accountId: 0),
@@ -192,10 +202,19 @@ class TransactionsScreen extends StatelessWidget {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) => Container(
-                    height: MediaQuery.of(context).size.height,
-                    child: TransactionAddScreen(isIncome: isIncome),
-                  ),
+                  builder: (context) {
+                    final mq = MediaQuery.of(context);
+                    final maxChildSize =
+                        (mq.size.height - mq.padding.top) / mq.size.height;
+                    return DraggableScrollableSheet(
+                      initialChildSize: 0.7,
+                      minChildSize: 0.4,
+                      maxChildSize: maxChildSize,
+                      expand: false,
+                      builder: (context, scrollController) =>
+                          TransactionAddScreen(isIncome: isIncome),
+                    );
+                  },
                 );
                 context.read<TransactionsBloc>().add(
                   TransactionsLoad(isIncome: isIncome, accountId: 0),
