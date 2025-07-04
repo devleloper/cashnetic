@@ -151,25 +151,26 @@ class AccountRepositoryImpl implements AccountRepository {
 
   @override
   Future<List<DailyBalancePoint>> buildDailyPoints(int accountId) async {
-    final now = DateTime.now();
-    final start = DateTime(now.year, now.month, 1);
-    final end = DateTime(now.year, now.month + 1, 0);
+    // Получаем все транзакции по счету за все время
     final txs = await transactionsRepository.getTransactions(
       accountId: accountId,
-      from: start,
-      to: end,
+      from: DateTime(2000), // или любая минимальная дата
+      to: DateTime.now().add(const Duration(days: 3650)), // запас на будущее
     );
     if (txs.isEmpty) return [];
 
     // Получаем все категории
     final categories = await dbInstance.getAllCategories();
 
-    txs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    final days = <DateTime>[];
-    for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
-      days.add(d);
-    }
-    final map = {for (final d in days) d: DailyBalancePoint(d, 0, 0)};
+    // Собираем уникальные дни
+    final dates = txs
+        .map(
+          (t) => DateTime(t.timestamp.year, t.timestamp.month, t.timestamp.day),
+        )
+        .toSet()
+        .toList();
+    dates.sort((a, b) => a.compareTo(b));
+    final map = {for (final d in dates) d: DailyBalancePoint(d, 0, 0)};
     for (final t in txs) {
       final d = DateTime(t.timestamp.year, t.timestamp.month, t.timestamp.day);
       // Найти категорию по t.categoryId
@@ -193,7 +194,7 @@ class AccountRepositoryImpl implements AccountRepository {
         }
       }
     }
-    return days.map((d) => map[d]!).toList();
+    return dates.map((d) => map[d]!).toList();
   }
 
   @override

@@ -22,16 +22,12 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
   List<DailyBalancePoint> get _chartData {
     if (widget.points.isEmpty) return [];
     if (_mode == AccountChartMode.days) {
-      // Фильтруем по выбранному месяцу
-      final points = _selectedMonth == null
-          ? widget.points
-          : widget.points
-                .where(
-                  (e) =>
-                      e.date.year == _selectedMonth!.year &&
-                      e.date.month == _selectedMonth!.month,
-                )
-                .toList();
+      final month = _selectedMonth ?? DateTime.now();
+      final points = widget.points
+          .where(
+            (e) => e.date.year == month.year && e.date.month == month.month,
+          )
+          .toList();
       return points;
     } else {
       // Группировка по месяцам: суммируем доходы и расходы, отображаем все месяцы выбранного года
@@ -213,7 +209,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: points.length * 28.0 + 40,
+              width: MediaQuery.of(context).size.width, // всегда на всю ширину
               height: 300,
               child: BarChart(
                 BarChartData(
