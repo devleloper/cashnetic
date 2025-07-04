@@ -1,5 +1,5 @@
 import 'package:cashnetic/domain/entities/transaction.dart';
-import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/domain/entities/category.dart' as domain;
 import 'package:cashnetic/domain/entities/account.dart';
 import 'transactions_repository.dart';
 import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
@@ -7,6 +7,7 @@ import 'package:cashnetic/data/repositories/drift_category_repository.dart';
 import 'package:cashnetic/data/repositories/drift_account_repository.dart';
 import 'package:cashnetic/di/di.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
+import 'package:flutter/foundation.dart';
 
 class TransactionsRepositoryImpl implements TransactionsRepository {
   final _transactionRepo = getIt<DriftTransactionRepository>();
@@ -22,6 +23,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
     int? page,
     int? pageSize,
   }) async {
+    debugPrint('[TransactionsRepositoryImpl] ENTER getTransactions');
     final result = await _transactionRepo.getTransactionsByPeriod(
       accountId ?? 0,
       from ?? DateTime.now().subtract(const Duration(days: 30)),
@@ -37,13 +39,17 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
       final end = start + pageSize;
       filtered = filtered.skip(start).take(pageSize).toList();
     }
+    debugPrint(
+      '[TransactionsRepositoryImpl] Returning transactions count: ${filtered.length}',
+    );
+    debugPrint('[TransactionsRepositoryImpl] EXIT getTransactions');
     return filtered;
   }
 
   @override
-  Future<List<Category>> getCategories() async {
+  Future<List<domain.Category>> getCategories() async {
     final result = await _categoryRepo.getAllCategories();
-    return result.fold((_) => <Category>[], (cats) => cats);
+    return result.fold((_) => <domain.Category>[], (cats) => cats);
   }
 
   @override
@@ -56,5 +62,21 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
   Future<void> deleteTransaction(int id) async {
     final result = await _transactionRepo.deleteTransaction(id);
     result.fold((failure) => throw Exception(failure.toString()), (_) => null);
+  }
+
+  @override
+  Future<void> moveTransactionsToAccount(
+    int fromAccountId,
+    int toAccountId,
+  ) async {
+    await _transactionRepo.moveTransactionsToAccount(
+      fromAccountId,
+      toAccountId,
+    );
+  }
+
+  @override
+  Future<void> deleteTransactionsByAccount(int accountId) async {
+    await _transactionRepo.deleteTransactionsByAccount(accountId);
   }
 }

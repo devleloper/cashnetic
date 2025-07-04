@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transactions_bloc.dart';
 import '../bloc/transactions_event.dart';
 import '../bloc/transactions_state.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
@@ -123,8 +123,8 @@ class TransactionsScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => TransactionsBloc(
-        transactionRepository: getIt<TransactionRepository>(),
-        categoryRepository: getIt<CategoryRepository>(),
+        transactionRepository: getIt<TransactionsRepository>(),
+        categoryRepository: getIt<CategoriesRepository>(),
       )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {

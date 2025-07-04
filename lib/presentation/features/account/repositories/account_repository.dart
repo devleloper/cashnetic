@@ -20,7 +20,7 @@ import 'package:cashnetic/data/mappers/account_mapper.dart';
 import 'account_repository.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/data/models/account/account.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 
 abstract interface class AccountRepository {
@@ -48,9 +48,9 @@ abstract interface class AccountRepository {
 
 class AccountRepositoryImpl implements AccountRepository {
   final db.AppDatabase dbInstance;
-  final TransactionRepository transactionRepository;
+  final TransactionsRepository transactionsRepository;
 
-  AccountRepositoryImpl(this.dbInstance, this.transactionRepository);
+  AccountRepositoryImpl(this.dbInstance, this.transactionsRepository);
 
   @override
   Future<Either<Failure, List<domain.Account>>> getAllAccounts() async {
@@ -154,12 +154,11 @@ class AccountRepositoryImpl implements AccountRepository {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, 1);
     final end = DateTime(now.year, now.month + 1, 0);
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      accountId,
-      start,
-      end,
+    final txs = await transactionsRepository.getTransactions(
+      accountId: accountId,
+      from: start,
+      to: end,
     );
-    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
     if (txs.isEmpty) return [];
 
     // Получаем все категории

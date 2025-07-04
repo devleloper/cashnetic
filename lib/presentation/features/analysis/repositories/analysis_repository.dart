@@ -4,8 +4,8 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:flutter/material.dart';
 
 abstract interface class AnalysisRepository {
@@ -23,8 +23,8 @@ abstract interface class AnalysisRepository {
 }
 
 class AnalysisRepositoryImpl implements AnalysisRepository {
-  final TransactionRepository transactionRepository;
-  final CategoryRepository categoryRepository;
+  final TransactionsRepository transactionRepository;
+  final CategoriesRepository categoryRepository;
   final List<Color> sectionColors;
 
   AnalysisRepositoryImpl({
@@ -35,14 +35,11 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
 
   @override
   Future<List<int>> getAllAvailableYears(AnalysisType type) async {
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0,
-      DateTime(2000, 1, 1),
-      DateTime(2100, 12, 31, 23, 59, 59),
+    final txs = await transactionRepository.getTransactions(
+      from: DateTime(2000, 1, 1),
+      to: DateTime(2100, 12, 31, 23, 59, 59),
     );
-    final catResult = await categoryRepository.getAllCategories();
-    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    final cats = catResult.fold((_) => <Category>[], (cats) => cats);
+    final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
       final cat = cats.firstWhere(
         (c) => c.id == t.categoryId,
@@ -66,14 +63,11 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     final start = DateTime(year, 1, 1);
     final end = DateTime(year, 12, 31, 23, 59, 59);
     final allYears = await getAllAvailableYears(type);
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0,
-      start,
-      end,
+    final txs = await transactionRepository.getTransactions(
+      from: start,
+      to: end,
     );
-    final catResult = await categoryRepository.getAllCategories();
-    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    final cats = catResult.fold((_) => <Category>[], (cats) => cats);
+    final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
       final cat = cats.firstWhere(
         (c) => c.id == t.categoryId,
@@ -153,18 +147,15 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
       );
     }
     final allYears = await getAllAvailableYears(type);
-    final catResult = await categoryRepository.getAllCategories();
-    final cats = catResult.fold((_) => <Category>[], (cats) => cats);
+    final cats = await categoryRepository.getCategories();
     final allTxs = <Transaction>[];
     for (final year in years) {
       final start = DateTime(year, 1, 1);
       final end = DateTime(year, 12, 31, 23, 59, 59);
-      final txResult = await transactionRepository.getTransactionsByPeriod(
-        0,
-        start,
-        end,
+      final txs = await transactionRepository.getTransactions(
+        from: start,
+        to: end,
       );
-      final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
       allTxs.addAll(txs);
     }
     final filtered = allTxs.where((t) {
@@ -238,14 +229,8 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     DateTime to,
     AnalysisType type,
   ) async {
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0,
-      from,
-      to,
-    );
-    final catResult = await categoryRepository.getAllCategories();
-    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    final cats = catResult.fold((_) => <Category>[], (cats) => cats);
+    final txs = await transactionRepository.getTransactions(from: from, to: to);
+    final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
       final cat = cats.firstWhere(
         (c) => c.id == t.categoryId,

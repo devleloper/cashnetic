@@ -5,19 +5,17 @@ import 'package:cashnetic/domain/entities/account_response.dart';
 import 'package:cashnetic/domain/entities/account_history.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/domain/entities/value_objects/money_details.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/data/mappers/account_mapper.dart';
 
-class DriftAccountRepository implements AccountRepository {
+class DriftAccountRepository {
   final db.AppDatabase dbInstance;
 
   DriftAccountRepository(this.dbInstance);
 
-  @override
   Future<Either<Failure, List<domain.Account>>> getAllAccounts() async {
     try {
       final data = await dbInstance.getAllAccounts();
@@ -27,7 +25,6 @@ class DriftAccountRepository implements AccountRepository {
     }
   }
 
-  @override
   Future<Either<Failure, domain.Account>> createAccount(
     AccountForm account,
   ) async {
@@ -49,7 +46,6 @@ class DriftAccountRepository implements AccountRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AccountResponse>> getAccountById(int id) async {
     try {
       final acc = await dbInstance.getAccountById(id);
@@ -77,7 +73,6 @@ class DriftAccountRepository implements AccountRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AccountForm>> updateAccount(
     int id,
     AccountForm account,
@@ -106,13 +101,11 @@ class DriftAccountRepository implements AccountRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AccountHistory>> getAccountHistory(int id) async {
     // TODO: Реализовать историю аккаунта (например, выборка транзакций по аккаунту)
     return Left(RepositoryFailure('Not implemented'));
   }
 
-  @override
   Future<void> deleteAccount(int id) async {
     await dbInstance.deleteAccount(id);
   }

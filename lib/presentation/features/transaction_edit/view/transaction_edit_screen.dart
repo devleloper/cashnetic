@@ -2,9 +2,9 @@ import 'package:cashnetic/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
+import 'package:cashnetic/presentation/features/account/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 
 import '../bloc/transaction_edit_bloc.dart';

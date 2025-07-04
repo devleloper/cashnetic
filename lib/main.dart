@@ -8,9 +8,7 @@ import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
-import 'domain/repositories/category_repository.dart';
-import 'domain/repositories/transaction_repository.dart';
-import 'domain/repositories/account_repository.dart';
+// Удалить все импорты domain/repositories/*
 
 // BLoC
 import 'presentation/features/account/bloc/account_bloc.dart';

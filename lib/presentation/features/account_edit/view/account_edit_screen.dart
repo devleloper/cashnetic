@@ -6,8 +6,8 @@ import 'package:cashnetic/domain/entities/account.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/account/repositories/account_repository.dart';
 import 'dart:async';
 import 'package:cashnetic/di/di.dart';
 import 'package:cashnetic/presentation/features/account_edit/repositories/account_edit_repository.dart';
@@ -35,7 +35,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     int toAccountId,
   ) async {
     setState(() => _isProcessing = true);
-    final transactionRepo = getIt<TransactionRepository>();
+    final transactionRepo = getIt<TransactionsRepository>();
     final accountRepo = getIt<AccountRepository>();
     await transactionRepo.moveTransactionsToAccount(fromAccountId, toAccountId);
     await accountRepo.deleteAccount(fromAccountId);

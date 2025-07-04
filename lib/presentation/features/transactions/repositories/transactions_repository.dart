@@ -14,4 +14,6 @@ abstract class TransactionsRepository {
   Future<List<Category>> getCategories();
   Future<List<Account>> getAccounts();
   Future<void> deleteTransaction(int id);
+  Future<void> moveTransactionsToAccount(int fromAccountId, int toAccountId);
+  Future<void> deleteTransactionsByAccount(int accountId);
 }

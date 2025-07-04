@@ -3,19 +3,18 @@ import 'package:cashnetic/domain/entities/transaction.dart' as domain;
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
+import 'package:flutter/foundation.dart';
 
-class DriftTransactionRepository implements TransactionRepository {
+class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
 
   DriftTransactionRepository(this.dbInstance);
 
   domain.Transaction _mapDbToDomain(db.Transaction t) => t.toDomain();
 
-  @override
   Future<Either<Failure, domain.Transaction>> createTransaction(
     TransactionForm transaction,
   ) async {
@@ -43,7 +42,6 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<Either<Failure, domain.Transaction>> getTransactionById(int id) async {
     try {
       final t = await dbInstance.getTransactionById(id);
@@ -54,7 +52,6 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<Either<Failure, domain.Transaction>> updateTransaction(
     int id,
     TransactionForm transaction,
@@ -80,7 +77,6 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<Either<Failure, Unit>> deleteTransaction(int id) async {
     try {
       await dbInstance.deleteTransaction(id);
@@ -90,14 +86,19 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<Either<Failure, List<domain.Transaction>>> getTransactionsByPeriod(
     int accountId,
     DateTime startDate,
     DateTime endDate,
   ) async {
+    debugPrint(
+      '[DriftTransactionRepository] ENTER getTransactionsByPeriod: accountId=$accountId, startDate=$startDate, endDate=$endDate',
+    );
     try {
       final all = await dbInstance.getAllTransactions();
+      debugPrint(
+        '[DriftTransactionRepository] All transactions count: ${all.length}',
+      );
       final filtered = all
           .where(
             (t) =>
@@ -107,13 +108,24 @@ class DriftTransactionRepository implements TransactionRepository {
           )
           .map(_mapDbToDomain)
           .toList();
+      debugPrint(
+        '[DriftTransactionRepository] Filtered transactions count: ${filtered.length}',
+      );
+      for (final t in filtered) {
+        debugPrint(
+          '  - id: ${t.id}, accountId: ${t.accountId}, categoryId: ${t.categoryId}, amount: ${t.amount}, timestamp: ${t.timestamp}',
+        );
+      }
+      debugPrint('[DriftTransactionRepository] EXIT getTransactionsByPeriod');
       return Right(filtered);
     } catch (e) {
+      debugPrint(
+        '[DriftTransactionRepository] ERROR in getTransactionsByPeriod: ${e.toString()}',
+      );
       return Left(RepositoryFailure(e.toString()));
     }
   }
 
-  @override
   Future<List<domain.Transaction>> getTransactionsByAccount(
     int accountId,
   ) async {
@@ -128,7 +140,6 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<void> moveTransactionsToAccount(
     int fromAccountId,
     int toAccountId,
@@ -141,7 +152,6 @@ class DriftTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<void> deleteTransactionsByAccount(int accountId) async {
     final all = await dbInstance.getAllTransactions();
     final toDelete = all.where((t) => t.accountId == accountId).toList();

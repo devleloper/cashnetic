@@ -1,8 +1,6 @@
 import 'package:cashnetic/domain/entities/account.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/account/repositories/account_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'account_event.dart';
 import 'account_state.dart';
 import 'package:cashnetic/data/models/account/account.dart';
@@ -13,9 +11,6 @@ import 'package:cashnetic/di/di.dart';
 
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   final AccountRepository accountRepository = getIt<AccountRepository>();
-  final TransactionRepository transactionRepository =
-      getIt<TransactionRepository>();
-  final CategoryRepository categoryRepository = getIt<CategoryRepository>();
 
   AccountBloc() : super(AccountLoading()) {
     on<LoadAccount>(_onLoadAccount);

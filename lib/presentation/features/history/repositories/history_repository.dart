@@ -2,8 +2,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import '../bloc/history_event.dart';
 import '../bloc/history_state.dart';
@@ -22,8 +22,8 @@ abstract interface class HistoryRepository {
 }
 
 class HistoryRepositoryImpl implements HistoryRepository {
-  final TransactionRepository transactionRepository;
-  final CategoryRepository categoryRepository;
+  final TransactionsRepository transactionRepository;
+  final CategoriesRepository categoryRepository;
 
   HistoryRepositoryImpl({
     required this.transactionRepository,
@@ -39,17 +39,11 @@ class HistoryRepositoryImpl implements HistoryRepository {
     required int page,
     required int pageSize,
   }) async {
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      0,
-      from,
-      to,
-    );
-    final txs = txResult.fold((_) => <Transaction>[], (txs) => txs);
-    final catResult = await categoryRepository.getAllCategories();
-    final categories = catResult.fold((_) => <Category>[], (cats) => cats);
+    final txs = await transactionRepository.getTransactions(from: from, to: to);
+    final cats = await categoryRepository.getCategories();
     // Фильтруем по типу
     var filtered = txs.where((t) {
-      final cat = categories.firstWhere(
+      final cat = cats.firstWhere(
         (c) => c.id == t.categoryId,
         orElse: () => Category(
           id: 0,

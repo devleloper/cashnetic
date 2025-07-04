@@ -1,10 +1,7 @@
-import 'package:get_it/get_it.dart';
 import 'package:cashnetic/data/database.dart';
 import 'package:cashnetic/presentation/features/account/repositories/account_repository.dart';
 import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
 import 'package:cashnetic/data/repositories/drift_category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/settings/repositories/settings_repository.dart';
 import 'package:cashnetic/presentation/features/settings/repositories/settings_repository_impl.dart';
@@ -20,6 +17,7 @@ import 'package:cashnetic/presentation/features/account_edit/repositories/accoun
 import 'package:cashnetic/presentation/features/history/repositories/history_repository.dart';
 import 'package:cashnetic/presentation/features/analysis/repositories/analysis_repository.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
 
@@ -29,22 +27,14 @@ void setupDependencies() {
   getIt.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(
       getIt<AppDatabase>(),
-      getIt<TransactionRepository>(),
+      getIt<TransactionsRepository>(),
     ),
-  );
-
-  getIt.registerLazySingleton<TransactionRepository>(
-    () => DriftTransactionRepository(getIt<AppDatabase>()),
-  );
-
-  getIt.registerLazySingleton<CategoryRepository>(
-    () => DriftCategoryRepository(getIt<AppDatabase>()),
   );
 
   getIt.registerLazySingleton<CategoriesRepository>(
     () => CategoriesRepositoryImpl(
-      categoryRepository: getIt<CategoryRepository>(),
-      transactionRepository: getIt<TransactionRepository>(),
+      driftCategoryRepository: getIt<DriftCategoryRepository>(),
+      transactionsRepository: getIt<TransactionsRepository>(),
     ),
   );
 
@@ -85,15 +75,15 @@ void setupDependencies() {
 
   getIt.registerLazySingleton<HistoryRepository>(
     () => HistoryRepositoryImpl(
-      transactionRepository: getIt<TransactionRepository>(),
-      categoryRepository: getIt<CategoryRepository>(),
+      transactionRepository: getIt<TransactionsRepository>(),
+      categoryRepository: getIt<CategoriesRepository>(),
     ),
   );
 
   getIt.registerLazySingleton<AnalysisRepository>(
     () => AnalysisRepositoryImpl(
-      transactionRepository: getIt<TransactionRepository>(),
-      categoryRepository: getIt<CategoryRepository>(),
+      transactionRepository: getIt<TransactionsRepository>(),
+      categoryRepository: getIt<CategoriesRepository>(),
       sectionColors: sectionColors,
     ),
   );

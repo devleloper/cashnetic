@@ -8,8 +8,8 @@ import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.da
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart'
     hide ChangePeriod;
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';

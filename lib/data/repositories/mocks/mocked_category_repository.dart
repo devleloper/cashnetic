@@ -2,10 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 
-class MockedCategoryRepository implements CategoryRepository {
+class MockedCategoryRepository {
   final List<Category> _mockCategories = [
     Category(
       id: 1,
@@ -100,7 +99,6 @@ class MockedCategoryRepository implements CategoryRepository {
     ),
   ];
 
-  @override
   Future<Either<Failure, List<Category>>> getAllCategories() async {
     try {
       return right(_mockCategories);
@@ -109,7 +107,6 @@ class MockedCategoryRepository implements CategoryRepository {
     }
   }
 
-  @override
   Future<Either<Failure, List<Category>>> getCategoriesByIsIncome(
     bool isIncome,
   ) async {
@@ -119,7 +116,6 @@ class MockedCategoryRepository implements CategoryRepository {
     return right(filtered);
   }
 
-  @override
   Future<Either<Failure, Category>> addCategory({
     required String name,
     String emoji = '💰',
@@ -144,7 +140,6 @@ class MockedCategoryRepository implements CategoryRepository {
     }
   }
 
-  @override
   Future<Either<Failure, bool>> deleteCategory(int categoryId) async {
     try {
       final initialLen = _mockCategories.length;
@@ -157,7 +152,6 @@ class MockedCategoryRepository implements CategoryRepository {
   }
 
   /// Удаляет категорию, если нет ни одной транзакции с этим categoryId
-  @override
   Future<Either<Failure, bool>> deleteCategoryIfUnused(
     int categoryId,
     List<dynamic> allTransactions,
