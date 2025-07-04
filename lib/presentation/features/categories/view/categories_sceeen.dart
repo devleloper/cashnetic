@@ -11,6 +11,7 @@ import '../widgets/category_search_field.dart';
 import '../widgets/category_list.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/repositories/drift_category_repository.dart';
+import 'package:cashnetic/di/di.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -31,10 +32,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _controller = TextEditingController();
     context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _driftRepo = RepositoryProvider.of<DriftCategoryRepository>(
-        context,
-        listen: false,
-      );
+      _driftRepo = getIt<DriftCategoryRepository>();
       final lastQuery = await _driftRepo?.getLastSearchQuery();
       if (lastQuery != null && lastQuery.isNotEmpty) {
         _controller.text = lastQuery;
