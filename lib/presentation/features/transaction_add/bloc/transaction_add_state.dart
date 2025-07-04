@@ -21,6 +21,7 @@ class TransactionAddLoaded extends TransactionAddState {
   final String amount;
   final String comment;
   final List<Account> accounts;
+  final bool isIncome;
 
   const TransactionAddLoaded({
     required this.categories,
@@ -30,6 +31,7 @@ class TransactionAddLoaded extends TransactionAddState {
     required this.amount,
     required this.comment,
     required this.accounts,
+    required this.isIncome,
   });
 
   @override
@@ -41,6 +43,7 @@ class TransactionAddLoaded extends TransactionAddState {
     amount,
     comment,
     accounts,
+    isIncome,
   ];
 }
 
@@ -52,6 +55,7 @@ class TransactionAddSaving extends TransactionAddState {
   final String amount;
   final String comment;
   final List<Account> accounts;
+  final bool isIncome;
 
   const TransactionAddSaving({
     required this.categories,
@@ -61,6 +65,7 @@ class TransactionAddSaving extends TransactionAddState {
     required this.amount,
     required this.comment,
     required this.accounts,
+    required this.isIncome,
   });
 
   @override
@@ -72,6 +77,7 @@ class TransactionAddSaving extends TransactionAddState {
     amount,
     comment,
     accounts,
+    isIncome,
   ];
 }
 

@@ -5,6 +5,7 @@ import 'package:cashnetic/presentation/features/transactions/repositories/transa
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   final TransactionsRepository transactionRepository;
@@ -44,7 +45,12 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     final filteredCats = cats
         .where((c) => c.isIncome == event.isIncome)
         .toList();
-    debugPrint('[TransactionsBloc] Transactions count: ${txs.length}');
+    // Filter transactions by category.isIncome
+    final filteredTxs = txs.where((t) {
+      final cat = cats.firstWhereOrNull((c) => c.id == t.categoryId);
+      return cat != null && cat.isIncome == event.isIncome;
+    }).toList();
+    debugPrint('[TransactionsBloc] Transactions count: ${filteredTxs.length}');
     debugPrint('[TransactionsBloc] Categories count: ${cats.length}');
     debugPrint(
       '[TransactionsBloc] Filtered categories count: ${filteredCats.length}',
@@ -57,10 +63,10 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       return;
     }
     // If there are no transactions, still show the UI (empty list)
-    final total = txs.fold<double>(0, (sum, t) => sum + t.amount);
+    final total = filteredTxs.fold<double>(0, (sum, t) => sum + t.amount);
     emit(
       TransactionsLoaded(
-        transactions: txs,
+        transactions: filteredTxs,
         categories: filteredCats,
         total: total,
         startDate: start,

@@ -46,6 +46,7 @@ class TransactionAddBloc
           amount: '',
           comment: '',
           accounts: accounts,
+          isIncome: event.isIncome,
         ),
       );
     } catch (e) {
@@ -59,6 +60,15 @@ class TransactionAddBloc
   ) {
     if (state is! TransactionAddLoaded) return;
     final current = state as TransactionAddLoaded;
+    // Only allow selecting categories matching current isIncome
+    if (event.category.isIncome != current.isIncome) {
+      emit(
+        TransactionAddError(
+          'Selected category does not match transaction type',
+        ),
+      );
+      return;
+    }
     emit(
       TransactionAddLoaded(
         categories: current.categories,
@@ -68,6 +78,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -87,6 +98,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -106,6 +118,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -125,6 +138,7 @@ class TransactionAddBloc
         amount: event.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -144,6 +158,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: event.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -159,6 +174,15 @@ class TransactionAddBloc
       emit(TransactionAddError('Please fill in all fields correctly'));
       return;
     }
+    // Strict check: selected category must match isIncome
+    if (current.selectedCategory!.isIncome != current.isIncome) {
+      emit(
+        TransactionAddError(
+          'Selected category does not match transaction type',
+        ),
+      );
+      return;
+    }
     emit(
       TransactionAddSaving(
         categories: current.categories,
@@ -168,6 +192,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
     try {
@@ -203,7 +228,6 @@ class TransactionAddBloc
     final current = state as TransactionAddLoaded;
     emit(TransactionAddLoading());
     try {
-      // Для простоты: после добавления категории просто обновляем список
       final categories = await repository.getCategories();
       final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
@@ -221,6 +245,7 @@ class TransactionAddBloc
           amount: current.amount,
           comment: current.comment,
           accounts: current.accounts,
+          isIncome: event.isIncome,
         ),
       );
     } catch (e) {
