@@ -337,7 +337,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       bloc.add(TransactionEditDateChanged(picked));

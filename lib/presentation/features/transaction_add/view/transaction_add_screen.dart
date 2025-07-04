@@ -383,7 +383,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       bloc.add(TransactionAddDateChanged(picked));
