@@ -81,20 +81,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final list = state.transactions;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
-            List<Category> categories = [];
-            if (catState is CategoriesLoaded) {
-              categories = catState.categories
-                  .map(
-                    (cat) => Category(
-                      id: cat.id,
-                      name: cat.name,
-                      emoji: cat.emoji,
-                      isIncome: cat.isIncome,
-                      color: cat.color,
-                    ),
-                  )
-                  .toList();
+            if (catState is! CategoriesLoaded) {
+              return const Center(child: CircularProgressIndicator());
             }
+            List<Category> categories = catState.allCategories
+                .map(
+                  (cat) => Category(
+                    id: cat.id,
+                    name: cat.name,
+                    emoji: cat.emoji,
+                    isIncome: cat.isIncome,
+                    color: cat.color,
+                  ),
+                )
+                .toList();
+            debugPrint(
+              '[HistoryScreen] Categories for HistoryListView: ' +
+                  categories
+                      .map((c) => 'id=' + c.id.toString() + ',name=' + c.name)
+                      .join('; '),
+            );
             return Scaffold(
               appBar: AppBar(
                 title: Text(

@@ -37,6 +37,22 @@ class HistoryListView extends StatelessWidget {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, index) {
         final e = transactions[index];
+        debugPrint(
+          '[HistoryListView] Looking for categoryId=' +
+              e.categoryId.toString() +
+              ' (type: ' +
+              (e.categoryId?.runtimeType.toString() ?? 'null') +
+              ') in: ' +
+              categories
+                  .map(
+                    (c) =>
+                        c.id.toString() +
+                        ' (type: ' +
+                        c.id.runtimeType.toString() +
+                        ')',
+                  )
+                  .join(', '),
+        );
         final cat = categories.firstWhere(
           (c) => c.id == e.categoryId,
           orElse: () => Category(
@@ -46,6 +62,14 @@ class HistoryListView extends StatelessWidget {
             isIncome: false,
             color: '#E0E0E0',
           ),
+        );
+        debugPrint(
+          '[HistoryListView] Found category: id=' +
+              cat.id.toString() +
+              ', name=' +
+              cat.name +
+              ', emoji=' +
+              cat.emoji,
         );
         final bgColor = lightColorFor(cat.name);
         return HistoryListItem(

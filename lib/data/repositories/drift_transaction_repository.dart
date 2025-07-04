@@ -19,6 +19,9 @@ class DriftTransactionRepository {
     TransactionForm transaction,
   ) async {
     try {
+      debugPrint(
+        '[DriftTransactionRepository] Creating transaction with categoryId= ${transaction.categoryId}',
+      );
       final id = await dbInstance.insertTransaction(
         db.TransactionsCompanion(
           accountId: Value(transaction.accountId!),

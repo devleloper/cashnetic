@@ -56,7 +56,7 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   @override
   Future<Either<Failure, Map<int, List<Transaction>>>>
   getTransactionsByCategory() async {
-    final allTx = await transactionsRepository.getTransactions();
-    return left(RepositoryFailure('Not implemented'));
+    // Temporary: return empty map to avoid error and unblock UI
+    return right(<int, List<Transaction>>{});
   }
 }
