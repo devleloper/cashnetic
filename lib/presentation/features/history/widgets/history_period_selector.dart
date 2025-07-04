@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,7 +23,7 @@ class HistoryPeriodSelector extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Период: начало',
+              'Period: start',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -33,7 +34,7 @@ class HistoryPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -58,8 +59,8 @@ class HistoryPeriodSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Период: конец',
+            Text(
+              S.of(context).periodEnd,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -70,7 +71,7 @@ class HistoryPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 shadowColor: Colors.transparent,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),

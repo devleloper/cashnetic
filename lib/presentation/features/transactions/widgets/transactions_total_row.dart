@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class TransactionsTotalRow extends StatelessWidget {
@@ -7,13 +8,13 @@ class TransactionsTotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.green.withOpacity(0.2),
+      color: Color(0xFFE6F4EA),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Всего',
+          Text(
+            S.of(context).total,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

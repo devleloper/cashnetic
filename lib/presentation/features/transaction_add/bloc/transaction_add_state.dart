@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 
 abstract class TransactionAddState extends Equatable {
   const TransactionAddState();
@@ -14,13 +14,14 @@ class TransactionAddInitial extends TransactionAddState {}
 class TransactionAddLoading extends TransactionAddState {}
 
 class TransactionAddLoaded extends TransactionAddState {
-  final List<CategoryDTO> categories;
-  final CategoryDTO? selectedCategory;
+  final List<Category> categories;
+  final Category? selectedCategory;
   final DateTime selectedDate;
   final Account? account;
   final String amount;
   final String comment;
   final List<Account> accounts;
+  final bool isIncome;
 
   const TransactionAddLoaded({
     required this.categories,
@@ -30,6 +31,7 @@ class TransactionAddLoaded extends TransactionAddState {
     required this.amount,
     required this.comment,
     required this.accounts,
+    required this.isIncome,
   });
 
   @override
@@ -41,17 +43,19 @@ class TransactionAddLoaded extends TransactionAddState {
     amount,
     comment,
     accounts,
+    isIncome,
   ];
 }
 
 class TransactionAddSaving extends TransactionAddState {
-  final List<CategoryDTO> categories;
-  final CategoryDTO? selectedCategory;
+  final List<Category> categories;
+  final Category? selectedCategory;
   final DateTime selectedDate;
   final Account? account;
   final String amount;
   final String comment;
   final List<Account> accounts;
+  final bool isIncome;
 
   const TransactionAddSaving({
     required this.categories,
@@ -61,6 +65,7 @@ class TransactionAddSaving extends TransactionAddState {
     required this.amount,
     required this.comment,
     required this.accounts,
+    required this.isIncome,
   });
 
   @override
@@ -72,6 +77,7 @@ class TransactionAddSaving extends TransactionAddState {
     amount,
     comment,
     accounts,
+    isIncome,
   ];
 }
 
@@ -83,8 +89,7 @@ class TransactionAddError extends TransactionAddState {
 }
 
 class TransactionAddSuccess extends TransactionAddState {
-  final TransactionDTO transaction;
-  const TransactionAddSuccess(this.transaction);
+  const TransactionAddSuccess();
   @override
-  List<Object?> get props => [transaction];
+  List<Object?> get props => [];
 }

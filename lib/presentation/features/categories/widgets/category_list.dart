@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../widgets/category_list_tile.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class CategoryList extends StatelessWidget {
-  final List<CategoryDTO> categories;
+  final List<Category> categories;
   final Map<int, List<dynamic>> txByCategory;
-  final Function(CategoryDTO) onCategoryTap;
+  final Function(Category) onCategoryTap;
   final List<double>? amounts;
   final List<double>? percents;
   final bool showPercent;

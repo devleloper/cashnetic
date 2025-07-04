@@ -1,4 +1,7 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class AmountInputDialog extends StatelessWidget {
   final String currentAmount;
@@ -12,13 +15,23 @@ class AmountInputDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = TextEditingController(text: currentAmount);
+    final locale = Localizations.localeOf(context).toString();
+    final separator = NumberFormat.simpleCurrency(
+      locale: locale,
+    ).symbols.DECIMAL_SEP;
     return AlertDialog(
-      title: const Text('Введите сумму'),
+      title: Text(S.of(context).enterAmount),
       content: TextField(
         controller: controller,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(
+            RegExp('[0-9${separator == '.' ? '\\.' : ','}]'),
+          ),
+          _SingleDecimalSeparatorInputFormatter(separator),
+        ],
         autofocus: true,
-        decoration: const InputDecoration(hintText: '0.00'),
+        decoration: InputDecoration(hintText: '0${separator}00'),
       ),
       actions: [
         TextButton(
@@ -26,9 +39,31 @@ class AmountInputDialog extends StatelessWidget {
             onSubmit(controller.text);
             Navigator.pop(context);
           },
-          child: const Text('ОК'),
+          child: const Text('OK'),
         ),
       ],
     );
+  }
+}
+
+/// Formatter: only one decimal separator allowed
+class _SingleDecimalSeparatorInputFormatter extends TextInputFormatter {
+  final String separator;
+  _SingleDecimalSeparatorInputFormatter(this.separator);
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    final firstIndex = text.indexOf(separator);
+    if (firstIndex == -1) return newValue;
+    // Only one separator allowed
+    final lastIndex = text.lastIndexOf(separator);
+    if (firstIndex != lastIndex) {
+      return oldValue;
+    }
+    return newValue;
   }
 }

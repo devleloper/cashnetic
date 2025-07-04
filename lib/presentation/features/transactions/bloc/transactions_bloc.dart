@@ -1,13 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transactions_event.dart';
 import 'transactions_state.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
-  final TransactionRepository transactionRepository;
-  final CategoryRepository categoryRepository;
+  final TransactionsRepository transactionRepository;
+  final CategoriesRepository categoryRepository;
 
   TransactionsBloc({
     required this.transactionRepository,
@@ -27,32 +29,45 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     TransactionsLoad event,
     Emitter<TransactionsState> emit,
   ) async {
-    emit(TransactionsLoading());
     final now = DateTime.now();
     final start = event.startDate ?? _startOfDay(now);
     final end = event.endDate ?? _endOfDay(now);
-    final txResult = await transactionRepository.getTransactionsByPeriod(
-      event.accountId,
-      start,
-      end,
+    debugPrint(
+      '[TransactionsBloc] _onLoad: isIncome=${event.isIncome}, accountId=${event.accountId}, start=$start, end=$end',
     );
-    final catResult = await categoryRepository.getCategoriesByIsIncome(
-      event.isIncome,
+    emit(TransactionsLoading());
+    final txs = await transactionRepository.getTransactions(
+      accountId: event.accountId,
+      from: start,
+      to: end,
     );
-    if (txResult.isLeft() || catResult.isLeft()) {
-      emit(TransactionsError('Ошибка загрузки данных'));
+    final cats = await categoryRepository.getCategories();
+    final filteredCats = cats
+        .where((c) => c.isIncome == event.isIncome)
+        .toList();
+    // Filter transactions by category.isIncome
+    final filteredTxs = txs.where((t) {
+      final cat = cats.firstWhereOrNull((c) => c.id == t.categoryId);
+      return cat != null && cat.isIncome == event.isIncome;
+    }).toList();
+    debugPrint('[TransactionsBloc] Transactions count: ${filteredTxs.length}');
+    debugPrint('[TransactionsBloc] Categories count: ${cats.length}');
+    debugPrint(
+      '[TransactionsBloc] Filtered categories count: ${filteredCats.length}',
+    );
+    if (filteredCats.isEmpty) {
+      debugPrint(
+        '[TransactionsBloc] Emitting TransactionsError: filteredCats.isEmpty=true',
+      );
+      emit(TransactionsError('Failed to load data'));
       return;
     }
-    final txs = txResult.getOrElse(() => []);
-    final cats = catResult.getOrElse(() => []);
-    final filtered = txs
-        .where((t) => cats.any((c) => c.id == t.categoryId))
-        .toList();
-    final total = filtered.fold<double>(0, (sum, t) => sum + t.amount);
+    // If there are no transactions, still show the UI (empty list)
+    final total = filteredTxs.fold<double>(0, (sum, t) => sum + t.amount);
     emit(
       TransactionsLoaded(
-        transactions: filtered,
-        categories: cats,
+        transactions: filteredTxs,
+        categories: filteredCats,
         total: total,
         startDate: start,
         endDate: end,

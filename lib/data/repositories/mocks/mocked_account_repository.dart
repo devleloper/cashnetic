@@ -7,9 +7,8 @@ import 'package:cashnetic/domain/entities/value_objects/money_details.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
 
-class MockedAccountRepository implements AccountRepository {
+class MockedAccountRepository {
   final List<Account> _accounts = [
     Account(
       id: 1,
@@ -32,7 +31,6 @@ class MockedAccountRepository implements AccountRepository {
     return id;
   }
 
-  @override
   Future<Either<Failure, Account>> createAccount(AccountForm form) async {
     try {
       final account = Account(
@@ -53,7 +51,6 @@ class MockedAccountRepository implements AccountRepository {
     }
   }
 
-  @override
   Future<Either<Failure, AccountResponse>> getAccountById(int id) async {
     final account = _accounts.where((a) => a.id == id).firstOrNull;
     if (account == null) {
@@ -71,7 +68,6 @@ class MockedAccountRepository implements AccountRepository {
     );
   }
 
-  @override
   Future<Either<Failure, AccountHistory>> getAccountHistory(int id) async {
     final account = _accounts.where((a) => a.id == id).firstOrNull;
     if (account == null) {
@@ -87,12 +83,10 @@ class MockedAccountRepository implements AccountRepository {
     );
   }
 
-  @override
   Future<Either<Failure, List<Account>>> getAllAccounts() async {
     return right(List.unmodifiable(_accounts));
   }
 
-  @override
   Future<Either<Failure, AccountForm>> updateAccount(
     int id,
     AccountForm form,
@@ -120,7 +114,6 @@ class MockedAccountRepository implements AccountRepository {
     );
   }
 
-  @override
   Future<void> deleteAccount(int id) async {
     _accounts.removeWhere((a) => a.id == id);
   }

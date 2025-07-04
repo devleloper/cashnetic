@@ -24,3 +24,34 @@ class MySettingsListTile extends StatelessWidget {
     );
   }
 }
+
+class SettingsSwitchListTile extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final Widget title;
+  final Color? activeColor;
+  final Key? switchKey;
+
+  const SettingsSwitchListTile({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    required this.title,
+    this.activeColor,
+    this.switchKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: title,
+      trailing: Switch(
+        key: switchKey,
+        value: value,
+        onChanged: onChanged,
+        activeColor: activeColor,
+      ),
+      onTap: () => onChanged(!value),
+    );
+  }
+}

@@ -83,7 +83,7 @@ class _TransactionsFlyChipState extends State<TransactionsFlyChip>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Color(0xFFE0E0E0),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),

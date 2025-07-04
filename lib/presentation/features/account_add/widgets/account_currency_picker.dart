@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class AccountCurrencyPicker extends StatelessWidget {
@@ -16,20 +17,20 @@ class AccountCurrencyPicker extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: const Text('₽ Российский рубль'),
+            title: Text(S.of(context).russianRuble),
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: const Text('\$ Доллар'),
+            title: Text(S.of(context).dollar),
             onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(
-            title: const Text('€ Евро'),
+            title: Text(S.of(context).euro),
             onTap: () => Navigator.pop(context, '€'),
           ),
           const Divider(),
           ListTile(
-            title: const Text('Отмена'),
+            title: Text(S.of(context).cancel),
             onTap: () => Navigator.pop(context),
           ),
         ],
@@ -51,7 +52,7 @@ class AccountCurrencyPicker extends StatelessWidget {
             const Icon(Icons.currency_exchange, color: Colors.green),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text('Валюта', style: TextStyle(fontSize: 16)),
+              child: Text('Currency', style: TextStyle(fontSize: 16)),
             ),
             Text(
               currency,

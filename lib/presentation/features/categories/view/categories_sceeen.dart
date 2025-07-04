@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
@@ -89,14 +90,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           return const SizedBox.shrink();
         }
         final txByCategory = state.txByCategory;
-        final List<CategoryDTO> categories =
-            List<CategoryDTO>.from(state.categories)..sort(
-              (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
-                txByCategory[a.id]?.length ?? 0,
-              ),
-            );
+        final List<Category> categories = List<Category>.from(state.categories)
+          ..sort(
+            (a, b) => (txByCategory[b.id]?.length ?? 0).compareTo(
+              txByCategory[a.id]?.length ?? 0,
+            ),
+          );
         return Scaffold(
-          appBar: AppBar(title: const Text('Категории')),
           body: Column(
             children: [
               CategorySearchField(
@@ -108,10 +108,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               Expanded(
                 child: categories.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
-                          'Нет категорий по вашему запросу',
-
+                          S.of(context).noCategoriesFoundForYourQuery,
                           textAlign: TextAlign.center,
                         ),
                       )
@@ -126,13 +125,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (_) => TransactionListByCategoryScreen(
-                                category: Category(
-                                  id: cat.id,
-                                  name: cat.name,
-                                  emoji: cat.emoji,
-                                  isIncome: cat.isIncome,
-                                  color: cat.color,
-                                ),
+                                category: cat,
                               ),
                             ),
                           );

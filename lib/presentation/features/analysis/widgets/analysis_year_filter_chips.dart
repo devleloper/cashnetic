@@ -1,5 +1,7 @@
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import '../bloc/analysis_event.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class AnalysisYearFilterChips extends StatelessWidget {
   final List<int> availableYears;
@@ -26,7 +28,7 @@ class AnalysisYearFilterChips extends StatelessWidget {
           label: Text('$yr'),
           selected: selected,
           selectedColor: Colors.green,
-          backgroundColor: Colors.white,
+          backgroundColor: lightColorFor('$yr'),
           labelStyle: TextStyle(color: selected ? Colors.white : Colors.black),
           onSelected: (val) {
             final newYears = List<int>.from(selectedYears);

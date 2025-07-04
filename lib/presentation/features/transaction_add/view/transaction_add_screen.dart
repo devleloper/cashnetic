@@ -1,10 +1,11 @@
 import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
+import 'package:cashnetic/presentation/features/account/repositories/account_repository.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 import '../bloc/transaction_add_bloc.dart';
 import '../bloc/transaction_add_state.dart';
@@ -20,6 +21,7 @@ import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
 import 'package:cashnetic/presentation/features/account_add/view/account_add_screen.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 
 class TransactionAddScreen extends StatefulWidget {
   final bool isIncome;
@@ -47,130 +49,77 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ScrollController? externalScrollController =
+        PrimaryScrollController.of(context);
     return BlocProvider(
-      create: (context) => TransactionAddBloc(
-        categoryRepository: context.read<CategoryRepository>(),
-        transactionRepository: context.read<TransactionRepository>(),
-        accountRepository: context.read<AccountRepository>(),
-      )..add(TransactionAddInitialized(widget.isIncome)),
+      create: (context) =>
+          TransactionAddBloc()..add(TransactionAddInitialized(widget.isIncome)),
       child: BlocConsumer<TransactionAddBloc, TransactionAddState>(
         builder: (context, state) {
           if (state is TransactionAddInitial ||
               state is TransactionAddLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          } else if (state is TransactionAddError &&
-              state.message == 'Нет счетов') {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Нет счетов'),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final created = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (context) => AccountAddBloc(
-                                accountRepository: context
-                                    .read<AccountRepository>(),
-                              ),
-                              child: const AccountAddScreen(),
-                            ),
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is TransactionAddError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(S.of(context).noAccounts),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final created = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider(
+                            create: (context) => AccountAddBloc(),
+                            child: const AccountAddScreen(),
                           ),
-                        );
-                        if (created == true) {
-                          context.read<TransactionAddBloc>().add(
-                            TransactionAddInitialized(widget.isIncome),
-                          );
-                        }
-                      },
-                      child: const Text('Создать счет'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else if (state is TransactionAddError &&
-              state.message == 'Нет категорий') {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Нет категорий'),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await showDialog(
-                          context: context,
-                          builder: (context) => CustomCategoryDialog(
-                            isIncome: widget.isIncome,
-                            onCancel: () => Navigator.pop(context),
-                            onCreate: (name, emoji) {
-                              if (name.isNotEmpty) {
-                                context.read<TransactionAddBloc>().add(
-                                  TransactionAddCustomCategoryCreated(
-                                    name: name,
-                                    emoji: emoji.isNotEmpty ? emoji : '💰',
-                                    isIncome: widget.isIncome,
-                                    color: '#E0E0E0',
-                                  ),
-                                );
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        );
+                        ),
+                      );
+                      if (created == true) {
                         context.read<TransactionAddBloc>().add(
                           TransactionAddInitialized(widget.isIncome),
                         );
-                      },
-                      child: const Text('Создать категорию'),
-                    ),
-                  ],
-                ),
+                      }
+                    },
+                    child: Text(S.of(context).createAccount),
+                  ),
+                ],
               ),
             );
           } else if (state is TransactionAddError) {
-            return Scaffold(
-              body: Center(child: Text('Ошибка: ${state.message}')),
-            );
-          } else if (state is TransactionAddLoaded ||
-              state is TransactionAddSaving) {
-            final comment = state is TransactionAddLoaded
-                ? state.comment
-                : (state as TransactionAddSaving).comment;
-            if (_commentController.text != comment) {
-              _commentController.text = comment;
-            }
-            return _buildContent(context, state);
+            return Center(child: Text('Error:  A${state.message}'));
           } else if (state is TransactionAddSuccess) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
-          return const Scaffold(
-            body: Center(child: Text('Неизвестное состояние')),
+          final comment = state is TransactionAddLoaded
+              ? state.comment
+              : (state as TransactionAddSaving).comment;
+          if (_commentController.text != comment) {
+            _commentController.text = comment;
+          }
+          return ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            child: Container(
+              color: Colors.white,
+              child: SafeArea(
+                top: false,
+                child: _buildContent(
+                  context,
+                  state,
+                  scrollController: externalScrollController,
+                ),
+              ),
+            ),
           );
         },
         listener: (context, state) {
           if (state is TransactionAddSuccess) {
-            final today = DateTime.now();
-            final txDate = DateTime.tryParse(state.transaction.transactionDate);
-            final isToday =
-                txDate != null &&
-                txDate.year == today.year &&
-                txDate.month == today.month &&
-                txDate.day == today.day;
-            Navigator.pop(context, {
-              'transaction': state.transaction,
-              'animateToHistory': !isToday,
-            });
+            Navigator.pop(context, true);
           } else if (state is TransactionAddError) {
             ScaffoldMessenger.of(
               context,
@@ -181,93 +130,135 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, dynamic state) {
-    // Ensure state is either TransactionAddLoaded or TransactionAddSaving
+  Widget _buildContent(
+    BuildContext context,
+    dynamic state, {
+    ScrollController? scrollController,
+  }) {
+    // Ensure state is either TransactionAddLoaded and TransactionAddSaving
     if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
-      return const Scaffold(body: Center(child: Text('Неизвестное состояние')));
+      return Center(child: Text(S.of(context).unknownState));
     }
 
     final dateStr = DateFormat('dd.MM.yyyy').format(state.selectedDate);
     final timeStr = TimeOfDay.fromDateTime(state.selectedDate).format(context);
-    final title = widget.isIncome ? 'Добавить доход' : 'Добавить расход';
+    final title = widget.isIncome
+        ? S.of(context).addIncome
+        : S.of(context).addExpense;
     final isSaving = state is TransactionAddSaving;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.check, color: Colors.white),
-            onPressed: isSaving ? null : () => _validateAndSave(context, state),
-          ),
-        ],
-        title: Text(title),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          MyListTileRow(
-            title: 'Счёт',
-            value: state.account?.name ?? '—',
-            onTap: isSaving
-                ? () {}
-                : () => _selectAccount(context, state.accounts, state.account),
-          ),
-          MyListTileRow(
-            title: 'Категория',
-            value: state.selectedCategory?.name ?? '',
-            onTap: isSaving
-                ? () {}
-                : () => _selectCategory(context, state.categories),
-          ),
-          MyListTileRow(
-            title: 'Сумма',
-            value: state.amount.isEmpty ? 'Введите' : '${state.amount} ₽',
-            onTap: isSaving
-                ? () {}
-                : () => _selectAmount(context, state.amount),
-          ),
-          MyListTileRow(
-            title: 'Дата',
-            value: dateStr,
-            onTap: isSaving
-                ? () {}
-                : () => _selectDate(context, state.selectedDate),
-          ),
-          MyListTileRow(
-            title: 'Время',
-            value: timeStr,
-            onTap: isSaving
-                ? () {}
-                : () => _selectTime(context, state.selectedDate),
-          ),
-          const SizedBox(height: 16),
-          TransactionCommentField(
-            controller: _commentController,
-            enabled: !isSaving,
-            onChanged: (comment) => context.read<TransactionAddBloc>().add(
-              TransactionAddCommentChanged(comment),
+    return ListView(
+      controller: scrollController,
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      children: [
+        // Шапка
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.green,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
             ),
           ),
-        ],
-      ),
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              IconButton(
+                icon: isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check, color: Colors.white),
+                onPressed: isSaving
+                    ? null
+                    : () => _validateAndSave(context, state),
+              ),
+            ],
+          ),
+        ),
+        // Форма
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              MyListTileRow(
+                title: S.of(context).account,
+                value: state.account?.name ?? '—',
+                onTap: isSaving
+                    ? () {}
+                    : () => _selectAccount(
+                        context,
+                        state.accounts,
+                        state.account,
+                      ),
+              ),
+              MyListTileRow(
+                title: S.of(context).category,
+                value: state.selectedCategory?.name ?? '',
+                onTap: isSaving
+                    ? () {}
+                    : () => _selectCategory(context, state.categories),
+              ),
+              MyListTileRow(
+                title: S.of(context).amount,
+                value: state.amount.isEmpty
+                    ? S.of(context).enter
+                    : '${state.amount} ₽',
+                onTap: isSaving
+                    ? () {}
+                    : () => _selectAmount(context, state.amount),
+              ),
+              MyListTileRow(
+                title: S.of(context).date,
+                value: dateStr,
+                onTap: isSaving
+                    ? () {}
+                    : () => _selectDate(context, state.selectedDate),
+              ),
+              MyListTileRow(
+                title: S.of(context).time,
+                value: timeStr,
+                onTap: isSaving
+                    ? () {}
+                    : () => _selectTime(context, state.selectedDate),
+              ),
+              const SizedBox(height: 16),
+              TransactionCommentField(
+                controller: _commentController,
+                enabled: !isSaving,
+                onChanged: (comment) => context.read<TransactionAddBloc>().add(
+                  TransactionAddCommentChanged(comment),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   void _validateAndSave(BuildContext context, dynamic state) {
-    // Ensure state is either TransactionAddLoaded or TransactionAddSaving
     if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
       return;
     }
@@ -275,19 +266,19 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     final errors = <String>[];
 
     if (state.account == null) {
-      errors.add('Выберите счет');
+      errors.add(S.of(context).selectAccount);
     }
 
     if (state.selectedCategory == null) {
-      errors.add('Выберите категорию');
+      errors.add(S.of(context).selectCategory);
     }
 
     if (state.amount.isEmpty) {
-      errors.add('Введите сумму');
+      errors.add(S.of(context).enterAmount);
     } else {
       final parsed = double.tryParse(state.amount.replaceAll(',', '.'));
       if (parsed == null || parsed <= 0) {
-        errors.add('Сумма должна быть положительным числом');
+        errors.add(S.of(context).amountMustBeAPositiveNumber);
       }
     }
 
@@ -317,14 +308,12 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         accounts: accounts,
         onSelect: (acc) => Navigator.pop(c, acc),
         onCreateAccount: () async {
-          Navigator.pop(c); // Закрыть bottom sheet
+          Navigator.pop(c);
           final created = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => BlocProvider(
-                create: (context) => AccountAddBloc(
-                  accountRepository: context.read<AccountRepository>(),
-                ),
+                create: (context) => AccountAddBloc(),
                 child: const AccountAddScreen(),
               ),
             ),
@@ -343,14 +332,14 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   Future<void> _selectCategory(
     BuildContext context,
-    List<CategoryDTO> categories,
+    List<Category> categories,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
     final filteredCategories = categories
         .where((c) => c.isIncome == widget.isIncome)
         .toList();
 
-    final res = await showModalBottomSheet<CategoryDTO>(
+    final res = await showModalBottomSheet<Category>(
       context: context,
       builder: (c) => CategorySelectSheet(
         categories: filteredCategories,
@@ -398,7 +387,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
       context: context,
       initialDate: currentDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       bloc.add(TransactionAddDateChanged(picked));

@@ -4,9 +4,8 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
 
-class MockedTransactionRepository implements TransactionRepository {
+class MockedTransactionRepository {
   final List<Transaction> _transactions = [
     Transaction(
       id: 1,
@@ -31,7 +30,6 @@ class MockedTransactionRepository implements TransactionRepository {
     return id;
   }
 
-  @override
   Future<Either<Failure, Transaction>> createTransaction(
     TransactionForm form,
   ) async {
@@ -55,7 +53,6 @@ class MockedTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<Either<Failure, Unit>> deleteTransaction(int id) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) {
@@ -65,7 +62,6 @@ class MockedTransactionRepository implements TransactionRepository {
     return right(unit);
   }
 
-  @override
   Future<Either<Failure, Transaction>> getTransactionById(int id) async {
     final transaction = _transactions.where((a) => a.id == id).firstOrNull;
     if (transaction == null) {
@@ -74,7 +70,6 @@ class MockedTransactionRepository implements TransactionRepository {
     return right(transaction);
   }
 
-  @override
   Future<Either<Failure, List<Transaction>>> getTransactionsByPeriod(
     int accountId,
     DateTime startDate,
@@ -88,7 +83,6 @@ class MockedTransactionRepository implements TransactionRepository {
     return right(filtered);
   }
 
-  @override
   Future<Either<Failure, Transaction>> updateTransaction(
     int id,
     TransactionForm form,
@@ -116,12 +110,10 @@ class MockedTransactionRepository implements TransactionRepository {
     return right(updated);
   }
 
-  @override
   Future<List<Transaction>> getTransactionsByAccount(int accountId) async {
     return _transactions.where((t) => t.accountId == accountId).toList();
   }
 
-  @override
   Future<void> moveTransactionsToAccount(
     int fromAccountId,
     int toAccountId,
@@ -141,7 +133,6 @@ class MockedTransactionRepository implements TransactionRepository {
     }
   }
 
-  @override
   Future<void> deleteTransactionsByAccount(int accountId) async {
     _transactions.removeWhere((t) => t.accountId == accountId);
   }

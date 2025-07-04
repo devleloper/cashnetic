@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();
@@ -11,8 +12,16 @@ class LoadSettings extends SettingsEvent {
   const LoadSettings();
 }
 
-class ToggleDarkTheme extends SettingsEvent {
-  const ToggleDarkTheme();
+// class ToggleDarkTheme extends SettingsEvent {
+//   const ToggleDarkTheme();
+// }
+
+class UpdateThemeMode extends SettingsEvent {
+  final ThemeMode themeMode;
+  const UpdateThemeMode(this.themeMode);
+
+  @override
+  List<Object?> get props => [themeMode];
 }
 
 class UpdatePrimaryColor extends SettingsEvent {

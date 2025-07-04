@@ -1,24 +1,24 @@
+import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/transactions_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transactions_bloc.dart';
 import '../bloc/transactions_event.dart';
 import '../bloc/transactions_state.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/transaction_edit/view/transaction_edit_screen.dart';
-import 'package:cashnetic/data/mappers/transaction_mapper.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 import '../widgets/transactions_total_row.dart';
-import '../widgets/transactions_list_view.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
+import 'package:cashnetic/di/di.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -28,7 +28,7 @@ class TransactionsScreen extends StatelessWidget {
 
   void _animateTransactionToHistory(
     BuildContext context,
-    TransactionDTO tx,
+    Transaction tx,
   ) async {
     final overlay = Overlay.of(context);
 
@@ -55,11 +55,11 @@ class TransactionsScreen extends StatelessWidget {
 
     if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
     String emoji = '💸';
-    String categoryName = 'Расход';
-    Color bgColor = Colors.green.withOpacity(0.2);
+    String categoryName = S.of(context).expense;
+    Color bgColor = Color(0xFFE6F4EA);
     try {
-      emoji = _getCategoryEmoji(context, tx.categoryId);
-      categoryName = _getCategoryName(context, tx.categoryId);
+      emoji = _getCategoryEmoji(context, tx.categoryId ?? 0);
+      categoryName = _getCategoryName(context, tx.categoryId ?? 0);
       bgColor = colorFor(categoryName).withOpacity(0.2);
     } catch (_) {}
     if (emoji.isEmpty) emoji = '💸';
@@ -83,32 +83,17 @@ class TransactionsScreen extends StatelessWidget {
     final state = BlocProvider.of<TransactionsBloc>(context).state;
     if (state is TransactionsLoaded) {
       if (state.categories.isEmpty) return '❓';
-      final first = state.categories.first;
-      if (first is CategoryDTO) {
-        final cat = (state.categories as List<CategoryDTO>).firstWhere(
-          (c) => c.id == categoryId,
-          orElse: () => CategoryDTO(
-            id: 0,
-            name: '',
-            emoji: '❓',
-            isIncome: isIncome,
-            color: '#FFF',
-          ),
-        );
-        return cat.emoji;
-      } else {
-        final cat = state.categories.firstWhere(
-          (c) => c.id == categoryId,
-          orElse: () => Category(
-            id: 0,
-            name: '',
-            emoji: '❓',
-            isIncome: isIncome,
-            color: '#FFF',
-          ),
-        );
-        return cat.emoji;
-      }
+      final cat = state.categories.firstWhere(
+        (c) => c.id == categoryId,
+        orElse: () => Category(
+          id: 0,
+          name: '',
+          emoji: '❓',
+          isIncome: isIncome,
+          color: '#FFF',
+        ),
+      );
+      return cat.emoji;
     }
     return '❓';
   }
@@ -121,7 +106,7 @@ class TransactionsScreen extends StatelessWidget {
         (c) => c.id == categoryId,
         orElse: () => Category(
           id: 0,
-          name: 'Расход',
+          name: S.of(context).expense,
           emoji: '💸',
           isIncome: false,
           color: '#E0E0E0',
@@ -129,7 +114,7 @@ class TransactionsScreen extends StatelessWidget {
       );
       return cat.name;
     }
-    return 'Расход';
+    return S.of(context).expense;
   }
 
   @override
@@ -138,8 +123,8 @@ class TransactionsScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => TransactionsBloc(
-        transactionRepository: context.read<TransactionRepository>(),
-        categoryRepository: context.read<CategoryRepository>(),
+        transactionRepository: getIt<TransactionsRepository>(),
+        categoryRepository: getIt<CategoriesRepository>(),
       )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
@@ -158,23 +143,6 @@ class TransactionsScreen extends StatelessWidget {
           final categories = state.categories;
           final total = state.total;
           return Scaffold(
-            appBar: AppBar(
-              title: Text(isIncome ? 'Доходы сегодня' : 'Расходы сегодня'),
-              actions: [
-                IconButton(
-                  key: historyIconKey,
-                  icon: const Icon(Icons.history, color: Colors.white),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => HistoryScreen(isIncome: isIncome),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
             body: Column(
               children: [
                 TransactionsTotalRow(total: total),
@@ -187,7 +155,7 @@ class TransactionsScreen extends StatelessWidget {
                     isIncome: isIncome,
                     onTap: (t, cat) async {
                       // Получаем имя и валюту аккаунта из AccountBloc
-                      String accountName = 'Счет';
+                      String accountName = S.of(context).account;
                       String currency = 'RUB';
                       final accountState = context.read<AccountBloc>().state;
                       if (accountState is AccountLoaded) {
@@ -198,24 +166,25 @@ class TransactionsScreen extends StatelessWidget {
                         accountName = acc.name;
                         currency = acc.moneyDetails.currency;
                       }
-                      final model = TransactionDomainMapper.domainToModel(
-                        t,
-                        CategoryDTO(
-                          id: cat.id,
-                          name: cat.name,
-                          emoji: cat.emoji,
-                          isIncome: cat.isIncome,
-                          color: cat.color,
-                        ),
-                        accountName,
-                        currency: currency,
-                      );
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TransactionEditScreen(transaction: model),
-                        ),
+                      // Открыть экран редактирования операции модально
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          final mq = MediaQuery.of(context);
+                          final maxChildSize =
+                              (mq.size.height - mq.padding.top) /
+                              mq.size.height;
+                          return DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.4,
+                            maxChildSize: maxChildSize,
+                            expand: false,
+                            builder: (context, scrollController) =>
+                                TransactionEditScreen(transactionId: t.id),
+                          );
+                        },
                       );
                       context.read<TransactionsBloc>().add(
                         TransactionsLoad(isIncome: isIncome, accountId: 0),
@@ -229,11 +198,23 @@ class TransactionsScreen extends StatelessWidget {
               heroTag: isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TransactionAddScreen(isIncome: isIncome),
-                  ),
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) {
+                    final mq = MediaQuery.of(context);
+                    final maxChildSize =
+                        (mq.size.height - mq.padding.top) / mq.size.height;
+                    return DraggableScrollableSheet(
+                      initialChildSize: 0.7,
+                      minChildSize: 0.4,
+                      maxChildSize: maxChildSize,
+                      expand: false,
+                      builder: (context, scrollController) =>
+                          TransactionAddScreen(isIncome: isIncome),
+                    );
+                  },
                 );
                 context.read<TransactionsBloc>().add(
                   TransactionsLoad(isIncome: isIncome, accountId: 0),
@@ -243,7 +224,7 @@ class TransactionsScreen extends StatelessWidget {
                     result['animateToHistory'] == true) {
                   _animateTransactionToHistory(
                     context,
-                    result['transaction'] as TransactionDTO,
+                    result['transaction'] as Transaction,
                   );
                 }
               },

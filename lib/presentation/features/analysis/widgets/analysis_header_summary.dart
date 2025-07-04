@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import '../widgets/period_row.dart';
 
@@ -21,18 +22,18 @@ class AnalysisHeaderSummary extends StatelessWidget {
 
   String _monthYear(DateTime dt) {
     const names = [
-      'январь',
-      'февраль',
-      'март',
-      'апрель',
-      'май',
-      'июнь',
-      'июль',
-      'август',
-      'сентябрь',
-      'октябрь',
-      'ноябрь',
-      'декабрь',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${names[dt.month - 1]} ${dt.year}';
   }
@@ -40,7 +41,7 @@ class AnalysisHeaderSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.green.withOpacity(0.2),
+      color: Color(0xFFE6F4EA),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
@@ -65,14 +66,20 @@ class AnalysisHeaderSummary extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 8),
-            PeriodRow(label: 'Период: начало', value: _monthYear(periodStart)),
-            PeriodRow(label: 'Период: конец', value: _monthYear(periodEnd)),
+            PeriodRow(
+              label: S.of(context).periodStart,
+              value: _monthYear(periodStart),
+            ),
+            PeriodRow(
+              label: S.of(context).periodEnd,
+              value: _monthYear(periodEnd),
+            ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Всего',
+                Text(
+                  S.of(context).total,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 Text(

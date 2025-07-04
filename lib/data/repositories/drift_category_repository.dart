@@ -2,18 +2,30 @@ import 'package:cashnetic/data/database.dart' as db;
 import 'package:cashnetic/domain/entities/category.dart' as domain;
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/data/mappers/category_mapper.dart';
+import 'package:flutter/foundation.dart';
 
-class DriftCategoryRepository implements CategoryRepository {
+class DriftCategoryRepository {
   final db.AppDatabase dbInstance;
 
   DriftCategoryRepository(this.dbInstance);
 
   Future<void> _initDefaultCategories() async {
+    debugPrint('[DriftCategoryRepository] ENTER _initDefaultCategories');
     final existing = await dbInstance.getAllCategories();
+    debugPrint(
+      '[DriftCategoryRepository] Existing categories count: ${existing.length}',
+    );
+    if (existing.isNotEmpty) {
+      debugPrint('[DriftCategoryRepository] Existing categories:');
+      for (final cat in existing) {
+        debugPrint(
+          '  - id: ${cat.id}, name: ${cat.name}, isIncome: ${cat.isIncome}',
+        );
+      }
+    }
     final defaults = [
       {
         'name': 'Продукты',
@@ -74,6 +86,9 @@ class DriftCategoryRepository implements CategoryRepository {
         (e) => e.name == cat['name'] && e.isIncome == cat['isIncome'],
       );
       if (!alreadyExists) {
+        debugPrint(
+          '[DriftCategoryRepository] Adding default category: name=${cat['name']}, isIncome=${cat['isIncome']}',
+        );
         await dbInstance.insertCategory(
           db.CategoriesCompanion(
             name: Value(cat['name'] as String),
@@ -82,22 +97,38 @@ class DriftCategoryRepository implements CategoryRepository {
             color: Value(cat['color'] as String),
           ),
         );
+      } else {
+        debugPrint(
+          '[DriftCategoryRepository] Default category already exists: name=${cat['name']}, isIncome=${cat['isIncome']}',
+        );
       }
     }
+    debugPrint('[DriftCategoryRepository] EXIT _initDefaultCategories');
   }
 
-  @override
   Future<Either<Failure, List<domain.Category>>> getAllCategories() async {
+    debugPrint('[DriftCategoryRepository] ENTER getAllCategories');
     try {
       await _initDefaultCategories();
       final data = await dbInstance.getAllCategories();
+      debugPrint(
+        '[DriftCategoryRepository] Categories after init: count=${data.length}',
+      );
+      for (final cat in data) {
+        debugPrint(
+          '  - id: ${cat.id}, name: ${cat.name}, isIncome: ${cat.isIncome}',
+        );
+      }
+      debugPrint('[DriftCategoryRepository] EXIT getAllCategories');
       return Right(data.map((e) => e.toDomain()).toList());
     } catch (e) {
+      debugPrint(
+        '[DriftCategoryRepository] ERROR in getAllCategories: ${e.toString()}',
+      );
       return Left(RepositoryFailure(e.toString()));
     }
   }
 
-  @override
   Future<Either<Failure, List<domain.Category>>> getCategoriesByIsIncome(
     bool isIncome,
   ) async {
@@ -114,7 +145,6 @@ class DriftCategoryRepository implements CategoryRepository {
     }
   }
 
-  @override
   Future<Either<Failure, domain.Category>> addCategory({
     required String name,
     String emoji = '💰',
@@ -140,7 +170,6 @@ class DriftCategoryRepository implements CategoryRepository {
     }
   }
 
-  @override
   Future<Either<Failure, bool>> deleteCategoryIfUnused(
     int categoryId,
     List<dynamic> allTransactions,

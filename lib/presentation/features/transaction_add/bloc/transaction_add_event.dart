@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 
 abstract class TransactionAddEvent extends Equatable {
@@ -16,7 +16,7 @@ class TransactionAddInitialized extends TransactionAddEvent {
 }
 
 class TransactionAddCategoryChanged extends TransactionAddEvent {
-  final CategoryDTO category;
+  final Category category;
   const TransactionAddCategoryChanged(this.category);
   @override
   List<Object?> get props => [category];

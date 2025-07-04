@@ -1,4 +1,5 @@
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart'
+    show lightColorFor;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/categories_bloc.dart';
@@ -6,8 +7,8 @@ import '../bloc/categories_state.dart';
 import '../bloc/categories_event.dart';
 import '../../../presentation.dart';
 import 'package:cashnetic/utils/category_utils.dart';
-import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class TransactionListByCategoryScreen extends StatelessWidget {
   final Category category;
@@ -34,7 +35,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                 final t = txns[i];
                 final cat = categories.firstWhere(
                   (c) => c.id == t.categoryId,
-                  orElse: () => CategoryDTO(
+                  orElse: () => Category(
                     id: 0,
                     name: '—',
                     emoji: '❓',
@@ -51,21 +52,21 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                     isIncome: cat.isIncome,
                     color: cat.color,
                   ),
-                  bgColor: colorFor(cat.name).withOpacity(0.2),
+                  bgColor: lightColorFor(cat.name),
                   onTap: () async {
-                    final model = TransactionDomainMapper.domainToModel(
-                      t,
-                      cat,
-                      'Сбербанк', // TODO: получить реальное название аккаунта
-                    );
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TransactionEditScreen(transaction: model),
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => DraggableScrollableSheet(
+                        initialChildSize: 0.7,
+                        minChildSize: 0.4,
+                        maxChildSize: 1.0,
+                        expand: false,
+                        builder: (context, scrollController) =>
+                            TransactionEditScreen(transactionId: t.id),
                       ),
                     );
-                    // После возврата можно обновить список транзакций по категории
                     context.read<CategoriesBloc>().add(
                       LoadTransactionsForCategory(category.id),
                     );

@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import '../bloc/analysis_event.dart';
 
@@ -21,8 +22,8 @@ class AnalysisPeriodSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Период: начало',
+            Text(
+              S.of(context).periodStart,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -33,7 +34,7 @@ class AnalysisPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -45,13 +46,9 @@ class AnalysisPeriodSelector extends StatelessWidget {
               onPressed: () async {
                 final picked = await showDatePicker(
                   context: context,
-                  initialDate: periodStart.isAfter(periodEnd)
-                      ? periodEnd
-                      : periodStart,
+                  initialDate: periodStart,
                   firstDate: DateTime(2000),
-                  lastDate: periodEnd.isBefore(periodStart)
-                      ? periodStart
-                      : periodEnd,
+                  lastDate: DateTime.now(),
                 );
                 if (picked != null) {
                   onChanged(picked, periodEnd);
@@ -72,8 +69,8 @@ class AnalysisPeriodSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Период: конец',
+            Text(
+              S.of(context).periodEnd,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -84,7 +81,7 @@ class AnalysisPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Colors.green.withOpacity(0.8),
+                backgroundColor: Color(0xFF43C97B),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),

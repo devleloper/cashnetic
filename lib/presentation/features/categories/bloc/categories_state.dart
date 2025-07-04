@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 
 abstract class CategoriesState extends Equatable {
@@ -11,8 +11,8 @@ abstract class CategoriesState extends Equatable {
 class CategoriesLoading extends CategoriesState {}
 
 class CategoriesLoaded extends CategoriesState {
-  final List<CategoryDTO> categories;
-  final List<CategoryDTO> allCategories;
+  final List<Category> categories;
+  final List<Category> allCategories;
   final String searchQuery;
   final Map<int, List<Transaction>> txByCategory;
   const CategoriesLoaded({

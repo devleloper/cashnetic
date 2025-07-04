@@ -1,11 +1,14 @@
+import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class CategorySelectSheet extends StatelessWidget {
-  final List<CategoryDTO> categories;
+  final List<Category> categories;
   final bool isIncome;
-  final ValueChanged<CategoryDTO> onSelect;
+  final ValueChanged<Category> onSelect;
   final VoidCallback onCreateCategory;
   const CategorySelectSheet({
     Key? key,
@@ -28,14 +31,14 @@ class CategorySelectSheet extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Выберите категорию',
+              Text(
+                S.of(context).selectCategory,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.black, weight: 60),
                 onPressed: onCreateCategory,
-                tooltip: 'Создать категорию',
+                tooltip: S.of(context).createCategory,
               ),
             ],
           ),
@@ -46,7 +49,7 @@ class CategorySelectSheet extends StatelessWidget {
               ...filteredCategories.map(
                 (cat) => ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: colorFor(cat.name).withOpacity(0.2),
+                    backgroundColor: lightColorFor(cat.name),
                     child: Text(
                       cat.emoji,
                       style: const TextStyle(fontSize: 20),
@@ -59,7 +62,7 @@ class CategorySelectSheet extends StatelessWidget {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.add),
-                title: const Text('Создать категорию'),
+                title: Text(S.of(context).createCategory),
                 onTap: onCreateCategory,
               ),
             ],

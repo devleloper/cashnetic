@@ -1,7 +1,10 @@
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../theme/theme.dart';
 import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
@@ -11,18 +14,29 @@ import '../widgets/my_settings_list_tile.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return const _SettingsScreenBody();
+  }
+}
+
+class _SettingsScreenBody extends StatelessWidget {
+  const _SettingsScreenBody({super.key});
+
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('О программе'),
-        content: const Text(
-          'Разработчик: Devlet Boltaev\nВерсия: 1.0.0\n\nСпасибо за использование Cashnetic!',
+        title: Text(S.of(context).about),
+        content: Text(
+          S
+              .of(context)
+              .developerDevletBoltaevnversion100nnthankYouForUsingCashnetic,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('ОК'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -31,122 +45,200 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SettingsBloc()..add(const LoadSettings()),
-      child: Scaffold(
-        appBar: AppBar(title: const Text('Настройки')),
-        body: BlocConsumer<SettingsBloc, SettingsState>(
-          listener: (context, state) {
-            if (state is SettingsError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
-            }
-          },
-          builder: (context, state) {
-            if (state is SettingsLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    var darkTheme = darkThemeData();
+    var lightTheme = lightThemeData();
+    return Scaffold(
+      body: BlocConsumer<SettingsBloc, SettingsState>(
+        listener: (context, state) {
+          if (state is SettingsError) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        builder: (context, state) {
+          if (state is SettingsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (state is SettingsLoaded) {
-              return ListView(
+          if (state is SettingsLoaded) {
+            return ListView(
+              children: [
+                ThemeSwitcher(
+                  clipper: ThemeSwitcherCircleClipper(),
+                  builder: (context) {
+                    final switchKey = GlobalKey();
+                    return SettingsSwitchListTile(
+                      switchKey: switchKey,
+                      title: Text(S.of(context).darkTheme),
+                      value:
+                          ThemeModelInheritedNotifier.of(
+                            context,
+                          ).theme.brightness ==
+                          Brightness.dark,
+                      onChanged: (isDark) {
+                        final theme = isDark ? darkTheme : lightTheme;
+                        final renderBox =
+                            switchKey.currentContext?.findRenderObject()
+                                as RenderBox?;
+                        final offset = renderBox != null
+                            ? renderBox.localToGlobal(
+                                Offset(
+                                  renderBox.size.width,
+                                  renderBox.size.height / 2,
+                                ),
+                              )
+                            : Offset.zero;
+                        ThemeSwitcher.of(
+                          context,
+                        ).changeTheme(theme: theme, offset: offset);
+                        final newMode = isDark
+                            ? ThemeMode.dark
+                            : ThemeMode.light;
+                        context.read<SettingsBloc>().add(
+                          UpdateThemeMode(newMode),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: Text(S.of(context).primaryColor),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    // TODO: Implement color picker
+                    context.read<SettingsBloc>().add(
+                      const UpdatePrimaryColor(0xFF2196F3),
+                    );
+                  },
+                ),
+                SwitchListTile(
+                  title: Text(S.of(context).sounds),
+                  value: state.soundsEnabled,
+                  onChanged: (_) {
+                    context.read<SettingsBloc>().add(const ToggleSounds());
+                  },
+                ),
+                SwitchListTile(
+                  title: Text(S.of(context).haptics),
+                  value: state.hapticsEnabled,
+                  onChanged: (_) {
+                    context.read<SettingsBloc>().add(const ToggleHaptics());
+                  },
+                ),
+                ListTile(
+                  title: Text(S.of(context).passcode),
+                  subtitle: Text(
+                    state.passcode != null
+                        ? S.of(context).set
+                        : S.of(context).notSet,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    // TODO: Implement passcode setup
+                    _showPasscodeDialog(context, state.passcode);
+                  },
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: Text(S.of(context).sync),
+                  value: state.syncEnabled,
+                  onChanged: (_) {
+                    context.read<SettingsBloc>().add(const ToggleSync());
+                  },
+                ),
+                ListTile(
+                  title: Text(S.of(context).language),
+                  subtitle: Text(
+                    state.language == 'ru'
+                        ? S.of(context).russian
+                        : state.language == 'de'
+                        ? 'Deutsch'
+                        : S.of(context).english,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (ctx) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Text(
+                                S.of(context).selectLanguage,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            ListTile(
+                              title: const Text('English'),
+                              onTap: () {
+                                context.read<SettingsBloc>().add(
+                                  const UpdateLanguage('en'),
+                                );
+                                Navigator.pop(ctx);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('Русский'),
+                              onTap: () {
+                                context.read<SettingsBloc>().add(
+                                  const UpdateLanguage('ru'),
+                                );
+                                Navigator.pop(ctx);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('Deutsch'),
+                              onTap: () {
+                                context.read<SettingsBloc>().add(
+                                  const UpdateLanguage('de'),
+                                );
+                                Navigator.pop(ctx);
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                MySettingsListTile(
+                  title: S.of(context).about,
+                  onTap: () => _showAboutDialog(context),
+                ),
+              ],
+            );
+          }
+
+          if (state is SettingsError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SwitchListTile(
-                    title: const Text('Тёмная тема'),
-                    value: state.isDarkTheme,
-                    onChanged: (_) {
-                      context.read<SettingsBloc>().add(const ToggleDarkTheme());
+                  const Icon(Icons.error, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<SettingsBloc>().add(const LoadSettings());
                     },
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    title: const Text('Основной цвет'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO: Implement color picker
-                      context.read<SettingsBloc>().add(
-                        const UpdatePrimaryColor(0xFF2196F3),
-                      );
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Звуки'),
-                    value: state.soundsEnabled,
-                    onChanged: (_) {
-                      context.read<SettingsBloc>().add(const ToggleSounds());
-                    },
-                  ),
-                  SwitchListTile(
-                    title: const Text('Хаптики'),
-                    value: state.hapticsEnabled,
-                    onChanged: (_) {
-                      context.read<SettingsBloc>().add(const ToggleHaptics());
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Код пароль'),
-                    subtitle: Text(
-                      state.passcode != null ? 'Установлен' : 'Не установлен',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO: Implement passcode setup
-                      _showPasscodeDialog(context, state.passcode);
-                    },
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    title: const Text('Синхронизация'),
-                    value: state.syncEnabled,
-                    onChanged: (_) {
-                      context.read<SettingsBloc>().add(const ToggleSync());
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Язык'),
-                    subtitle: Text(
-                      state.language == 'ru' ? 'Русский' : 'English',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO: Implement language selection
-                      context.read<SettingsBloc>().add(
-                        const UpdateLanguage('ru'),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  MySettingsListTile(
-                    title: 'О программе',
-                    onTap: () => _showAboutDialog(context),
+                    child: Text(S.of(context).retry),
                   ),
                 ],
-              );
-            }
+              ),
+            );
+          }
 
-            if (state is SettingsError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error, size: 64, color: Colors.red),
-                    const SizedBox(height: 16),
-                    Text(state.message),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<SettingsBloc>().add(const LoadSettings());
-                      },
-                      child: const Text('Повторить'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return const Center(child: Text('Неизвестное состояние'));
-          },
-        ),
+          return Center(child: Text(S.of(context).unknownState));
+        },
       ),
     );
   }
@@ -157,13 +249,15 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          currentPasscode != null ? 'Изменить пароль' : 'Установить пароль',
+          currentPasscode != null
+              ? S.of(context).changePasscode
+              : S.of(context).setPasscode,
         ),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Введите пароль',
-            hintText: '4-6 цифр',
+          decoration: InputDecoration(
+            labelText: S.of(context).enterPasscode,
+            hintText: S.of(context).digits,
           ),
           keyboardType: TextInputType.number,
           maxLength: 6,
@@ -171,7 +265,7 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Отмена'),
+            child: Text(S.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -181,7 +275,7 @@ class SettingsScreen extends StatelessWidget {
               }
               Navigator.pop(context);
             },
-            child: const Text('Сохранить'),
+            child: Text(S.of(context).save),
           ),
         ],
       ),

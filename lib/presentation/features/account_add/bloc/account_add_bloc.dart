@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/domain/entities/forms/account_form.dart';
-import 'package:cashnetic/domain/entities/value_objects/money_details.dart';
+import 'package:cashnetic/presentation/features/account_add/repositories/account_add_repository.dart';
 import 'account_add_event.dart';
 import 'account_add_state.dart';
+import 'package:cashnetic/di/di.dart';
 
 class AccountAddBloc extends Bloc<AccountAddEvent, AccountAddState> {
-  final AccountRepository accountRepository;
-  AccountAddBloc({required this.accountRepository})
+  final AccountAddRepository accountAddRepository =
+      getIt<AccountAddRepository>();
+  AccountAddBloc()
     : super(const AccountAddLoaded(name: '', balance: '', currency: '₽')) {
     on<AccountAddNameChanged>(_onNameChanged);
     on<AccountAddBalanceChanged>(_onBalanceChanged);
@@ -66,21 +66,11 @@ class AccountAddBloc extends Bloc<AccountAddEvent, AccountAddState> {
   ) async {
     if (state is! AccountAddLoaded) return;
     final current = state as AccountAddLoaded;
-    if (current.name.trim().isEmpty) {
-      emit(const AccountAddError('Введите название счета'));
-      return;
-    }
-    final balance =
-        double.tryParse(current.balance.replaceAll(',', '.')) ?? 0.0;
     emit(AccountAddLoading());
-    final result = await accountRepository.createAccount(
-      AccountForm(
-        name: current.name.trim(),
-        moneyDetails: MoneyDetails(
-          balance: balance,
-          currency: current.currency,
-        ),
-      ),
+    final result = await accountAddRepository.validateAndCreateAccount(
+      name: current.name,
+      balance: current.balance,
+      currency: current.currency,
     );
     result.fold(
       (failure) => emit(AccountAddError(failure.toString())),

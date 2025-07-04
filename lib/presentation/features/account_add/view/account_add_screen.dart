@@ -1,9 +1,9 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_bloc.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_event.dart';
 import 'package:cashnetic/presentation/features/account_add/bloc/account_add_state.dart';
-import 'package:cashnetic/presentation/features/account_edit/widgets/balance_edit_row.dart';
 import '../widgets/account_name_field.dart';
 import '../widgets/account_balance_field.dart';
 import '../widgets/account_currency_picker.dart';
@@ -34,37 +34,6 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
     super.dispose();
   }
 
-  void _showCurrencyPicker(BuildContext context, String currentCurrency) async {
-    final sel = await showModalBottomSheet<String>(
-      context: context,
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: const Text('₽ Российский рубль'),
-            onTap: () => Navigator.pop(context, '₽'),
-          ),
-          ListTile(
-            title: Text('\$ Доллар'),
-            onTap: () => Navigator.pop(context, '\$'),
-          ),
-          ListTile(
-            title: const Text('€ Евро'),
-            onTap: () => Navigator.pop(context, '€'),
-          ),
-          const Divider(),
-          ListTile(
-            title: const Text('Отмена'),
-            onTap: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
-    if (sel != null && sel != currentCurrency) {
-      context.read<AccountAddBloc>().add(AccountAddCurrencyChanged(sel));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AccountAddBloc, AccountAddState>(
@@ -84,8 +53,8 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
           );
         }
         if (state is! AccountAddLoaded) {
-          return const Scaffold(
-            body: Center(child: Text('Ошибка инициализации формы')),
+          return Scaffold(
+            body: Center(child: Text(S.of(context).formInitializationError)),
           );
         }
         _nameController.value = TextEditingValue(
@@ -98,7 +67,7 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
         );
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Создать счёт'),
+            title: Text(S.of(context).createAccount),
             leading: IconButton(
               icon: const Icon(Icons.close, color: Colors.white),
               onPressed: () => Navigator.pop(context),

@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
@@ -22,7 +23,9 @@ class TransactionsListView extends StatelessWidget {
     if (transactions.isEmpty) {
       return Center(
         child: Text(
-          isIncome ? 'Нет доходов за сегодня' : 'Нет расходов за сегодня',
+          isIncome
+              ? S.of(context).noIncomeForToday
+              : S.of(context).noExpensesForToday,
         ),
       );
     }
@@ -35,7 +38,7 @@ class TransactionsListView extends StatelessWidget {
           (c) => c.id == t.categoryId,
           orElse: () => Category(
             id: 0,
-            name: isIncome ? 'Доход' : 'Расход',
+            name: isIncome ? S.of(context).income : S.of(context).expense,
             emoji: isIncome ? '💰' : '💸',
             isIncome: isIncome,
             color: '#E0E0E0',

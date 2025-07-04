@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class CategorySearchField extends StatefulWidget {
@@ -71,7 +72,7 @@ class _CategorySearchFieldState extends State<CategorySearchField>
       child: TextField(
         focusNode: _focusNode,
         decoration: InputDecoration(
-          labelText: 'Найти категорию',
+          labelText: S.of(context).searchCategory,
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           focusedBorder: OutlineInputBorder(

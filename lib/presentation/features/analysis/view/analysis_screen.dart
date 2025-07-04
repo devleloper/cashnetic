@@ -1,24 +1,14 @@
-import 'package:cashnetic/data/database.dart';
-import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
-import 'package:cashnetic/presentation/features/categories/view/transaction_list_by_category_screen.dart';
-import 'package:cashnetic/presentation/features/categories/widgets/category_list.dart';
-import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/period_row.dart';
-import '../widgets/analysis_pie_chart.dart';
-import '../widgets/analysis_legend.dart';
-import '../widgets/analysis_category_list.dart';
-import 'package:flutter/rendering.dart';
-import 'package:cashnetic/data/mappers/category_mapper.dart';
-import 'package:cashnetic/domain/entities/category.dart' as domain;
 import '../widgets/analysis_year_filter_chips.dart';
 import '../widgets/analysis_period_selector.dart';
 import '../widgets/analysis_total_summary.dart';
 import '../widgets/analysis_category_sliver_list.dart';
+import '../widgets/cashnetic_pie_chart_widget.dart';
 
 class AnalysisScreen extends StatelessWidget {
   final AnalysisType type;
@@ -41,19 +31,31 @@ class AnalysisScreen extends StatelessWidget {
         }
         final result = state.result;
         final selectedYears = state.selectedYears;
-        // Сортируем категории по дате последней транзакции
+
         final sortedData = List<CategoryChartData>.from(result.data)
           ..sort((a, b) {
             final ad = a.lastTransactionDate ?? DateTime(1970);
             final bd = b.lastTransactionDate ?? DateTime(1970);
             return bd.compareTo(ad);
           });
+
+        // Синхронизированный список для графика и легенды
+        final chartSections = result.data
+            .map(
+              (c) => AnalysisPieChartData(
+                amount: c.amount,
+                categoryTitle: c.categoryTitle,
+                color: c.color,
+                percent: c.percent,
+              ),
+            )
+            .toList();
         return Scaffold(
           appBar: AppBar(
             title: Text(
               type == AnalysisType.expense
-                  ? 'Анализ расходов'
-                  : 'Анализ доходов',
+                  ? S.of(context).expenseAnalysis
+                  : S.of(context).incomeAnalysis,
               style: const TextStyle(fontSize: 20, color: Colors.white),
             ),
             centerTitle: true,
@@ -64,7 +66,7 @@ class AnalysisScreen extends StatelessWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: Container(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -84,7 +86,7 @@ class AnalysisScreen extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   child: AnalysisPeriodSelector(
                     periodStart: result.periodStart,
                     periodEnd: result.periodEnd,
@@ -99,7 +101,7 @@ class AnalysisScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(
                 child: Container(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Color(0xFFE6F4EA),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -109,20 +111,16 @@ class AnalysisScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(child: SizedBox(height: 42)),
               if (result.total > 0 && result.data.isNotEmpty)
-                SliverToBoxAdapter(child: AnalysisPieChart(data: result.data)),
-              SliverToBoxAdapter(child: SizedBox(height: 28)),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _LegendHeaderDelegate(
-                  child: AnalysisLegend(data: result.data),
+                SliverToBoxAdapter(
+                  child: CashneticPieChartWidget(data: chartSections),
                 ),
-              ),
+              SliverToBoxAdapter(child: SizedBox(height: 28)),
               if (result.data.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
-                      'Нет данных для анализа',
+                      S.of(context).noDataForAnalysis,
                       style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                   ),

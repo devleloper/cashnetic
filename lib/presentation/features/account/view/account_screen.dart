@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/data/models/account/account.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
@@ -8,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../widgets/option_row.dart';
-import '../widgets/balance_bar_chart.dart';
+import '../widgets/account_balance_chart.dart';
 import 'package:shake/shake.dart';
 import 'package:spoiler_widget/spoiler_widget.dart';
 import 'dart:ui';
@@ -100,35 +101,16 @@ class _AccountScreenState extends State<AccountScreen> {
         final selectedCurrencies = state.selectedCurrencies;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Мой счета'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () async {
-                  final updatedModel = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => AccountEditScreen()),
-                  );
-                  if (updatedModel != null) {
-                    context.read<AccountBloc>().add(
-                      UpdateAccount(updatedModel),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
-            tooltip: 'Обновить',
+            tooltip: 'Refresh',
             child: const Icon(Icons.refresh, color: Colors.white),
           ),
           body: Column(
             children: [
               Container(
                 width: double.infinity,
-                color: Colors.green.withOpacity(0.2),
+                color: Color(0xFFE6F4EA),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -185,12 +167,12 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               Container(
-                color: Colors.green.withOpacity(0.2),
+                color: Color(0xFFE6F4EA),
                 child: Column(
                   children: [
                     OptionRow(
                       icon: Icons.account_balance_wallet,
-                      label: 'Баланс',
+                      label: S.of(context).balance,
                       value: '',
                       onTap: () {
                         setState(() {
@@ -231,7 +213,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     const Divider(height: 1),
                     OptionRow(
                       icon: Icons.currency_exchange,
-                      label: 'Валюта',
+                      label: S.of(context).currency,
                       value: selectedCurrencies.length == 1
                           ? selectedCurrencies.first
                           : selectedCurrencies.join(', '),
@@ -249,7 +231,7 @@ class _AccountScreenState extends State<AccountScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: BalanceBarChart(points: state.dailyPoints),
+                  child: AccountBalanceChart(points: state.dailyPoints),
                 ),
               ),
             ],
@@ -259,33 +241,33 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  void _showCurrencyPicker(BuildContext context, AccountDTO account) async {
+  void _showCurrencyPicker(BuildContext context, Account account) async {
     final sel = await showModalBottomSheet<String>(
       context: context,
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            title: const Text('₽ Российский рубль'),
+            title: Text(S.of(context).russianRuble),
             onTap: () => Navigator.pop(context, '₽'),
           ),
           ListTile(
-            title: Text('\$ Доллар'),
+            title: Text(S.of(context).dollar),
             onTap: () => Navigator.pop(context, '\$'),
           ),
           ListTile(
-            title: const Text('€ Евро'),
+            title: const Text('€ Euro'),
             onTap: () => Navigator.pop(context, '€'),
           ),
           const Divider(),
           ListTile(
-            title: const Text('Отмена'),
+            title: Text(S.of(context).cancel),
             onTap: () => Navigator.pop(context),
           ),
         ],
       ),
     );
-    if (sel != null && sel != account.currency) {
+    if (sel != null && sel != account.moneyDetails.currency) {
       context.read<AccountBloc>().add(UpdateAccountCurrency(sel));
     }
   }

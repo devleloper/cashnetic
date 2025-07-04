@@ -1,11 +1,11 @@
+import 'package:cashnetic/generated/l10n.dart';
+import 'package:cashnetic/presentation/widgets/category_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/data/models/category/category.dart';
-import 'package:cashnetic/data/models/account_brief/account_brief.dart';
-import 'package:cashnetic/data/models/transaction_response/transaction_response.dart';
 import 'package:cashnetic/presentation/features/history/widgets/history_list_item.dart';
 import 'package:cashnetic/utils/category_utils.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 class HistoryListView extends StatelessWidget {
   final List<Transaction> transactions;
@@ -26,8 +26,8 @@ class HistoryListView extends StatelessWidget {
       return Center(
         child: Text(
           isIncome
-              ? 'Нет доходов за последний месяц'
-              : 'Нет расходов за последний месяц',
+              ? S.of(context).noIncomeForTheLastMonth
+              : S.of(context).noExpensesForTheLastMonth,
         ),
       );
     }
@@ -37,6 +37,22 @@ class HistoryListView extends StatelessWidget {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, index) {
         final e = transactions[index];
+        debugPrint(
+          '[HistoryListView] Looking for categoryId=' +
+              e.categoryId.toString() +
+              ' (type: ' +
+              (e.categoryId?.runtimeType.toString() ?? 'null') +
+              ') in: ' +
+              categories
+                  .map(
+                    (c) =>
+                        c.id.toString() +
+                        ' (type: ' +
+                        c.id.runtimeType.toString() +
+                        ')',
+                  )
+                  .join(', '),
+        );
         final cat = categories.firstWhere(
           (c) => c.id == e.categoryId,
           orElse: () => Category(
@@ -47,36 +63,18 @@ class HistoryListView extends StatelessWidget {
             color: '#E0E0E0',
           ),
         );
-        final bgColor = colorFor(cat.name).withOpacity(0.2);
+        debugPrint(
+          '[HistoryListView] Found category: id=' +
+              cat.id.toString() +
+              ', name=' +
+              cat.name +
+              ', emoji=' +
+              cat.emoji,
+        );
+        final bgColor = lightColorFor(cat.name);
         return HistoryListItem(
-          transaction: TransactionResponseDTO(
-            id: e.id,
-            account: AccountBriefDTO(
-              id: 1,
-              name: 'Основной счёт',
-              balance: '0',
-              currency: '₽',
-            ),
-            category: CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-            amount: e.amount.toString(),
-            transactionDate: e.timestamp.toIso8601String(),
-            comment: e.comment,
-            createdAt: e.timeInterval.createdAt.toIso8601String(),
-            updatedAt: e.timeInterval.updatedAt.toIso8601String(),
-          ),
-          category: CategoryDTO(
-            id: cat.id,
-            name: cat.name,
-            emoji: cat.emoji,
-            isIncome: cat.isIncome,
-            color: cat.color,
-          ),
+          transaction: e,
+          category: cat,
           bgColor: bgColor,
           onEdited: onEdited,
         );

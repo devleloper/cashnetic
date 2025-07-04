@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class AccountNameField extends StatelessWidget {
@@ -15,8 +16,8 @@ class AccountNameField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: TextField(
         controller: controller,
-        decoration: const InputDecoration(
-          labelText: 'Название счёта',
+        decoration: InputDecoration(
+          labelText: S.of(context).accountName,
           border: OutlineInputBorder(),
         ),
         onChanged: onChanged,

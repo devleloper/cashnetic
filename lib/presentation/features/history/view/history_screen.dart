@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_bloc.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_event.dart';
 import 'package:cashnetic/presentation/features/history/bloc/history_state.dart';
@@ -7,8 +8,8 @@ import 'package:cashnetic/presentation/features/analysis/view/analysis_screen.da
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dart'
     hide ChangePeriod;
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_bloc.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_state.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
@@ -80,24 +81,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
         final list = state.transactions;
         return BlocBuilder<CategoriesBloc, CategoriesState>(
           builder: (context, catState) {
-            List<Category> categories = [];
-            if (catState is CategoriesLoaded) {
-              categories = catState.categories
-                  .map(
-                    (cat) => Category(
-                      id: cat.id,
-                      name: cat.name,
-                      emoji: cat.emoji,
-                      isIncome: cat.isIncome,
-                      color: cat.color,
-                    ),
-                  )
-                  .toList();
+            if (catState is! CategoriesLoaded) {
+              return const Center(child: CircularProgressIndicator());
             }
+            List<Category> categories = catState.allCategories
+                .map(
+                  (cat) => Category(
+                    id: cat.id,
+                    name: cat.name,
+                    emoji: cat.emoji,
+                    isIncome: cat.isIncome,
+                    color: cat.color,
+                  ),
+                )
+                .toList();
+            debugPrint(
+              '[HistoryScreen] Categories for HistoryListView: ' +
+                  categories
+                      .map((c) => 'id=' + c.id.toString() + ',name=' + c.name)
+                      .join('; '),
+            );
             return Scaffold(
               appBar: AppBar(
                 title: Text(
-                  widget.isIncome ? 'Доходы за месяц' : 'Расходы за месяц',
+                  widget.isIncome
+                      ? S.of(context).incomeForTheMonth
+                      : S.of(context).expensesForTheMonth,
                 ),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -111,20 +120,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => BlocProvider(
-                            create: (context) =>
-                                AnalysisBloc(
-                                  transactionRepository: context
-                                      .read<TransactionRepository>(),
-                                  categoryRepository: context
-                                      .read<CategoryRepository>(),
-                                )..add(
-                                  LoadAnalysis(
-                                    year: DateTime.now().year,
-                                    type: widget.isIncome
-                                        ? AnalysisType.income
-                                        : AnalysisType.expense,
-                                  ),
+                            create: (context) => AnalysisBloc()
+                              ..add(
+                                LoadAnalysis(
+                                  year: DateTime.now().year,
+                                  type: widget.isIncome
+                                      ? AnalysisType.income
+                                      : AnalysisType.expense,
                                 ),
+                              ),
                             child: AnalysisScreen(
                               type: widget.isIncome
                                   ? AnalysisType.income
@@ -153,8 +157,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Период: начало',
+                            Text(
+                              S.of(context).periodStart,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -165,7 +169,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Colors.green.withOpacity(0.8),
+                                backgroundColor: Color(0xFF43C97B),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
@@ -191,8 +195,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Период: конец',
+                            Text(
+                              S.of(context).periodEnd,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -203,7 +207,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Colors.green.withOpacity(0.8),
+                                backgroundColor: Color(0xFF43C97B),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
@@ -245,8 +249,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Сумма',
+                            Text(
+                              S.of(context).total,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -270,8 +274,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ? Center(
                             child: Text(
                               widget.isIncome
-                                  ? 'Нет доходов за последний месяц'
-                                  : 'Нет расходов за последний месяц',
+                                  ? S.of(context).noIncomeForTheLastMonth
+                                  : S.of(context).noExpensesForTheLastMonth,
                             ),
                           )
                         : HistoryListView(
@@ -279,7 +283,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             categories: categories,
                             isIncome: widget.isIncome,
                             onEdited: () {
-                              // Обновляем историю после редактирования/удаления
                               context.read<HistoryBloc>().add(
                                 LoadHistory(
                                   widget.isIncome
@@ -296,28 +299,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
         );
       },
-    );
-  }
-}
-
-class _HistoryPeriodRow extends StatelessWidget {
-  final String label, value;
-  const _HistoryPeriodRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
     );
   }
 }

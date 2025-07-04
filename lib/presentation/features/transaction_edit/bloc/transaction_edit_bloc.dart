@@ -1,23 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'transaction_edit_event.dart';
 import 'transaction_edit_state.dart';
+import 'package:cashnetic/di/di.dart';
+import '../repositories/transaction_edit_repository.dart';
+import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/domain/entities/account.dart';
+import 'package:cashnetic/domain/entities/transaction.dart';
 
 class TransactionEditBloc
     extends Bloc<TransactionEditEvent, TransactionEditState> {
-  final CategoryRepository categoryRepository;
-  final TransactionRepository transactionRepository;
-  final AccountRepository accountRepository;
+  final TransactionEditRepository repository =
+      getIt<TransactionEditRepository>();
 
-  TransactionEditBloc({
-    required this.categoryRepository,
-    required this.transactionRepository,
-    required this.accountRepository,
-  }) : super(TransactionEditInitial()) {
+  TransactionEditBloc() : super(TransactionEditInitial()) {
     on<TransactionEditInitialized>(_onInitialized);
     on<TransactionEditCategoryChanged>(_onCategoryChanged);
     on<TransactionEditDateChanged>(_onDateChanged);
@@ -34,72 +30,37 @@ class TransactionEditBloc
     Emitter<TransactionEditState> emit,
   ) async {
     emit(TransactionEditLoading());
-    final result = await categoryRepository.getCategoriesByIsIncome(
-      event.transaction.category.isIncome,
-    );
-    final accountsResult = await accountRepository.getAllAccounts();
-    if (accountsResult.isLeft()) {
-      emit(TransactionEditError('Ошибка загрузки счетов'));
-      return;
-    }
-    final accounts = accountsResult.getOrElse(() => []);
-    result.fold((failure) => emit(TransactionEditError(failure.toString())), (
-      categories,
-    ) {
-      // Преобразуем domain Category в CategoryDTO
-      final dtos = categories
-          .map(
-            (cat) => CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-          )
-          .toList();
-
-      // Находим соответствующую категорию
-      CategoryDTO? selectedCategory;
-      try {
-        selectedCategory = dtos.firstWhere(
-          (c) =>
-              c.name == event.transaction.category.name &&
-              c.emoji == event.transaction.category.emoji,
-        );
-      } catch (e) {
-        selectedCategory = dtos.isNotEmpty ? dtos.first : null;
-      }
-
-      // Парсим дату из строки
-      DateTime transactionDate;
-      try {
-        transactionDate = DateTime.parse(event.transaction.transactionDate);
-      } catch (e) {
-        transactionDate = DateTime.now();
-      }
-
-      // Находим Account по id
+    try {
+      final transaction = await repository.getTransactionById(
+        event.transactionId,
+      );
+      final categories = await repository.getCategories();
+      final accounts = await repository.getAccounts();
+      final selectedCategory = categories.firstWhere(
+        (c) => c.id == transaction.categoryId,
+        orElse: () => categories.first,
+      );
       final selectedAccount = accounts.firstWhere(
-        (a) => a.id == event.transaction.account.id,
+        (a) => a.id == transaction.accountId,
         orElse: () => accounts.isNotEmpty
             ? accounts.first
-            : throw Exception('Нет счетов'),
+            : throw Exception('No accounts'),
       );
-
       emit(
         TransactionEditLoaded(
-          transaction: event.transaction,
-          categories: dtos,
+          transaction: transaction,
+          categories: categories,
           selectedCategory: selectedCategory,
-          selectedDate: transactionDate,
+          selectedDate: transaction.timestamp,
           account: selectedAccount,
-          amount: event.transaction.amount,
-          comment: event.transaction.comment ?? '',
+          amount: transaction.amount.toString(),
+          comment: transaction.comment ?? '',
           accounts: accounts,
         ),
       );
-    });
+    } catch (e) {
+      emit(TransactionEditError('Failed to load data: $e'));
+    }
   }
 
   void _onCategoryChanged(
@@ -208,13 +169,11 @@ class TransactionEditBloc
   ) async {
     if (state is! TransactionEditLoaded) return;
     final current = state as TransactionEditLoaded;
-
     final parsed = double.tryParse(current.amount.replaceAll(',', '.'));
     if (parsed == null || current.selectedCategory == null) {
-      emit(TransactionEditError('Заполните все поля корректно'));
+      emit(TransactionEditError('Please fill in all fields correctly'));
       return;
     }
-
     emit(
       TransactionEditSaving(
         transaction: current.transaction,
@@ -227,31 +186,23 @@ class TransactionEditBloc
         accounts: current.accounts,
       ),
     );
-
     try {
-      final accountId = current.account.id;
-
-      // Создаем форму транзакции для обновления
-      final transactionForm = TransactionForm(
-        accountId: accountId,
+      final form = TransactionForm(
+        accountId: current.account.id,
         categoryId: current.selectedCategory!.id,
         amount: parsed,
         timestamp: current.selectedDate,
         comment: current.comment.isEmpty ? null : current.comment,
       );
-
-      // Обновляем транзакцию
-      final result = await transactionRepository.updateTransaction(
-        current.transaction.id,
-        transactionForm,
-      );
-
-      result.fold(
-        (failure) => emit(TransactionEditError(failure.toString())),
-        (transaction) => emit(TransactionEditSuccess()),
-      );
+      final validationError = repository.validateForm(form);
+      if (validationError != null) {
+        emit(TransactionEditError(validationError));
+        return;
+      }
+      await repository.updateTransaction(current.transaction.id, form);
+      emit(TransactionEditSuccess());
     } catch (e) {
-      emit(TransactionEditError('Ошибка при сохранении: $e'));
+      emit(TransactionEditError('Error while saving: $e'));
     }
   }
 
@@ -261,7 +212,6 @@ class TransactionEditBloc
   ) async {
     if (state is! TransactionEditLoaded) return;
     final current = state as TransactionEditLoaded;
-
     emit(
       TransactionEditDeleting(
         transaction: current.transaction,
@@ -274,19 +224,11 @@ class TransactionEditBloc
         accounts: current.accounts,
       ),
     );
-
     try {
-      // Удаляем транзакцию
-      final result = await transactionRepository.deleteTransaction(
-        current.transaction.id,
-      );
-
-      result.fold(
-        (failure) => emit(TransactionEditError(failure.toString())),
-        (_) => emit(TransactionEditDeleted()),
-      );
+      await repository.deleteTransaction(current.transaction.id);
+      emit(TransactionEditDeleted());
     } catch (e) {
-      emit(TransactionEditError('Ошибка при удалении: $e'));
+      emit(TransactionEditError('Error while deleting: $e'));
     }
   }
 
@@ -297,54 +239,29 @@ class TransactionEditBloc
     if (state is! TransactionEditLoaded) return;
     final current = state as TransactionEditLoaded;
     emit(TransactionEditLoading());
-    final addResult = await categoryRepository.addCategory(
-      name: event.name,
-      emoji: event.emoji,
-      isIncome: event.isIncome,
-      color: event.color,
-    );
-    await addResult.fold(
-      (failure) {
-        emit(TransactionEditError('Ошибка при добавлении категории: $failure'));
-      },
-      (newCat) async {
-        // После добавления — обновляем список и выбираем новую категорию
-        final result = await categoryRepository.getCategoriesByIsIncome(
-          event.isIncome,
-        );
-        result.fold(
-          (failure) => emit(TransactionEditError(failure.toString())),
-          (categories) {
-            final dtos = categories
-                .map(
-                  (cat) => CategoryDTO(
-                    id: cat.id,
-                    name: cat.name,
-                    emoji: cat.emoji,
-                    isIncome: cat.isIncome,
-                    color: cat.color,
-                  ),
-                )
-                .toList();
-            final selected = dtos.firstWhere(
-              (c) => c.id == newCat.id,
-              orElse: () => dtos.last,
-            );
-            emit(
-              TransactionEditLoaded(
-                transaction: current.transaction,
-                categories: dtos,
-                selectedCategory: selected,
-                selectedDate: current.selectedDate,
-                account: current.account,
-                amount: current.amount,
-                comment: current.comment,
-                accounts: current.accounts,
-              ),
-            );
-          },
-        );
-      },
-    );
+    try {
+      final categories = await repository.getCategories();
+      final filtered = categories
+          .where((cat) => cat.isIncome == event.isIncome)
+          .toList();
+      final selected = filtered.firstWhere(
+        (c) => c.name == event.name && c.emoji == event.emoji,
+        orElse: () => filtered.last,
+      );
+      emit(
+        TransactionEditLoaded(
+          transaction: current.transaction,
+          categories: filtered,
+          selectedCategory: selected,
+          selectedDate: current.selectedDate,
+          account: current.account,
+          amount: current.amount,
+          comment: current.comment,
+          accounts: current.accounts,
+        ),
+      );
+    } catch (e) {
+      emit(TransactionEditError('Error while adding category: $e'));
+    }
   }
 }

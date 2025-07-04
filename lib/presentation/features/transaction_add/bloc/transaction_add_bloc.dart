@@ -1,25 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cashnetic/domain/repositories/category_repository.dart';
-import 'package:cashnetic/domain/repositories/transaction_repository.dart';
-import 'package:cashnetic/domain/repositories/account_repository.dart';
-import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/domain/entities/forms/transaction_form.dart';
 import 'transaction_add_event.dart';
 import 'transaction_add_state.dart';
-import 'package:cashnetic/data/models/transaction/transaction.dart';
-import 'package:collection/collection.dart';
+import 'package:cashnetic/di/di.dart';
+import '../repositories/transaction_add_repository.dart';
+import 'package:cashnetic/domain/entities/category.dart';
+import 'package:cashnetic/domain/entities/account.dart';
 
 class TransactionAddBloc
     extends Bloc<TransactionAddEvent, TransactionAddState> {
-  final CategoryRepository categoryRepository;
-  final TransactionRepository transactionRepository;
-  final AccountRepository accountRepository;
+  final TransactionAddRepository repository = getIt<TransactionAddRepository>();
 
-  TransactionAddBloc({
-    required this.categoryRepository,
-    required this.transactionRepository,
-    required this.accountRepository,
-  }) : super(TransactionAddInitial()) {
+  TransactionAddBloc() : super(TransactionAddInitial()) {
     on<TransactionAddInitialized>(_onInitialized);
     on<TransactionAddCategoryChanged>(_onCategoryChanged);
     on<TransactionAddDateChanged>(_onDateChanged);
@@ -35,48 +27,31 @@ class TransactionAddBloc
     Emitter<TransactionAddState> emit,
   ) async {
     emit(TransactionAddLoading());
-    final result = await categoryRepository.getCategoriesByIsIncome(
-      event.isIncome,
-    );
-    final accountsResult = await accountRepository.getAllAccounts();
-    if (accountsResult.isLeft()) {
-      emit(TransactionAddError('Ошибка загрузки счетов'));
-      return;
-    }
-    final accounts = accountsResult.getOrElse(() => []);
-    result.fold((failure) => emit(TransactionAddError(failure.toString())), (
-      categories,
-    ) {
-      final dtos = categories
-          .map(
-            (cat) => CategoryDTO(
-              id: cat.id,
-              name: cat.name,
-              emoji: cat.emoji,
-              isIncome: cat.isIncome,
-              color: cat.color,
-            ),
-          )
-          .toList();
-      final filtered = dtos
+    try {
+      final categories = await repository.getCategories();
+      final accounts = await repository.getAccounts();
+      final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
       if (filtered.isEmpty) {
-        emit(TransactionAddError('Нет категорий'));
+        emit(TransactionAddError('No categories'));
         return;
       }
       emit(
         TransactionAddLoaded(
-          categories: dtos,
+          categories: filtered,
           selectedCategory: filtered.first,
           selectedDate: DateTime.now(),
           account: accounts.isNotEmpty ? accounts.last : null,
           amount: '',
           comment: '',
           accounts: accounts,
+          isIncome: event.isIncome,
         ),
       );
-    });
+    } catch (e) {
+      emit(TransactionAddError('Failed to load data: $e'));
+    }
   }
 
   void _onCategoryChanged(
@@ -85,6 +60,15 @@ class TransactionAddBloc
   ) {
     if (state is! TransactionAddLoaded) return;
     final current = state as TransactionAddLoaded;
+    // Only allow selecting categories matching current isIncome
+    if (event.category.isIncome != current.isIncome) {
+      emit(
+        TransactionAddError(
+          'Selected category does not match transaction type',
+        ),
+      );
+      return;
+    }
     emit(
       TransactionAddLoaded(
         categories: current.categories,
@@ -94,6 +78,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -113,6 +98,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -132,6 +118,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -151,6 +138,7 @@ class TransactionAddBloc
         amount: event.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -170,6 +158,7 @@ class TransactionAddBloc
         amount: current.amount,
         comment: event.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
   }
@@ -180,13 +169,20 @@ class TransactionAddBloc
   ) async {
     if (state is! TransactionAddLoaded) return;
     final current = state as TransactionAddLoaded;
-
     final parsed = double.tryParse(current.amount.replaceAll(',', '.'));
     if (parsed == null || current.selectedCategory == null) {
-      emit(TransactionAddError('Заполните все поля корректно'));
+      emit(TransactionAddError('Please fill in all fields correctly'));
       return;
     }
-
+    // Strict check: selected category must match isIncome
+    if (current.selectedCategory!.isIncome != current.isIncome) {
+      emit(
+        TransactionAddError(
+          'Selected category does not match transaction type',
+        ),
+      );
+      return;
+    }
     emit(
       TransactionAddSaving(
         categories: current.categories,
@@ -196,47 +192,31 @@ class TransactionAddBloc
         amount: current.amount,
         comment: current.comment,
         accounts: current.accounts,
+        isIncome: current.isIncome,
       ),
     );
-
     try {
       final accountId = current.account?.id;
       if (accountId == null) {
-        emit(TransactionAddError('Сначала создайте счет'));
+        emit(TransactionAddError('Create an account first'));
         return;
       }
-
-      // Создаем форму транзакции
-      final transactionForm = TransactionForm(
+      final form = TransactionForm(
         accountId: accountId,
         categoryId: current.selectedCategory!.id,
         amount: parsed,
         timestamp: current.selectedDate,
         comment: current.comment.isEmpty ? null : current.comment,
       );
-
-      // Сохраняем транзакцию
-      final result = await transactionRepository.createTransaction(
-        transactionForm,
-      );
-
-      result.fold((failure) => emit(TransactionAddError(failure.toString())), (
-        transaction,
-      ) {
-        final dto = TransactionDTO(
-          id: transaction.id,
-          accountId: transaction.accountId,
-          categoryId: transaction.categoryId ?? 0,
-          amount: transaction.amount.toString(),
-          transactionDate: transaction.timestamp.toIso8601String(),
-          comment: transaction.comment,
-          createdAt: transaction.timeInterval.createdAt.toIso8601String(),
-          updatedAt: transaction.timeInterval.updatedAt.toIso8601String(),
-        );
-        emit(TransactionAddSuccess(dto));
-      });
+      final validationError = repository.validateForm(form);
+      if (validationError != null) {
+        emit(TransactionAddError(validationError));
+        return;
+      }
+      await repository.addTransaction(form);
+      emit(TransactionAddSuccess());
     } catch (e) {
-      emit(TransactionAddError('Ошибка при сохранении: $e'));
+      emit(TransactionAddError('Error while saving: $e'));
     }
   }
 
@@ -247,53 +227,29 @@ class TransactionAddBloc
     if (state is! TransactionAddLoaded) return;
     final current = state as TransactionAddLoaded;
     emit(TransactionAddLoading());
-    final addResult = await categoryRepository.addCategory(
-      name: event.name,
-      emoji: event.emoji,
-      isIncome: event.isIncome,
-      color: event.color,
-    );
-    await addResult.fold(
-      (failure) {
-        emit(TransactionAddError('Ошибка при добавлении категории: $failure'));
-      },
-      (newCat) async {
-        // После добавления — обновляем список и выбираем новую категорию
-        final result = await categoryRepository.getCategoriesByIsIncome(
-          event.isIncome,
-        );
-        result.fold(
-          (failure) => emit(TransactionAddError(failure.toString())),
-          (categories) {
-            final dtos = categories
-                .map(
-                  (cat) => CategoryDTO(
-                    id: cat.id,
-                    name: cat.name,
-                    emoji: cat.emoji,
-                    isIncome: cat.isIncome,
-                    color: cat.color,
-                  ),
-                )
-                .toList();
-            final selected = dtos.firstWhere(
-              (c) => c.id == newCat.id,
-              orElse: () => dtos.last,
-            );
-            emit(
-              TransactionAddLoaded(
-                categories: dtos,
-                selectedCategory: selected,
-                selectedDate: current.selectedDate,
-                account: current.account,
-                amount: current.amount,
-                comment: current.comment,
-                accounts: current.accounts,
-              ),
-            );
-          },
-        );
-      },
-    );
+    try {
+      final categories = await repository.getCategories();
+      final filtered = categories
+          .where((cat) => cat.isIncome == event.isIncome)
+          .toList();
+      final selected = filtered.firstWhere(
+        (c) => c.name == event.name && c.emoji == event.emoji,
+        orElse: () => filtered.last,
+      );
+      emit(
+        TransactionAddLoaded(
+          categories: filtered,
+          selectedCategory: selected,
+          selectedDate: current.selectedDate,
+          account: current.account,
+          amount: current.amount,
+          comment: current.comment,
+          accounts: current.accounts,
+          isIncome: event.isIncome,
+        ),
+      );
+    } catch (e) {
+      emit(TransactionAddError('Error while adding category: $e'));
+    }
   }
 }

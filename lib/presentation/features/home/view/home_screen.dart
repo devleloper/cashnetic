@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_event.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
+import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -38,57 +43,132 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: Container(
-            color: Colors.green,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-            child: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: constraints.maxWidth,
-                      ),
-                      child: GNav(
-                        selectedIndex: tabsRouter.activeIndex,
-                        onTabChange: (index) {
-                          tabsRouter.setActiveIndex(index);
-                          if (index == 2) {
-                            context.read<AccountBloc>().add(LoadAccount());
-                          }
-                        },
-                        backgroundColor: Colors.green,
-                        tabBackgroundColor: Colors.white,
-                        activeColor: Colors.green,
-                        color: Colors.white,
-                        curve: Curves.easeInOut,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 18,
+        return ThemeSwitchingArea(
+          child: Scaffold(
+            appBar: _buildAppBar(context, tabsRouter.activeIndex),
+            body: child,
+            bottomNavigationBar: Container(
+              color: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
                         ),
-                        gap: 6,
-                        tabs: const [
-                          GButton(icon: Icons.bar_chart, text: 'Расходы'),
-                          GButton(icon: Icons.show_chart, text: 'Доходы'),
-                          GButton(
-                            icon: Icons.account_balance_wallet,
-                            text: 'Счёт',
+                        child: GNav(
+                          selectedIndex: tabsRouter.activeIndex,
+                          onTabChange: (index) {
+                            tabsRouter.setActiveIndex(index);
+                            if (index == 2) {
+                              context.read<AccountBloc>().add(LoadAccount());
+                            }
+                          },
+                          backgroundColor: Colors.green,
+                          tabBackgroundColor: Colors.white,
+                          activeColor: Colors.green,
+                          color: Colors.white,
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 18,
                           ),
-                          GButton(icon: Icons.list_alt, text: 'Статьи'),
-                          GButton(icon: Icons.settings, text: 'Настройки'),
-                        ],
+                          gap: 6,
+                          tabs: [
+                            GButton(
+                              icon: Icons.bar_chart,
+                              text: S.of(context).expenses,
+                            ),
+                            GButton(
+                              icon: Icons.show_chart,
+                              text: S.of(context).income,
+                            ),
+                            GButton(
+                              icon: Icons.account_balance_wallet,
+                              text: S.of(context).account,
+                            ),
+                            GButton(
+                              icon: Icons.list_alt,
+                              text: S.of(context).categories,
+                            ),
+                            GButton(
+                              icon: Icons.settings,
+                              text: S.of(context).settings,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),
         );
       },
     );
+  }
+
+  PreferredSizeWidget? _buildAppBar(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        return AppBar(
+          centerTitle: true,
+          title: Text(S.of(context).expenses),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => HistoryScreen(isIncome: false),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      case 1:
+        return AppBar(
+          centerTitle: true,
+          title: Text(S.of(context).income),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => HistoryScreen(isIncome: true),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      case 2:
+        return AppBar(
+          centerTitle: true,
+          title: Text(S.of(context).myAccounts),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () {
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => AccountEditScreen()));
+              },
+            ),
+          ],
+        );
+      case 3:
+        return AppBar(title: Text(S.of(context).categories), centerTitle: true);
+      case 4:
+        return AppBar(title: Text(S.of(context).settings), centerTitle: true);
+      default:
+        return null;
+    }
   }
 }

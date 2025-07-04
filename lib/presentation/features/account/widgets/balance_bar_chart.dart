@@ -1,3 +1,4 @@
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ class BalanceBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (points.isEmpty)
-      return const Center(child: Text('Нет данных для графика'));
+      return Center(child: Text(S.of(context).noDataForChart));
     final maxVal = points
         .map((e) => e.income > e.expense ? e.income : e.expense)
         .reduce((a, b) => a > b ? a : b);
@@ -46,7 +47,9 @@ class BalanceBarChart extends StatelessWidget {
                 getTooltipItem: (group, _, rod, rodIndex) {
                   final date = points[group.x.toInt()].date;
                   final value = rod.toY.toStringAsFixed(0);
-                  final label = rodIndex == 0 ? 'Расход' : 'Доход';
+                  final label = rodIndex == 0
+                      ? S.of(context).expense
+                      : S.of(context).income;
                   return BarTooltipItem(
                     '$label ${DateFormat('dd.MM').format(date)}\n',
                     TextStyle(fontWeight: FontWeight.bold, color: rod.color),
