@@ -166,12 +166,14 @@ class TransactionsScreen extends StatelessWidget {
                         accountName = acc.name;
                         currency = acc.moneyDetails.currency;
                       }
-                      // Pass only the transaction id to the edit screen
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TransactionEditScreen(transactionId: t.id),
+                      // Открыть экран редактирования операции модально
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => Container(
+                          height: MediaQuery.of(context).size.height,
+                          child: TransactionEditScreen(transactionId: t.id),
                         ),
                       );
                       context.read<TransactionsBloc>().add(
@@ -186,10 +188,13 @@ class TransactionsScreen extends StatelessWidget {
               heroTag: isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TransactionAddScreen(isIncome: isIncome),
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => Container(
+                    height: MediaQuery.of(context).size.height,
+                    child: TransactionAddScreen(isIncome: isIncome),
                   ),
                 );
                 context.read<TransactionsBloc>().add(

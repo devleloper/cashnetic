@@ -24,16 +24,16 @@ class HistoryListItem extends StatelessWidget {
       category: category,
       bgColor: bgColor,
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                TransactionEditScreen(transactionId: transaction.id),
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => FractionallySizedBox(
+            heightFactor: 1,
+            child: TransactionEditScreen(transactionId: transaction.id),
           ),
         );
-        if (result == true) {
-          onEdited();
-        }
+        onEdited();
       },
     );
   }

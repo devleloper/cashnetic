@@ -54,14 +54,15 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                   ),
                   bgColor: lightColorFor(cat.name),
                   onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            TransactionEditScreen(transactionId: t.id),
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => FractionallySizedBox(
+                        heightFactor: 1,
+                        child: TransactionEditScreen(transactionId: t.id),
                       ),
                     );
-                    // После возврата можно обновить список транзакций по категории
                     context.read<CategoriesBloc>().add(
                       LoadTransactionsForCategory(category.id),
                     );
