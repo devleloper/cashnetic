@@ -56,7 +56,19 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   @override
   Future<Either<Failure, Map<int, List<Transaction>>>>
   getTransactionsByCategory() async {
-    // Temporary: return empty map to avoid error and unblock UI
-    return right(<int, List<Transaction>>{});
+    try {
+      final txs = await transactionsRepository.getTransactions();
+      final Map<int, List<Transaction>> byCategory = {};
+      for (final tx in txs) {
+        if (tx.categoryId != null) {
+          byCategory.putIfAbsent(tx.categoryId!, () => []).add(tx);
+        }
+      }
+      return right(byCategory);
+    } catch (e) {
+      return left(
+        RepositoryFailure('Failed to group transactions by category: $e'),
+      );
+    }
   }
 }
