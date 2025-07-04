@@ -4,7 +4,6 @@ import 'package:cashnetic/presentation/features/analysis/bloc/analysis_event.dar
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/analysis_legend.dart';
 import '../widgets/analysis_year_filter_chips.dart';
 import '../widgets/analysis_period_selector.dart';
 import '../widgets/analysis_total_summary.dart';
@@ -39,6 +38,18 @@ class AnalysisScreen extends StatelessWidget {
             final bd = b.lastTransactionDate ?? DateTime(1970);
             return bd.compareTo(ad);
           });
+
+        // Синхронизированный список для графика и легенды
+        final chartSections = result.data
+            .map(
+              (c) => AnalysisPieChartData(
+                amount: c.amount,
+                categoryTitle: c.categoryTitle,
+                color: c.color,
+                percent: c.percent,
+              ),
+            )
+            .toList();
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -101,26 +112,9 @@ class AnalysisScreen extends StatelessWidget {
               SliverToBoxAdapter(child: SizedBox(height: 42)),
               if (result.total > 0 && result.data.isNotEmpty)
                 SliverToBoxAdapter(
-                  child: CashneticPieChartWidget(
-                    data: result.data
-                        .map(
-                          (c) => AnalysisPieChartData(
-                            amount: c.amount,
-                            categoryTitle: c.categoryTitle,
-                            color: c.color,
-                            percent: c.percent,
-                          ),
-                        )
-                        .toList(),
-                  ),
+                  child: CashneticPieChartWidget(data: chartSections),
                 ),
               SliverToBoxAdapter(child: SizedBox(height: 28)),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _LegendHeaderDelegate(
-                  child: AnalysisLegend(data: result.data),
-                ),
-              ),
               if (result.data.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,

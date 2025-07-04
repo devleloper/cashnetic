@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.5.3
   json_annotation: ^4.9.0
   freezed_annotation: ^3.0.0
+  fl_chart: ^1.0.0
   google_nav_bar: ^5.0.7
   auto_route: ^10.1.0+1
   http: ^1.4.0
