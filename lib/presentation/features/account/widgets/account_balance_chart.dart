@@ -51,8 +51,15 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
       final months = <DateTime>[];
       for (int m = 1; m <= 12; m++) {
         final dt = DateTime(year, m, 1);
-        if (dt.isBefore(minDate) || dt.isAfter(maxDate)) continue;
-        months.add(dt);
+        final isAfterOrSameMin =
+            (dt.year > minDate.year) ||
+            (dt.year == minDate.year && dt.month >= minDate.month);
+        final isBeforeOrSameMax =
+            (dt.year < maxDate.year) ||
+            (dt.year == maxDate.year && dt.month <= maxDate.month);
+        if (isAfterOrSameMin && isBeforeOrSameMax) {
+          months.add(dt);
+        }
       }
       final result = <DailyBalancePoint>[];
       for (final month in months) {
