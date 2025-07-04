@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../widgets/option_row.dart';
-import '../widgets/balance_bar_chart.dart';
+import '../widgets/account_balance_chart.dart';
 import 'package:shake/shake.dart';
 import 'package:spoiler_widget/spoiler_widget.dart';
 import 'dart:ui';
@@ -231,7 +231,7 @@ class _AccountScreenState extends State<AccountScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: BalanceBarChart(points: state.dailyPoints),
+                  child: AccountBalanceChart(points: state.dailyPoints),
                 ),
               ),
             ],
