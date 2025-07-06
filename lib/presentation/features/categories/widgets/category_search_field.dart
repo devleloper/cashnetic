@@ -1,5 +1,6 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 class CategorySearchField extends StatefulWidget {
   final TextEditingController controller;
@@ -67,19 +68,23 @@ class _CategorySearchFieldState extends State<CategorySearchField>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+    return LiquidGlass(
+      shape: LiquidRoundedSuperellipse(borderRadius: Radius.circular(16)),
+      glassContainsChild: true,
       child: TextField(
         focusNode: _focusNode,
         decoration: InputDecoration(
-          labelText: S.of(context).searchCategory,
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.green, width: 2),
+          filled: true,
+          fillColor: Colors.transparent,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 12,
           ),
-          // --- Виджет анимации крестика ---
+          hintText: S.of(context).searchCategory,
+          prefixIcon: const Icon(Icons.search),
           suffixIcon: AnimatedBuilder(
             animation: _animController,
             builder: (context, child) {
@@ -102,10 +107,10 @@ class _CategorySearchFieldState extends State<CategorySearchField>
               );
             },
           ),
-          // --- Конец виджета анимации крестика ---
         ),
         controller: widget.controller,
         onChanged: widget.onChanged,
+        style: const TextStyle(color: Colors.black87),
       ),
     );
   }

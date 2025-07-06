@@ -40,7 +40,22 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
 
   @override
   Future<Either<Failure, List<Category>>> searchCategories(String query) async {
-    return left(RepositoryFailure('Not implemented'));
+    try {
+      final allResult = await driftCategoryRepository.getAllCategories();
+      return allResult.fold((failure) => left(failure), (allCategories) {
+        if (query.trim().isEmpty) return right(allCategories);
+        final results = extractAll(
+          query: query,
+          choices: allCategories,
+          cutoff: 60,
+          getter: (cat) => cat.name,
+        );
+        final filtered = results.take(20).map((r) => r.choice).toList();
+        return right(filtered);
+      });
+    } catch (e) {
+      return left(RepositoryFailure('Search failed: $e'));
+    }
   }
 
   @override

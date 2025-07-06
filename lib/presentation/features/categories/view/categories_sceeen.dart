@@ -76,16 +76,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
           );
         return Scaffold(
-          body: Column(
+          backgroundColor: Colors.transparent,
+          body: Stack(
             children: [
-              CategorySearchField(
-                controller: _controller,
-                onChanged: (v) {
-                  setState(() => _search = v);
-                  context.read<CategoriesBloc>().add(SearchCategories(v));
-                },
-              ),
-              Expanded(
+              // Список категорий (без паддинга!)
+              Positioned.fill(
                 child: categories.isEmpty
                     ? Center(
                         child: Text(
@@ -113,6 +108,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           );
                         },
                       ),
+              ),
+              // Абсолютно левитирующий SearchField
+              Positioned(
+                top: 24,
+                left: 16,
+                right: 16,
+                child: CategorySearchField(
+                  controller: _controller,
+                  onChanged: (v) {
+                    setState(() => _search = v);
+                    context.read<CategoriesBloc>().add(SearchCategories(v));
+                  },
+                ),
               ),
             ],
           ),
