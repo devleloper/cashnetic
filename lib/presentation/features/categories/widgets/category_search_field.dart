@@ -69,8 +69,18 @@ class _CategorySearchFieldState extends State<CategorySearchField>
   @override
   Widget build(BuildContext context) {
     return LiquidGlass(
+      settings: LiquidGlassSettings(
+        thickness: 20,
+        blur: 2,
+        blend: 500,
+        lightIntensity: 2,
+        lightAngle: 250,
+        refractiveIndex: 2,
+
+        glassColor: const Color.fromARGB(19, 0, 0, 0),
+      ),
       shape: LiquidRoundedSuperellipse(borderRadius: Radius.circular(16)),
-      glassContainsChild: true,
+      glassContainsChild: false,
       child: TextField(
         focusNode: _focusNode,
         decoration: InputDecoration(
@@ -83,6 +93,7 @@ class _CategorySearchFieldState extends State<CategorySearchField>
             vertical: 12,
             horizontal: 12,
           ),
+
           hintText: S.of(context).searchCategory,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: AnimatedBuilder(

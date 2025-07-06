@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transaction_list_by_category_screen.dart';
 import '../widgets/category_search_field.dart';
 import '../widgets/category_list.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -79,7 +80,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
-              // Список категорий (без паддинга!)
+              // 1. Фоновый контент — список категорий
               Positioned.fill(
                 child: categories.isEmpty
                     ? Center(
@@ -109,7 +110,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         },
                       ),
               ),
-              // Абсолютно левитирующий SearchField
+              // 2. LiquidGlass поверх контента, SearchField поверх LiquidGlass
               Positioned(
                 top: 24,
                 left: 16,
