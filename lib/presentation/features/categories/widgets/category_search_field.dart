@@ -70,13 +70,12 @@ class _CategorySearchFieldState extends State<CategorySearchField>
   Widget build(BuildContext context) {
     return LiquidGlass(
       settings: LiquidGlassSettings(
-        thickness: 20,
+        thickness: 18,
         blur: 4,
         blend: 0.5,
         lightIntensity: 2,
         lightAngle: 180,
         refractiveIndex: 2,
-
         glassColor: const Color.fromARGB(19, 0, 0, 0),
       ),
       shape: LiquidRoundedSuperellipse(borderRadius: Radius.circular(16)),
