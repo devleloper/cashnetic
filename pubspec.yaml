@@ -60,6 +60,8 @@ dependencies:
   liquid_glass_renderer: ^0.1.1-dev.9
   cashnetic_pie_chart:
     path: ./packages/cashnetic_pie_chart
+  liquid_glass_widgets:
+    path: ./packages/liquid_glass_widgets
   flutter_localizations:
     sdk: flutter
 
