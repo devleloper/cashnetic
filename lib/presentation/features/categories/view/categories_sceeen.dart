@@ -7,9 +7,8 @@ import 'package:cashnetic/domain/entities/category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transaction_list_by_category_screen.dart';
-import '../widgets/category_search_field.dart';
 import '../widgets/category_list.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -115,12 +114,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 top: 24,
                 left: 16,
                 right: 16,
-                child: CategorySearchField(
+                child: LiquidSearchField(
+                  thickness: 18,
+                  blur: 4,
+                  blend: 0.5,
+                  lightIntensity: 2,
+                  lightAngle: 180,
+                  refractiveIndex: 2,
+                  glassColor: const Color.fromARGB(19, 0, 0, 0),
                   controller: _controller,
                   onChanged: (v) {
                     setState(() => _search = v);
                     context.read<CategoriesBloc>().add(SearchCategories(v));
                   },
+                  hintText: S.of(context).searchCategory,
                 ),
               ),
             ],
