@@ -49,8 +49,6 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final ScrollController? externalScrollController =
-        PrimaryScrollController.of(context);
     return BlocProvider(
       create: (context) =>
           TransactionAddBloc()..add(TransactionAddInitialized(widget.isIncome)),
@@ -106,14 +104,8 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
             ),
             child: Container(
               color: Colors.white,
-              child: SafeArea(
-                top: false,
-                child: _buildContent(
-                  context,
-                  state,
-                  scrollController: externalScrollController,
-                ),
-              ),
+              width: double.infinity,
+              child: SafeArea(top: false, child: _buildContent(context, state)),
             ),
           );
         },
@@ -143,12 +135,7 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    dynamic state, {
-    ScrollController? scrollController,
-  }) {
-    // Ensure state is either TransactionAddLoaded and TransactionAddSaving
+  Widget _buildContent(BuildContext context, dynamic state) {
     if (state is! TransactionAddLoaded && state is! TransactionAddSaving) {
       return Center(child: Text(S.of(context).unknownState));
     }
@@ -160,114 +147,124 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         : S.of(context).addExpense;
     final isSaving = state is TransactionAddSaving;
 
-    return ListView(
-      controller: scrollController,
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      children: [
-        // Шапка
-        Container(
-          decoration: const BoxDecoration(
-            color: Colors.green,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 100,
+      ), // Можно увеличить или убрать для планшета
+      child: Column(
+        children: [
+          // Шапка (fixed)
+          Container(
+            decoration: const BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                IconButton(
+                  icon: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check, color: Colors.white),
+                  onPressed: isSaving
+                      ? null
+                      : () => _validateAndSave(context, state),
+                ),
+              ],
             ),
           ),
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+          // Скроллируемый контент формы
+          Expanded(
+            child: SizedBox.expand(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    MyListTileRow(
+                      title: S.of(context).account,
+                      value: state.account?.name ?? '',
+                      onTap: isSaving
+                          ? () {}
+                          : () => _selectAccount(
+                              context,
+                              state.accounts,
+                              state.account,
+                            ),
+                    ),
+                    MyListTileRow(
+                      title: S.of(context).category,
+                      value: state.selectedCategory?.name ?? '',
+                      onTap: isSaving
+                          ? () {}
+                          : () => _selectCategory(context, state.categories),
+                    ),
+                    MyListTileRow(
+                      title: S.of(context).amount,
+                      value: state.amount.isEmpty
+                          ? S.of(context).enter
+                          : state.amount,
+                      onTap: isSaving
+                          ? () {}
+                          : () => _selectAmount(context, state.amount),
+                    ),
+                    MyListTileRow(
+                      title: S.of(context).date,
+                      value: dateStr,
+                      onTap: isSaving
+                          ? () {}
+                          : () => _selectDate(context, state.selectedDate),
+                    ),
+                    MyListTileRow(
+                      title: S.of(context).time,
+                      value: timeStr,
+                      onTap: isSaving
+                          ? () {}
+                          : () => _selectTime(context, state.selectedDate),
+                    ),
+                    const SizedBox(height: 16),
+                    TransactionCommentField(
+                      controller: _commentController,
+                      enabled: !isSaving,
+                      onChanged: (comment) => context
+                          .read<TransactionAddBloc>()
+                          .add(TransactionAddCommentChanged(comment)),
+                    ),
+                  ],
                 ),
               ),
-              IconButton(
-                icon: isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.check, color: Colors.white),
-                onPressed: isSaving
-                    ? null
-                    : () => _validateAndSave(context, state),
-              ),
-            ],
+            ),
           ),
-        ),
-        // Форма
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              MyListTileRow(
-                title: S.of(context).account,
-                value: state.account?.name ?? '—',
-                onTap: isSaving
-                    ? () {}
-                    : () => _selectAccount(
-                        context,
-                        state.accounts,
-                        state.account,
-                      ),
-              ),
-              MyListTileRow(
-                title: S.of(context).category,
-                value: state.selectedCategory?.name ?? '',
-                onTap: isSaving
-                    ? () {}
-                    : () => _selectCategory(context, state.categories),
-              ),
-              MyListTileRow(
-                title: S.of(context).amount,
-                value: state.amount.isEmpty
-                    ? S.of(context).enter
-                    : '${state.amount} ₽',
-                onTap: isSaving
-                    ? () {}
-                    : () => _selectAmount(context, state.amount),
-              ),
-              MyListTileRow(
-                title: S.of(context).date,
-                value: dateStr,
-                onTap: isSaving
-                    ? () {}
-                    : () => _selectDate(context, state.selectedDate),
-              ),
-              MyListTileRow(
-                title: S.of(context).time,
-                value: timeStr,
-                onTap: isSaving
-                    ? () {}
-                    : () => _selectTime(context, state.selectedDate),
-              ),
-              const SizedBox(height: 16),
-              TransactionCommentField(
-                controller: _commentController,
-                enabled: !isSaving,
-                onChanged: (comment) => context.read<TransactionAddBloc>().add(
-                  TransactionAddCommentChanged(comment),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
