@@ -46,3 +46,7 @@ app.*.map.json
 
 PHASE_1.md
 PHASE_2.md
+
+# API docs and secrets
+API_*.md
+.env
