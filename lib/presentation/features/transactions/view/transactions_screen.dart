@@ -24,6 +24,7 @@ import 'package:cashnetic/di/di.dart';
 class TransactionsScreen extends StatelessWidget {
   final bool isIncome;
   final GlobalKey historyIconKey = GlobalKey();
+  final GlobalKey fabKey = GlobalKey();
   TransactionsScreen({Key? key, required this.isIncome}) : super(key: key);
 
   void _animateTransactionToHistory(
@@ -143,6 +144,24 @@ class TransactionsScreen extends StatelessWidget {
           final categories = state.categories;
           final total = state.total;
           return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                isIncome ? S.of(context).income : S.of(context).expenses,
+              ),
+              actions: [
+                IconButton(
+                  key: historyIconKey,
+                  icon: const Icon(Icons.history),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => HistoryScreen(isIncome: isIncome),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             body: Column(
               children: [
                 TransactionsTotalRow(total: total),
@@ -195,6 +214,7 @@ class TransactionsScreen extends StatelessWidget {
               ],
             ),
             floatingActionButton: FloatingActionButton(
+              key: fabKey,
               heroTag: isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
@@ -222,9 +242,12 @@ class TransactionsScreen extends StatelessWidget {
                 if (result != null &&
                     result is Map &&
                     result['animateToHistory'] == true) {
-                  _animateTransactionToHistory(
+                  _animateTransactionToHistoryCustom(
                     context,
-                    result['transaction'] as Transaction,
+                    result['emoji'] as String? ?? '💸',
+                    result['color'] as Color? ?? const Color(0xFFE6F4EA),
+                    fabKey,
+                    historyIconKey,
                   );
                 }
               },
@@ -235,4 +258,47 @@ class TransactionsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+// Добавить функцию для анимации с emoji и цветом
+void _animateTransactionToHistoryCustom(
+  BuildContext context,
+  String emoji,
+  Color bgColor,
+  GlobalKey fabKey,
+  GlobalKey historyIconKey,
+) async {
+  final overlay = Overlay.of(context);
+  if (overlay == null) return;
+  final fabBox = fabKey.currentContext?.findRenderObject() as RenderBox?;
+  final historyBox =
+      historyIconKey.currentContext?.findRenderObject() as RenderBox?;
+  Offset fabOffset = Offset.zero;
+  Offset historyOffset = Offset.zero;
+  try {
+    if (fabBox != null) {
+      fabOffset =
+          fabBox.localToGlobal(Offset.zero) +
+          Offset(fabBox.size.width / 2, fabBox.size.height / 2);
+    }
+    if (historyBox != null) {
+      final position = historyBox.localToGlobal(Offset.zero);
+      final size = historyBox.size;
+      historyOffset = position + Offset(size.width / 2, size.height / 2);
+    }
+  } catch (_) {}
+  if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
+  final entry = OverlayEntry(
+    builder: (context) {
+      return TransactionsFlyChip(
+        start: fabOffset,
+        end: historyOffset,
+        emoji: emoji,
+        bgColor: bgColor,
+      );
+    },
+  );
+  overlay.insert(entry);
+  await Future.delayed(const Duration(milliseconds: 1700));
+  entry.remove();
 }

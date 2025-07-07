@@ -7,6 +7,7 @@ import 'package:cashnetic/data/repositories/drift_category_repository.dart';
 import 'package:cashnetic/data/repositories/drift_account_repository.dart';
 import 'package:cashnetic/di/di.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
+import 'package:collection/collection.dart';
 
 class TransactionAddRepositoryImpl implements TransactionAddRepository {
   final _transactionRepo = getIt<DriftTransactionRepository>();
@@ -26,9 +27,14 @@ class TransactionAddRepositoryImpl implements TransactionAddRepository {
   }
 
   @override
-  Future<void> addTransaction(TransactionForm form) async {
+  Future<Category?> addTransaction(TransactionForm form) async {
     final result = await _transactionRepo.createTransaction(form);
-    result.fold((failure) => throw Exception(failure.toString()), (_) => null);
+    return result.fold((failure) => throw Exception(failure.toString()), (
+      tx,
+    ) async {
+      final cats = await getCategories();
+      return cats.firstWhereOrNull((c) => c.id == tx.categoryId);
+    });
   }
 
   @override

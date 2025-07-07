@@ -119,7 +119,20 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         },
         listener: (context, state) {
           if (state is TransactionAddSuccess) {
-            Navigator.pop(context, true);
+            final now = DateTime.now();
+            final isToday =
+                state.selectedDate.year == now.year &&
+                state.selectedDate.month == now.month &&
+                state.selectedDate.day == now.day;
+            if (!isToday) {
+              Navigator.pop(context, {
+                'animateToHistory': true,
+                'emoji': state.categoryEmoji,
+                'color': state.categoryColor,
+              });
+            } else {
+              Navigator.pop(context, true);
+            }
           } else if (state is TransactionAddError) {
             ScaffoldMessenger.of(
               context,

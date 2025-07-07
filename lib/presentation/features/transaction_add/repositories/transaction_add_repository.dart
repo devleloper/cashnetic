@@ -5,6 +5,6 @@ import 'package:cashnetic/domain/entities/account.dart';
 abstract class TransactionAddRepository {
   Future<List<Category>> getCategories();
   Future<List<Account>> getAccounts();
-  Future<void> addTransaction(TransactionForm form);
+  Future<Category?> addTransaction(TransactionForm form);
   String? validateForm(TransactionForm form);
 }
