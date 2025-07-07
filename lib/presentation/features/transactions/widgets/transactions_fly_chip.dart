@@ -59,10 +59,12 @@ class _TransactionsFlyChipState extends State<TransactionsFlyChip>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
+    final themeBgColor = Theme.of(context).scaffoldBackgroundColor;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         final pos = _positionAnim.value;
+        // Центр чипа всегда совпадает с pos (центр FAB/экрана)
         final left = (pos.dx - 28).clamp(0.0, screenSize.width - 56);
         final top = (pos.dy - 28).clamp(0.0, screenSize.height - 56);
         return Stack(
@@ -79,7 +81,11 @@ class _TransactionsFlyChipState extends State<TransactionsFlyChip>
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: widget.bgColor,
+                      color:
+                          widget.bgColor.withOpacity(0.999) ==
+                              const Color(0xFFE6F4EA).withOpacity(0.999)
+                          ? themeBgColor
+                          : widget.bgColor,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(

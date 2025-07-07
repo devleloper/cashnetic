@@ -19,6 +19,7 @@ import 'package:cashnetic/presentation/features/transactions/widgets/transaction
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/di/di.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatelessWidget {
@@ -245,8 +246,7 @@ class TransactionsScreen extends StatelessWidget {
                   _animateTransactionToHistoryCustom(
                     context,
                     result['emoji'] as String? ?? '💸',
-                    result['color'] as Color? ?? const Color(0xFFE6F4EA),
-                    fabKey,
+                    result['categoryName'] as String? ?? '',
                     historyIconKey,
                   );
                 }
@@ -264,37 +264,31 @@ class TransactionsScreen extends StatelessWidget {
 void _animateTransactionToHistoryCustom(
   BuildContext context,
   String emoji,
-  Color bgColor,
-  GlobalKey fabKey,
+  String categoryName,
   GlobalKey historyIconKey,
 ) async {
   final overlay = Overlay.of(context);
   if (overlay == null) return;
-  final fabBox = fabKey.currentContext?.findRenderObject() as RenderBox?;
+  final screenSize = MediaQuery.of(context).size;
+  final start = Offset(screenSize.width / 2, screenSize.height / 2);
   final historyBox =
       historyIconKey.currentContext?.findRenderObject() as RenderBox?;
-  Offset fabOffset = Offset.zero;
   Offset historyOffset = Offset.zero;
   try {
-    if (fabBox != null) {
-      fabOffset =
-          fabBox.localToGlobal(Offset.zero) +
-          Offset(fabBox.size.width / 2, fabBox.size.height / 2);
-    }
     if (historyBox != null) {
       final position = historyBox.localToGlobal(Offset.zero);
       final size = historyBox.size;
       historyOffset = position + Offset(size.width / 2, size.height / 2);
     }
   } catch (_) {}
-  if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
+  if (historyOffset == Offset.zero) return;
   final entry = OverlayEntry(
     builder: (context) {
       return TransactionsFlyChip(
-        start: fabOffset,
+        start: start,
         end: historyOffset,
         emoji: emoji,
-        bgColor: bgColor,
+        bgColor: lightColorFor(categoryName),
       );
     },
   );
