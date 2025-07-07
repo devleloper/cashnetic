@@ -7,39 +7,52 @@ import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/data/mappers/transaction_mapper.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/data/models/transaction/transaction.dart';
+import 'dart:convert';
+import 'package:cashnetic/data/mappers/transaction_form_mapper.dart';
 
 class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
+  final ApiClient apiClient;
 
-  DriftTransactionRepository(this.dbInstance);
+  DriftTransactionRepository(this.dbInstance, this.apiClient);
 
   domain.Transaction _mapDbToDomain(db.Transaction t) => t.toDomain();
 
   Future<Either<Failure, domain.Transaction>> createTransaction(
-    TransactionForm transaction,
+    TransactionForm form,
   ) async {
     try {
-      debugPrint(
-        '[DriftTransactionRepository] Creating transaction with categoryId= ${transaction.categoryId}',
-      );
       final id = await dbInstance.insertTransaction(
         db.TransactionsCompanion(
-          accountId: Value(transaction.accountId!),
-          categoryId: transaction.categoryId != null
-              ? Value(transaction.categoryId)
-              : const Value.absent(),
-          amount: Value(transaction.amount!),
-          timestamp: Value(transaction.timestamp!),
-          comment: transaction.comment != null
-              ? Value(transaction.comment)
-              : const Value.absent(),
+          accountId: Value(form.accountId ?? 0),
+          categoryId: Value(form.categoryId ?? 0),
+          amount: Value(form.amount ?? 0.0),
+          timestamp: Value(form.timestamp ?? DateTime.now()),
+          comment: Value(form.comment ?? ''),
         ),
       );
-      final t = await dbInstance.getTransactionById(id);
-      if (t == null) {
+      // Сохраняем событие в pending_events
+      final dtoOrFailure = form.toDTO();
+      final payload = dtoOrFailure.fold(
+        (_) => <String, dynamic>{},
+        (dto) => dto.toJson(),
+      );
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('transaction'),
+          type: Value('create'),
+          payload: Value(jsonEncode(payload)),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      final tx = await dbInstance.getTransactionById(id);
+      if (tx == null) {
         return Left(RepositoryFailure('Transaction not found after insert'));
       }
-      return Right(_mapDbToDomain(t));
+      return Right(tx.toDomain());
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
@@ -57,33 +70,66 @@ class DriftTransactionRepository {
 
   Future<Either<Failure, domain.Transaction>> updateTransaction(
     int id,
-    TransactionForm transaction,
+    TransactionForm form,
   ) async {
     try {
-      final t = await dbInstance.getTransactionById(id);
-      if (t == null) return Left(RepositoryFailure('Transaction not found'));
-      final updated = t.copyWith(
-        accountId: transaction.accountId ?? t.accountId,
-        categoryId: transaction.categoryId != null
-            ? Value(transaction.categoryId)
-            : Value(t.categoryId),
-        amount: transaction.amount ?? t.amount,
-        timestamp: transaction.timestamp ?? t.timestamp,
-        comment: transaction.comment != null
-            ? Value(transaction.comment)
-            : Value(t.comment),
+      final existing = await dbInstance.getTransactionById(id);
+      if (existing == null) {
+        return Left(RepositoryFailure('Transaction not found'));
+      }
+      final updated = existing.copyWith(
+        accountId: form.accountId ?? existing.accountId,
+        categoryId: form.categoryId != null
+            ? Value(form.categoryId)
+            : const Value.absent(),
+        amount: form.amount ?? existing.amount,
+        timestamp: form.timestamp ?? existing.timestamp,
+        comment: form.comment != null
+            ? Value(form.comment)
+            : const Value.absent(),
+        updatedAt: DateTime.now(),
       );
       await dbInstance.updateTransaction(updated);
-      return Right(_mapDbToDomain(updated));
+      // Сохраняем событие в pending_events
+      final dtoOrFailure = form.toDTO();
+      final payload = dtoOrFailure.fold((_) => <String, dynamic>{}, (dto) {
+        final map = dto.toJson();
+        map['id'] = id;
+        return map;
+      });
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('transaction'),
+          type: Value('update'),
+          payload: Value(jsonEncode(payload)),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      final tx = await dbInstance.getTransactionById(id);
+      if (tx == null) {
+        return Left(RepositoryFailure('Transaction not found after update'));
+      }
+      return Right(tx.toDomain());
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
   }
 
-  Future<Either<Failure, Unit>> deleteTransaction(int id) async {
+  Future<Either<Failure, void>> deleteTransaction(int id) async {
     try {
       await dbInstance.deleteTransaction(id);
-      return Right(unit);
+      // Сохраняем событие в pending_events
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('transaction'),
+          type: Value('delete'),
+          payload: Value(jsonEncode({'id': id})),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      return Right(null);
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
@@ -125,6 +171,36 @@ class DriftTransactionRepository {
       debugPrint(
         '[DriftTransactionRepository] ERROR in getTransactionsByPeriod: ${e.toString()}',
       );
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, List<domain.Transaction>>> getAllTransactions() async {
+    try {
+      final local = await dbInstance.getAllTransactions();
+      try {
+        final response = await apiClient.getTransactions();
+        final remoteTransactions = (response.data as List)
+            .map((json) => TransactionDTO.fromJson(json))
+            .map(
+              (dto) => db.Transaction(
+                id: dto.id,
+                accountId: dto.accountId,
+                categoryId: dto.categoryId,
+                amount: double.tryParse(dto.amount) ?? 0.0,
+                timestamp: DateTime.parse(dto.transactionDate),
+                comment: dto.comment,
+                createdAt: DateTime.parse(dto.createdAt),
+                updatedAt: DateTime.parse(dto.updatedAt),
+              ),
+            )
+            .toList();
+        await dbInstance.replaceAllTransactions(remoteTransactions);
+        return Right(remoteTransactions.map((t) => t.toDomain()).toList());
+      } catch (_) {
+        return Right(local.map((e) => e.toDomain()).toList());
+      }
+    } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
   }

@@ -6,11 +6,16 @@ import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/data/mappers/category_mapper.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'dart:convert';
+import 'package:cashnetic/domain/entities/forms/category_form.dart';
 
 class DriftCategoryRepository {
   final db.AppDatabase dbInstance;
+  final ApiClient apiClient;
 
-  DriftCategoryRepository(this.dbInstance);
+  DriftCategoryRepository(this.dbInstance, this.apiClient);
 
   Future<void> _initDefaultCategories() async {
     debugPrint('[DriftCategoryRepository] ENTER _initDefaultCategories');
@@ -110,17 +115,28 @@ class DriftCategoryRepository {
     debugPrint('[DriftCategoryRepository] ENTER getAllCategories');
     try {
       await _initDefaultCategories();
-      final data = await dbInstance.getAllCategories();
-      debugPrint(
-        '[DriftCategoryRepository] Categories after init: count=${data.length}',
-      );
-      for (final cat in data) {
-        debugPrint(
-          '  - id: ${cat.id}, name: ${cat.name}, isIncome: ${cat.isIncome}',
-        );
+      final local = await dbInstance.getAllCategories();
+      try {
+        final response = await apiClient.getCategories();
+        final remoteCategories = (response.data as List)
+            .map((json) => CategoryDTO.fromJson(json))
+            .map(
+              (dto) => db.Category(
+                id: dto.id,
+                name: dto.name,
+                emoji: dto.emoji,
+                isIncome: dto.isIncome,
+                color: dto.color ?? '#E0E0E0',
+              ),
+            )
+            .toList();
+        await dbInstance.replaceAllCategories(remoteCategories);
+        debugPrint('[DriftCategoryRepository] EXIT getAllCategories (remote)');
+        return Right(remoteCategories.map((c) => c.toDomain()).toList());
+      } catch (_) {
+        debugPrint('[DriftCategoryRepository] EXIT getAllCategories (local)');
+        return Right(local.map((e) => e.toDomain()).toList());
       }
-      debugPrint('[DriftCategoryRepository] EXIT getAllCategories');
-      return Right(data.map((e) => e.toDomain()).toList());
     } catch (e) {
       debugPrint(
         '[DriftCategoryRepository] ERROR in getAllCategories: ${e.toString()}',
@@ -145,19 +161,28 @@ class DriftCategoryRepository {
     }
   }
 
-  Future<Either<Failure, domain.Category>> addCategory({
-    required String name,
-    String emoji = '💰',
-    required bool isIncome,
-    String color = '#E0E0E0',
-  }) async {
+  Future<Either<Failure, domain.Category>> createCategory(
+    CategoryForm form,
+  ) async {
     try {
       final id = await dbInstance.insertCategory(
         db.CategoriesCompanion(
-          name: Value(name),
-          emoji: Value(emoji),
-          isIncome: Value(isIncome),
-          color: Value(color),
+          name: Value(form.name ?? ''),
+          emoji: Value(form.emoji ?? ''),
+          isIncome: Value(form.isIncome ?? false),
+          color: Value(form.color ?? '#E0E0E0'),
+        ),
+      );
+      // Сохраняем событие в pending_events
+      final dto = form.toCreateDTO();
+      final payload = dto != null ? dto.toJson() : <String, dynamic>{};
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('category'),
+          type: Value('create'),
+          payload: Value(jsonEncode(payload)),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
         ),
       );
       final cat = await dbInstance.getCategoryById(id);
@@ -165,6 +190,67 @@ class DriftCategoryRepository {
         return Left(RepositoryFailure('Category not found after insert'));
       }
       return Right(cat.toDomain());
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, domain.Category>> updateCategory(
+    int id,
+    CategoryForm form,
+  ) async {
+    try {
+      final existing = await dbInstance.getCategoryById(id);
+      if (existing == null) {
+        return Left(RepositoryFailure('Category not found'));
+      }
+      final updated = existing.copyWithCompanion(
+        db.CategoriesCompanion(
+          name: form.name != null ? Value(form.name!) : const Value.absent(),
+          emoji: form.emoji != null ? Value(form.emoji!) : const Value.absent(),
+          isIncome: form.isIncome != null
+              ? Value(form.isIncome!)
+              : const Value.absent(),
+          color: form.color != null ? Value(form.color!) : const Value.absent(),
+        ),
+      );
+      await dbInstance.updateCategory(updated);
+      // Сохраняем событие в pending_events
+      final dto = form.toUpdateDTO(id);
+      final payload = dto != null ? dto.toJson() : <String, dynamic>{};
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('category'),
+          type: Value('update'),
+          payload: Value(jsonEncode(payload)),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      final cat = await dbInstance.getCategoryById(id);
+      if (cat == null) {
+        return Left(RepositoryFailure('Category not found after update'));
+      }
+      return Right(cat.toDomain());
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, void>> deleteCategory(int id) async {
+    try {
+      await dbInstance.deleteCategory(id);
+      // Сохраняем событие в pending_events
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('category'),
+          type: Value('delete'),
+          payload: Value(jsonEncode({'id': id})),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      return Right(null);
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }

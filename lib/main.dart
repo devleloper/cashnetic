@@ -1,6 +1,7 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
@@ -15,6 +16,7 @@ import 'presentation/features/history/bloc/history_bloc.dart';
 import 'di/di.dart';
 
 void main() async {
+  await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ru');
   setupDependencies();

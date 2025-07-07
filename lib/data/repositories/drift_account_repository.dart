@@ -10,16 +10,44 @@ import 'package:drift/drift.dart';
 import 'package:cashnetic/domain/entities/value_objects/money_details.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/data/mappers/account_mapper.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/data/models/account/account.dart';
+import 'dart:convert';
+import 'package:cashnetic/data/mappers/account_form_mapper.dart';
 
 class DriftAccountRepository {
   final db.AppDatabase dbInstance;
+  final ApiClient apiClient;
 
-  DriftAccountRepository(this.dbInstance);
+  DriftAccountRepository(this.dbInstance, this.apiClient);
 
   Future<Either<Failure, List<domain.Account>>> getAllAccounts() async {
     try {
-      final data = await dbInstance.getAllAccounts();
-      return Right(data.map((e) => e.toDomain()).toList());
+      // 1. Получаем локально
+      final local = await dbInstance.getAllAccounts();
+      // 2. Пробуем обновить с сервера
+      try {
+        final response = await apiClient.getAccounts();
+        final remoteAccounts = (response.data as List)
+            .map((json) => AccountDTO.fromJson(json))
+            .map(
+              (dto) => db.Account(
+                id: dto.id,
+                name: dto.name,
+                currency: dto.currency,
+                balance: double.tryParse(dto.balance) ?? 0.0,
+                createdAt: DateTime.parse(dto.createdAt),
+                updatedAt: DateTime.parse(dto.updatedAt),
+              ),
+            )
+            .toList();
+        // 3. Обновляем локальную БД
+        await dbInstance.replaceAllAccounts(remoteAccounts);
+        return Right(remoteAccounts.map((a) => a.toDomain()).toList());
+      } catch (_) {
+        // 4. Если ошибка — возвращаем локальные данные
+        return Right(local.map((e) => e.toDomain()).toList());
+      }
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
@@ -34,6 +62,16 @@ class DriftAccountRepository {
           name: Value(account.name ?? ''),
           currency: Value(account.moneyDetails?.currency ?? 'RUB'),
           balance: Value(account.moneyDetails?.balance ?? 0.0),
+        ),
+      );
+      // Сохраняем событие в pending_events
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('account'),
+          type: Value('create'),
+          payload: Value(jsonEncode(account.toCreateDTO().toJson())),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
         ),
       );
       final acc = await dbInstance.getAccountById(id);

@@ -760,7 +760,7 @@ class $TransactionsTable extends Transactions
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
-    $customConstraints: 'REFERENCES accounts(id)',
+    $customConstraints: 'REFERENCES accounts(id) NOT NULL',
   );
   static const VerificationMeta _categoryIdMeta = const VerificationMeta(
     'categoryId',
@@ -1233,12 +1233,402 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   }
 }
 
+class $PendingEventsTable extends PendingEvents
+    with TableInfo<$PendingEventsTable, PendingEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entityMeta = const VerificationMeta('entity');
+  @override
+  late final GeneratedColumn<String> entity = GeneratedColumn<String>(
+    'entity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entity,
+    type,
+    payload,
+    createdAt,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entity')) {
+      context.handle(
+        _entityMeta,
+        entity.isAcceptableOrUnknown(data['entity']!, _entityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PendingEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      entity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingEventsTable createAlias(String alias) {
+    return $PendingEventsTable(attachedDatabase, alias);
+  }
+}
+
+class PendingEvent extends DataClass implements Insertable<PendingEvent> {
+  final int id;
+  final String entity;
+  final String type;
+  final String payload;
+  final DateTime createdAt;
+  final String status;
+  const PendingEvent({
+    required this.id,
+    required this.entity,
+    required this.type,
+    required this.payload,
+    required this.createdAt,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entity'] = Variable<String>(entity);
+    map['type'] = Variable<String>(type);
+    map['payload'] = Variable<String>(payload);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  PendingEventsCompanion toCompanion(bool nullToAbsent) {
+    return PendingEventsCompanion(
+      id: Value(id),
+      entity: Value(entity),
+      type: Value(type),
+      payload: Value(payload),
+      createdAt: Value(createdAt),
+      status: Value(status),
+    );
+  }
+
+  factory PendingEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingEvent(
+      id: serializer.fromJson<int>(json['id']),
+      entity: serializer.fromJson<String>(json['entity']),
+      type: serializer.fromJson<String>(json['type']),
+      payload: serializer.fromJson<String>(json['payload']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entity': serializer.toJson<String>(entity),
+      'type': serializer.toJson<String>(type),
+      'payload': serializer.toJson<String>(payload),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  PendingEvent copyWith({
+    int? id,
+    String? entity,
+    String? type,
+    String? payload,
+    DateTime? createdAt,
+    String? status,
+  }) => PendingEvent(
+    id: id ?? this.id,
+    entity: entity ?? this.entity,
+    type: type ?? this.type,
+    payload: payload ?? this.payload,
+    createdAt: createdAt ?? this.createdAt,
+    status: status ?? this.status,
+  );
+  PendingEvent copyWithCompanion(PendingEventsCompanion data) {
+    return PendingEvent(
+      id: data.id.present ? data.id.value : this.id,
+      entity: data.entity.present ? data.entity.value : this.entity,
+      type: data.type.present ? data.type.value : this.type,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEvent(')
+          ..write('id: $id, ')
+          ..write('entity: $entity, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, entity, type, payload, createdAt, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingEvent &&
+          other.id == this.id &&
+          other.entity == this.entity &&
+          other.type == this.type &&
+          other.payload == this.payload &&
+          other.createdAt == this.createdAt &&
+          other.status == this.status);
+}
+
+class PendingEventsCompanion extends UpdateCompanion<PendingEvent> {
+  final Value<int> id;
+  final Value<String> entity;
+  final Value<String> type;
+  final Value<String> payload;
+  final Value<DateTime> createdAt;
+  final Value<String> status;
+  const PendingEventsCompanion({
+    this.id = const Value.absent(),
+    this.entity = const Value.absent(),
+    this.type = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  PendingEventsCompanion.insert({
+    this.id = const Value.absent(),
+    required String entity,
+    required String type,
+    required String payload,
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+  }) : entity = Value(entity),
+       type = Value(type),
+       payload = Value(payload);
+  static Insertable<PendingEvent> custom({
+    Expression<int>? id,
+    Expression<String>? entity,
+    Expression<String>? type,
+    Expression<String>? payload,
+    Expression<DateTime>? createdAt,
+    Expression<String>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entity != null) 'entity': entity,
+      if (type != null) 'type': type,
+      if (payload != null) 'payload': payload,
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+    });
+  }
+
+  PendingEventsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? entity,
+    Value<String>? type,
+    Value<String>? payload,
+    Value<DateTime>? createdAt,
+    Value<String>? status,
+  }) {
+    return PendingEventsCompanion(
+      id: id ?? this.id,
+      entity: entity ?? this.entity,
+      type: type ?? this.type,
+      payload: payload ?? this.payload,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entity.present) {
+      map['entity'] = Variable<String>(entity.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('entity: $entity, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $AccountsTable accounts = $AccountsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
+  late final $PendingEventsTable pendingEvents = $PendingEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1247,6 +1637,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accounts,
     categories,
     transactions,
+    pendingEvents,
   ];
 }
 
@@ -2319,6 +2710,219 @@ typedef $$TransactionsTableProcessedTableManager =
       Transaction,
       PrefetchHooks Function({bool accountId, bool categoryId})
     >;
+typedef $$PendingEventsTableCreateCompanionBuilder =
+    PendingEventsCompanion Function({
+      Value<int> id,
+      required String entity,
+      required String type,
+      required String payload,
+      Value<DateTime> createdAt,
+      Value<String> status,
+    });
+typedef $$PendingEventsTableUpdateCompanionBuilder =
+    PendingEventsCompanion Function({
+      Value<int> id,
+      Value<String> entity,
+      Value<String> type,
+      Value<String> payload,
+      Value<DateTime> createdAt,
+      Value<String> status,
+    });
+
+class $$PendingEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get entity =>
+      $composableBuilder(column: $table.entity, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$PendingEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingEventsTable,
+          PendingEvent,
+          $$PendingEventsTableFilterComposer,
+          $$PendingEventsTableOrderingComposer,
+          $$PendingEventsTableAnnotationComposer,
+          $$PendingEventsTableCreateCompanionBuilder,
+          $$PendingEventsTableUpdateCompanionBuilder,
+          (
+            PendingEvent,
+            BaseReferences<_$AppDatabase, $PendingEventsTable, PendingEvent>,
+          ),
+          PendingEvent,
+          PrefetchHooks Function()
+        > {
+  $$PendingEventsTableTableManager(_$AppDatabase db, $PendingEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> entity = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => PendingEventsCompanion(
+                id: id,
+                entity: entity,
+                type: type,
+                payload: payload,
+                createdAt: createdAt,
+                status: status,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String entity,
+                required String type,
+                required String payload,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => PendingEventsCompanion.insert(
+                id: id,
+                entity: entity,
+                type: type,
+                payload: payload,
+                createdAt: createdAt,
+                status: status,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingEventsTable,
+      PendingEvent,
+      $$PendingEventsTableFilterComposer,
+      $$PendingEventsTableOrderingComposer,
+      $$PendingEventsTableAnnotationComposer,
+      $$PendingEventsTableCreateCompanionBuilder,
+      $$PendingEventsTableUpdateCompanionBuilder,
+      (
+        PendingEvent,
+        BaseReferences<_$AppDatabase, $PendingEventsTable, PendingEvent>,
+      ),
+      PendingEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2329,4 +2933,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db, _db.transactions);
+  $$PendingEventsTableTableManager get pendingEvents =>
+      $$PendingEventsTableTableManager(_db, _db.pendingEvents);
 }

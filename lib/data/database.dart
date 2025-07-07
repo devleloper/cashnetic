@@ -32,7 +32,7 @@ class Categories extends Table {
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get accountId =>
-      integer().customConstraint('REFERENCES accounts(id)')();
+      integer().customConstraint('REFERENCES accounts(id) NOT NULL')();
   IntColumn get categoryId =>
       integer().nullable().customConstraint('REFERENCES categories(id)')();
   RealColumn get amount => real()();
@@ -42,7 +42,19 @@ class Transactions extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-@DriftDatabase(tables: [Accounts, Categories, Transactions])
+// Таблица событий для event sourcing
+class PendingEvents extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get entity => text()(); // account, category, transaction
+  TextColumn get type => text()(); // create, update, delete
+  TextColumn get payload => text()(); // JSON
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get status => text().withDefault(
+    const Constant('pending'),
+  )(); // pending, syncing, synced, failed
+}
+
+@DriftDatabase(tables: [Accounts, Categories, Transactions, PendingEvents])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -81,6 +93,43 @@ class AppDatabase extends _$AppDatabase {
       update(transactions).replace(entry);
   Future<int> deleteTransaction(int id) =>
       (delete(transactions)..where((tbl) => tbl.id.equals(id))).go();
+
+  // PendingEvents DAO
+  Future<int> insertPendingEvent(PendingEventsCompanion entry) =>
+      into(pendingEvents).insert(entry);
+  Future<List<PendingEvent>> getAllPendingEvents() =>
+      select(pendingEvents).get();
+  Future<void> deletePendingEvent(int id) =>
+      (delete(pendingEvents)..where((tbl) => tbl.id.equals(id))).go();
+  Future<void> updatePendingEventStatus(int id, String status) async {
+    await (update(pendingEvents)..where((tbl) => tbl.id.equals(id))).write(
+      PendingEventsCompanion(status: Value(status)),
+    );
+  }
+
+  // Массовая замена аккаунтов (удалить все и вставить новые)
+  Future<void> replaceAllAccounts(List<Account> newAccounts) async {
+    await batch((batch) {
+      batch.deleteWhere(accounts, (_) => const Constant(true));
+      batch.insertAll(accounts, newAccounts);
+    });
+  }
+
+  // Массовая замена категорий
+  Future<void> replaceAllCategories(List<Category> newCategories) async {
+    await batch((batch) {
+      batch.deleteWhere(categories, (_) => const Constant(true));
+      batch.insertAll(categories, newCategories);
+    });
+  }
+
+  // Массовая замена транзакций
+  Future<void> replaceAllTransactions(List<Transaction> newTransactions) async {
+    await batch((batch) {
+      batch.deleteWhere(transactions, (_) => const Constant(true));
+      batch.insertAll(transactions, newTransactions);
+    });
+  }
 }
 
 LazyDatabase _openConnection() {

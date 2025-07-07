@@ -11,6 +11,9 @@ import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/di/di.dart';
+import 'dart:developer';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -21,6 +24,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _testApiGetAccounts();
+  }
+
+  Future<void> _testApiGetAccounts() async {
+    try {
+      final apiClient = getIt<ApiClient>();
+      final response = await apiClient.getAccounts();
+      log('API accounts: \n\t\n\t\n');
+      log(response.data.toString());
+    } catch (e, st) {
+      log('API error: $e', stackTrace: st);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
