@@ -45,7 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return ThemeSwitchingArea(
           child: Scaffold(
-            appBar: _buildAppBar(context, tabsRouter.activeIndex),
+            appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                ? null
+                : _buildAppBar(context, tabsRouter.activeIndex),
             body: child,
             bottomNavigationBar: Container(
               color: Colors.green,

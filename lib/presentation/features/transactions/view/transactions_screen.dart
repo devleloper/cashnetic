@@ -152,7 +152,7 @@ class TransactionsScreen extends StatelessWidget {
               actions: [
                 IconButton(
                   key: historyIconKey,
-                  icon: const Icon(Icons.history),
+                  icon: const Icon(Icons.history, color: Colors.white),
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
