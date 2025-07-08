@@ -8,12 +8,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
-import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
 import 'package:cashnetic/data/api_client.dart';
 import 'package:cashnetic/di/di.dart';
 import 'dart:developer';
+import 'package:cashnetic/main.dart';
+import 'package:provider/provider.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -24,10 +25,71 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  SyncStatus? _lastStatus;
+
   @override
   void initState() {
     super.initState();
     _testApiGetAccounts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    final status = syncStatusNotifier.status;
+    if (_lastStatus == status) return;
+    _lastStatus = status;
+    String? message;
+    Color? color;
+    switch (status) {
+      case SyncStatus.offline:
+        message = 'Offile';
+        color = Colors.red;
+        break;
+      case SyncStatus.syncing:
+        message = 'Sync...';
+        color = Colors.orange;
+        break;
+      case SyncStatus.online:
+        message = 'Online';
+        color = Colors.green;
+        break;
+      case SyncStatus.error:
+        message = syncStatusNotifier.errorMessage ?? 'Sync error';
+        color = Colors.red;
+        break;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message ?? ''),
+        backgroundColor: color,
+        duration: status == SyncStatus.syncing
+            ? Duration(seconds: 2)
+            : Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _testApiGetAccounts() async {

@@ -48,5 +48,7 @@ PHASE_1.md
 PHASE_2.md
 
 # API docs and secrets
-API_*.md
+API_IMPL.md
+API_INTERACT.md
+API_PHASE.md
 .env

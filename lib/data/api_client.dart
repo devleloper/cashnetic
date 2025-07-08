@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:worker_manager/worker_manager.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
 
 /// Singleton Dio client с авторизацией и логированием
 class DioProvider {
@@ -15,6 +18,7 @@ class DioProvider {
         ..interceptors.addAll([
           _AuthInterceptor(),
           LogInterceptor(responseBody: true, requestBody: true),
+          IsolateJsonInterceptor(),
         ]);
 
   static Dio get dio => _dio;
@@ -30,6 +34,34 @@ class _AuthInterceptor extends Interceptor {
     }
     super.onRequest(options, handler);
   }
+}
+
+class IsolateJsonInterceptor extends Interceptor {
+  static const int bigListThreshold = 1000;
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) async {
+    final data = response.data;
+    if (data is List &&
+        data.length > bigListThreshold &&
+        response.requestOptions.responseType == ResponseType.json) {
+      debugPrint(
+        '[IsolateJsonInterceptor] Start parsing in isolate, length:  [33m${data.length} [0m',
+      );
+      final parsed = await workerManager.execute(
+        () => _parseListInIsolate(jsonEncode(data)),
+      );
+      debugPrint(
+        '[IsolateJsonInterceptor] Done parsing in isolate, result length:  [32m${parsed.length} [0m',
+      );
+      response.data = parsed;
+    }
+    handler.next(response);
+  }
+}
+
+List<dynamic> _parseListInIsolate(String jsonStr) {
+  return jsonDecode(jsonStr) as List<dynamic>;
 }
 
 /// Базовый API-клиент

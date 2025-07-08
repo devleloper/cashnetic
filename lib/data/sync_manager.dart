@@ -12,27 +12,84 @@ class SyncManager {
     final events = await db.getAllPendingEvents();
     for (final event in events) {
       try {
+        final payload = jsonDecode(event.payload);
         switch (event.entity) {
           case 'account':
             if (event.type == 'create') {
-              await api.createAccount(jsonDecode(event.payload));
+              await api.createAccount(payload);
             } else if (event.type == 'update') {
-              // TODO: реализовать update
+              await api.updateAccount(payload['id'].toString(), payload);
             } else if (event.type == 'delete') {
-              // TODO: реализовать delete
+              await api.deleteAccount(payload['id'].toString());
             }
             break;
           case 'category':
-            // TODO: аналогично для категорий
+            if (event.type == 'create') {
+              await api.createCategory(payload);
+            } else if (event.type == 'update') {
+              await api.updateCategory(payload['id'].toString(), payload);
+            } else if (event.type == 'delete') {
+              await api.deleteCategory(payload['id'].toString());
+            }
             break;
           case 'transaction':
-            // TODO: аналогично для транзакций
+            if (event.type == 'create') {
+              await api.createTransaction(payload);
+            } else if (event.type == 'update') {
+              await api.updateTransaction(payload['id'].toString(), payload);
+            } else if (event.type == 'delete') {
+              await api.deleteTransaction(payload['id'].toString());
+            }
             break;
         }
         await db.updatePendingEventStatus(event.id, 'synced');
         await db.deletePendingEvent(event.id);
       } catch (e) {
         await db.updatePendingEventStatus(event.id, 'failed');
+      }
+    }
+  }
+
+  Future<void> retryFailed() async {
+    final failedEvents = (await db.getAllPendingEvents())
+        .where((e) => e.status == 'failed')
+        .toList();
+    for (final event in failedEvents) {
+      try {
+        final payload = jsonDecode(event.payload);
+        switch (event.entity) {
+          case 'account':
+            if (event.type == 'create') {
+              await api.createAccount(payload);
+            } else if (event.type == 'update') {
+              await api.updateAccount(payload['id'].toString(), payload);
+            } else if (event.type == 'delete') {
+              await api.deleteAccount(payload['id'].toString());
+            }
+            break;
+          case 'category':
+            if (event.type == 'create') {
+              await api.createCategory(payload);
+            } else if (event.type == 'update') {
+              await api.updateCategory(payload['id'].toString(), payload);
+            } else if (event.type == 'delete') {
+              await api.deleteCategory(payload['id'].toString());
+            }
+            break;
+          case 'transaction':
+            if (event.type == 'create') {
+              await api.createTransaction(payload);
+            } else if (event.type == 'update') {
+              await api.updateTransaction(payload['id'].toString(), payload);
+            } else if (event.type == 'delete') {
+              await api.deleteTransaction(payload['id'].toString());
+            }
+            break;
+        }
+        await db.updatePendingEventStatus(event.id, 'synced');
+        await db.deletePendingEvent(event.id);
+      } catch (e) {
+        // Оставляем статус failed
       }
     }
   }

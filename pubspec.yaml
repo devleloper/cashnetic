@@ -59,6 +59,7 @@ dependencies:
   flutter_native_splash: ^2.4.6
   liquid_glass_renderer: ^0.1.1-dev.9
   flutter_dotenv: ^5.2.1
+  connectivity_plus: ^6.1.4
   dio: ^5.8.0+1
   cashnetic_pie_chart:
     path: ./packages/cashnetic_pie_chart
@@ -66,6 +67,7 @@ dependencies:
     path: ./packages/liquid_glass_widgets
   flutter_localizations:
     sdk: flutter
+  worker_manager: ^7.2.6
 
 dev_dependencies:
   flutter_test:
