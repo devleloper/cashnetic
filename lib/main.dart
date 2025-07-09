@@ -91,6 +91,7 @@ class _CashneticAppState extends State<CashneticApp> {
   void dispose() {
     _connectivitySubscription.cancel();
     _syncStatusNotifier.dispose();
+    workerManager.dispose(); // Явное завершение всех worker-изолятов
     super.dispose();
   }
 
@@ -147,15 +148,15 @@ class _CashneticAppState extends State<CashneticApp> {
                   routerConfig: _router.config(),
                   builder: (context, child) {
                     if (state is! SettingsLoaded) {
-                      return AnimatedSplashScreen(
-                        splash: 'assets/splash/logo.gif',
-                        nextScreen: const SizedBox.shrink(),
-                        splashIconSize: 400,
-                        backgroundColor: Color(0xFF4CAF50),
-                        splashTransition: SplashTransition.fadeTransition,
-                        duration: 1200,
-                        curve: Curves.easeInOut,
-                        centered: true,
+                      return Scaffold(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        body: Center(
+                          child: Image.asset(
+                            'assets/splash/logo.gif',
+                            width: 400,
+                            height: 400,
+                          ),
+                        ),
                       );
                     }
                     return child!;
