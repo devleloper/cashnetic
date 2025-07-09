@@ -16,6 +16,8 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_event
 import 'package:cashnetic/domain/entities/category.dart';
 import '../widgets/history_list_view.dart';
 import '../widgets/history_sort_dropdown.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -26,6 +28,8 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  SyncStatus? _lastSyncStatus;
+
   Future<void> _pickDate(
     BuildContext context,
     bool isFrom,
@@ -61,6 +65,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
       LoadHistory(widget.isIncome ? HistoryType.income : HistoryType.expense),
     );
     context.read<CategoriesBloc>().add(LoadCategories());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<HistoryBloc>().add(
+          LoadHistory(
+            widget.isIncome ? HistoryType.income : HistoryType.expense,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class MockedTransactionRepository {
   final List<Transaction> _transactions = [
@@ -76,7 +77,9 @@ class MockedTransactionRepository {
     DateTime endDate,
   ) async {
     final filtered = _transactions.where((t) {
-      return t.accountId == accountId &&
+      final accountMatch =
+          accountId == ALL_ACCOUNTS_ID || t.accountId == accountId;
+      return accountMatch &&
           t.timestamp.isAfter(startDate) &&
           t.timestamp.isBefore(endDate);
     }).toList();
@@ -111,6 +114,9 @@ class MockedTransactionRepository {
   }
 
   Future<List<Transaction>> getTransactionsByAccount(int accountId) async {
+    if (accountId == ALL_ACCOUNTS_ID) {
+      return List<Transaction>.from(_transactions);
+    }
     return _transactions.where((t) => t.accountId == accountId).toList();
   }
 

@@ -9,10 +9,57 @@ import '../widgets/analysis_period_selector.dart';
 import '../widgets/analysis_total_summary.dart';
 import '../widgets/analysis_category_sliver_list.dart';
 import '../widgets/cashnetic_pie_chart_widget.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
 
-class AnalysisScreen extends StatelessWidget {
+class AnalysisScreen extends StatefulWidget {
   final AnalysisType type;
   const AnalysisScreen({super.key, required this.type});
+
+  @override
+  State<AnalysisScreen> createState() => _AnalysisScreenState();
+}
+
+class _AnalysisScreenState extends State<AnalysisScreen> {
+  SyncStatus? _lastSyncStatus;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        final bloc = context.read<AnalysisBloc>();
+        final state = bloc.state;
+        if (state is AnalysisLoaded) {
+          bloc.add(LoadAnalysis(year: state.selectedYear, type: widget.type));
+        } else {
+          bloc.add(LoadAnalysis(year: DateTime.now().year, type: widget.type));
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +100,7 @@ class AnalysisScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              type == AnalysisType.expense
+              widget.type == AnalysisType.expense
                   ? S.of(context).expenseAnalysis
                   : S.of(context).incomeAnalysis,
               style: const TextStyle(fontSize: 20, color: Colors.white),
@@ -74,10 +121,10 @@ class AnalysisScreen extends StatelessWidget {
                   child: AnalysisYearFilterChips(
                     availableYears: state.availableYears,
                     selectedYears: selectedYears,
-                    type: type,
+                    type: widget.type,
                     onChanged: (newYears) {
                       context.read<AnalysisBloc>().add(
-                        ChangeYears(years: newYears, type: type),
+                        ChangeYears(years: newYears, type: widget.type),
                       );
                     },
                   ),
@@ -90,10 +137,10 @@ class AnalysisScreen extends StatelessWidget {
                   child: AnalysisPeriodSelector(
                     periodStart: result.periodStart,
                     periodEnd: result.periodEnd,
-                    type: type,
+                    type: widget.type,
                     onChanged: (from, to) {
                       context.read<AnalysisBloc>().add(
-                        ChangePeriod(from: from, to: to, type: type),
+                        ChangePeriod(from: from, to: to, type: widget.type),
                       );
                     },
                   ),
@@ -126,7 +173,10 @@ class AnalysisScreen extends StatelessWidget {
                   ),
                 )
               else
-                AnalysisCategorySliverList(sortedData: sortedData, type: type),
+                AnalysisCategorySliverList(
+                  sortedData: sortedData,
+                  type: widget.type,
+                ),
             ],
           ),
         );

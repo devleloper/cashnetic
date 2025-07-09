@@ -9,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'transaction_list_by_category_screen.dart';
 import '../widgets/category_list.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -21,6 +23,7 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   String _search = '';
   late final TextEditingController _controller;
+  SyncStatus? _lastSyncStatus;
 
   @override
   void initState() {
@@ -38,6 +41,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
@@ -50,6 +58,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
         return true;
       });
+    }
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<CategoriesBloc>().add(InitCategoriesWithTransactions());
+      }
     }
   }
 

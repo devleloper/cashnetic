@@ -17,7 +17,7 @@ class DioProvider {
         )
         ..interceptors.addAll([
           _AuthInterceptor(),
-          LogInterceptor(responseBody: true, requestBody: true),
+          SafeLogInterceptor(),
           IsolateJsonInterceptor(),
         ]);
 
@@ -33,6 +33,38 @@ class _AuthInterceptor extends Interceptor {
       options.headers['Authorization'] = 'Bearer $token';
     }
     super.onRequest(options, handler);
+  }
+}
+
+class SafeLogInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final headers = Map<String, dynamic>.from(options.headers);
+    if (headers.containsKey('Authorization')) {
+      headers['Authorization'] = '***';
+    }
+    debugPrint('[Dio] REQUEST: ${options.method} ${options.uri}');
+    debugPrint('[Dio] Headers: $headers');
+    if (options.data != null) {
+      debugPrint('[Dio] Body: ${options.data}');
+    }
+    handler.next(options);
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    debugPrint(
+      '[Dio] RESPONSE: ${response.statusCode} ${response.requestOptions.uri}',
+    );
+    debugPrint('[Dio] Data: ${response.data}');
+    handler.next(response);
+  }
+
+  @override
+  void onError(DioError err, ErrorInterceptorHandler handler) {
+    debugPrint('[Dio] ERROR: ${err.requestOptions.uri}');
+    debugPrint('[Dio] Error: ${err.error}');
+    handler.next(err);
   }
 }
 

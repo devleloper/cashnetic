@@ -11,6 +11,7 @@ import 'package:cashnetic/data/api_client.dart';
 import 'package:cashnetic/data/models/transaction/transaction.dart';
 import 'dart:convert';
 import 'package:cashnetic/data/mappers/transaction_form_mapper.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
@@ -141,17 +142,17 @@ class DriftTransactionRepository {
     DateTime endDate,
   ) async {
     debugPrint(
-      '[DriftTransactionRepository] ENTER getTransactionsByPeriod: accountId=$accountId, startDate=$startDate, endDate=$endDate',
+      '[DriftTransactionRepository] ENTER getTransactionsByPeriod: accountId= [33m$accountId [0m, startDate=$startDate, endDate=$endDate',
     );
     try {
       final all = await dbInstance.getAllTransactions();
       debugPrint(
-        '[DriftTransactionRepository] All transactions count: ${all.length}',
+        '[DriftTransactionRepository] All transactions count:  [33m${all.length} [0m',
       );
       final filtered = all
           .where(
             (t) =>
-                (accountId == 0 || t.accountId == accountId) &&
+                (accountId == ALL_ACCOUNTS_ID || t.accountId == accountId) &&
                 t.timestamp.isAfter(startDate) &&
                 t.timestamp.isBefore(endDate),
           )

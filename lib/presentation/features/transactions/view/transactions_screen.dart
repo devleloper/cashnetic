@@ -20,17 +20,65 @@ import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/di/di.dart';
 import 'package:cashnetic/presentation/theme/light_color_for.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
 
 @RoutePage()
-class TransactionsScreen extends StatelessWidget {
+class TransactionsScreen extends StatefulWidget {
   final bool isIncome;
-  final GlobalKey historyIconKey = GlobalKey();
-  final GlobalKey fabKey = GlobalKey();
   TransactionsScreen({Key? key, required this.isIncome}) : super(key: key);
+
+  @override
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends State<TransactionsScreen> {
+  final Key historyIconKey = UniqueKey();
+  final Key fabKey = UniqueKey();
+  SyncStatus? _lastSyncStatus;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<TransactionsBloc>().add(
+          TransactionsLoad(
+            isIncome: widget.isIncome,
+            accountId: ALL_ACCOUNTS_ID,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
 
   void _animateTransactionToHistory(
     BuildContext context,
     Transaction tx,
+    GlobalKey historyIconKey,
   ) async {
     final overlay = Overlay.of(context);
 
@@ -91,7 +139,7 @@ class TransactionsScreen extends StatelessWidget {
           id: 0,
           name: '',
           emoji: '❓',
-          isIncome: isIncome,
+          isIncome: widget.isIncome,
           color: '#FFF',
         ),
       );
@@ -121,13 +169,17 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // accountId всегда 0 — показываем все транзакции
-
     return BlocProvider(
-      create: (context) => TransactionsBloc(
-        transactionRepository: getIt<TransactionsRepository>(),
-        categoryRepository: getIt<CategoriesRepository>(),
-      )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
+      create: (context) =>
+          TransactionsBloc(
+            transactionRepository: getIt<TransactionsRepository>(),
+            categoryRepository: getIt<CategoriesRepository>(),
+          )..add(
+            TransactionsLoad(
+              isIncome: widget.isIncome,
+              accountId: ALL_ACCOUNTS_ID,
+            ),
+          ),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
           if (state is TransactionsLoading) {
@@ -147,7 +199,7 @@ class TransactionsScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                isIncome ? S.of(context).income : S.of(context).expenses,
+                widget.isIncome ? S.of(context).income : S.of(context).expenses,
               ),
               actions: [
                 IconButton(
@@ -156,7 +208,8 @@ class TransactionsScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => HistoryScreen(isIncome: isIncome),
+                        builder: (_) =>
+                            HistoryScreen(isIncome: widget.isIncome),
                       ),
                     );
                   },
@@ -172,7 +225,7 @@ class TransactionsScreen extends StatelessWidget {
                   child: TransactionsListView(
                     transactions: transactions,
                     categories: categories,
-                    isIncome: isIncome,
+                    isIncome: widget.isIncome,
                     onTap: (t, cat) async {
                       // Получаем имя и валюту аккаунта из AccountBloc
                       String accountName = S.of(context).account;
@@ -207,7 +260,10 @@ class TransactionsScreen extends StatelessWidget {
                         },
                       );
                       context.read<TransactionsBloc>().add(
-                        TransactionsLoad(isIncome: isIncome, accountId: 0),
+                        TransactionsLoad(
+                          isIncome: widget.isIncome,
+                          accountId: ALL_ACCOUNTS_ID,
+                        ),
                       );
                     },
                   ),
@@ -216,40 +272,23 @@ class TransactionsScreen extends StatelessWidget {
             ),
             floatingActionButton: FloatingActionButton(
               key: fabKey,
-              heroTag: isIncome ? 'income_fab' : 'expense_fab',
+              heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
-                final result = await showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) {
-                    final mq = MediaQuery.of(context);
-                    final maxChildSize =
-                        (mq.size.height - mq.padding.top) / mq.size.height;
-                    return DraggableScrollableSheet(
-                      initialChildSize: 0.7,
-                      minChildSize: 0.4,
-                      maxChildSize: maxChildSize,
-                      expand: false,
-                      builder: (context, scrollController) =>
-                          TransactionAddScreen(isIncome: isIncome),
-                    );
-                  },
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TransactionAddScreen(isIncome: widget.isIncome),
+                  ),
                 );
                 context.read<TransactionsBloc>().add(
-                  TransactionsLoad(isIncome: isIncome, accountId: 0),
+                  TransactionsLoad(
+                    isIncome: widget.isIncome,
+                    accountId: ALL_ACCOUNTS_ID,
+                  ),
                 );
-                if (result != null &&
-                    result is Map &&
-                    result['animateToHistory'] == true) {
-                  _animateTransactionToHistoryCustom(
-                    context,
-                    result['emoji'] as String? ?? '💸',
-                    result['categoryName'] as String? ?? '',
-                    historyIconKey,
-                  );
-                }
+                // Анимация FlyTransactionChip больше не используется
               },
               child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),
@@ -258,41 +297,4 @@ class TransactionsScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// Добавить функцию для анимации с emoji и цветом
-void _animateTransactionToHistoryCustom(
-  BuildContext context,
-  String emoji,
-  String categoryName,
-  GlobalKey historyIconKey,
-) async {
-  final overlay = Overlay.of(context);
-  if (overlay == null) return;
-  final screenSize = MediaQuery.of(context).size;
-  final start = Offset(screenSize.width / 2, screenSize.height / 2);
-  final historyBox =
-      historyIconKey.currentContext?.findRenderObject() as RenderBox?;
-  Offset historyOffset = Offset.zero;
-  try {
-    if (historyBox != null) {
-      final position = historyBox.localToGlobal(Offset.zero);
-      final size = historyBox.size;
-      historyOffset = position + Offset(size.width / 2, size.height / 2);
-    }
-  } catch (_) {}
-  if (historyOffset == Offset.zero) return;
-  final entry = OverlayEntry(
-    builder: (context) {
-      return TransactionsFlyChip(
-        start: start,
-        end: historyOffset,
-        emoji: emoji,
-        bgColor: lightColorFor(categoryName),
-      );
-    },
-  );
-  overlay.insert(entry);
-  await Future.delayed(const Duration(milliseconds: 1700));
-  entry.remove();
 }

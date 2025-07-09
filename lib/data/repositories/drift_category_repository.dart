@@ -114,9 +114,10 @@ class DriftCategoryRepository {
   Future<Either<Failure, List<domain.Category>>> getAllCategories() async {
     debugPrint('[DriftCategoryRepository] ENTER getAllCategories');
     try {
-      await _initDefaultCategories();
+      // Получаем локальные категории
       final local = await dbInstance.getAllCategories();
       try {
+        // Пробуем загрузить с сервера
         final response = await apiClient.getCategories();
         final remoteCategories = (response.data as List)
             .map((json) => CategoryDTO.fromJson(json))
@@ -130,16 +131,53 @@ class DriftCategoryRepository {
               ),
             )
             .toList();
+        // Заменяем все локальные категории на серверные
         await dbInstance.replaceAllCategories(remoteCategories);
+        // Удаляем дефолтные категории, если они вдруг остались (edge-case)
+        final defaultNames = [
+          'Продукты',
+          'Ремонт',
+          'Одежда',
+          'Электроника',
+          'Развлечения',
+          'Образование',
+          'Животные',
+          'Здоровье',
+          'Подарки',
+          'Спорт',
+          'Транспорт',
+          'Зарплата',
+          'Подработка',
+        ];
+        final allAfterReplace = await dbInstance.getAllCategories();
+        for (final cat in allAfterReplace) {
+          if (defaultNames.contains(cat.name)) {
+            final isInRemote = remoteCategories.any(
+              (r) => r.name == cat.name && r.isIncome == cat.isIncome,
+            );
+            if (!isInRemote) {
+              await dbInstance.deleteCategory(cat.id);
+            }
+          }
+        }
         debugPrint('[DriftCategoryRepository] EXIT getAllCategories (remote)');
         return Right(remoteCategories.map((c) => c.toDomain()).toList());
       } catch (_) {
+        // Если сервер недоступен и локальных категорий нет — только тогда добавляем дефолтные
+        if (local.isEmpty) {
+          await _initDefaultCategories();
+          final withDefaults = await dbInstance.getAllCategories();
+          debugPrint(
+            '[DriftCategoryRepository] EXIT getAllCategories (defaults)',
+          );
+          return Right(withDefaults.map((e) => e.toDomain()).toList());
+        }
         debugPrint('[DriftCategoryRepository] EXIT getAllCategories (local)');
         return Right(local.map((e) => e.toDomain()).toList());
       }
     } catch (e) {
       debugPrint(
-        '[DriftCategoryRepository] ERROR in getAllCategories: ${e.toString()}',
+        '[DriftCategoryRepository] ERROR in getAllCategories:  [31m${e.toString()} [0m',
       );
       return Left(RepositoryFailure(e.toString()));
     }

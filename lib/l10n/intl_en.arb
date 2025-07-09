@@ -97,5 +97,6 @@
   "validationErrors": "Validation errors:",
   "selectLanguage": "Select Language",
   "incomeToday": "Income today",
-  "expensesToday": "Expenses today"
+  "expensesToday": "Expenses today",
+  "accountNameRequired": "Enter account name"
 }

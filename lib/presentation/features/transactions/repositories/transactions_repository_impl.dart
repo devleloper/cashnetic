@@ -8,6 +8,7 @@ import 'package:cashnetic/data/repositories/drift_account_repository.dart';
 import 'package:cashnetic/di/di.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class TransactionsRepositoryImpl implements TransactionsRepository {
   final _transactionRepo = getIt<DriftTransactionRepository>();
@@ -25,7 +26,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
   }) async {
     debugPrint('[TransactionsRepositoryImpl] ENTER getTransactions');
     final result = await _transactionRepo.getTransactionsByPeriod(
-      accountId ?? 0,
+      accountId ?? ALL_ACCOUNTS_ID,
       from ?? DateTime.now().subtract(const Duration(days: 30)),
       to ?? DateTime.now(),
     );

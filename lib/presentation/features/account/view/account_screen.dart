@@ -16,6 +16,8 @@ import 'dart:ui';
 import 'package:cashnetic/domain/entities/account.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -31,6 +33,7 @@ class _AccountScreenState extends State<AccountScreen> {
   Orientation? _lastOrientation;
   StreamSubscription<AccelerometerEvent>? _accelSub;
   bool? _lastFaceDown;
+  SyncStatus? _lastSyncStatus;
 
   @override
   void initState() {
@@ -62,6 +65,9 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
     final orientation = MediaQuery.of(context).orientation;
     if (_lastOrientation != null && _lastOrientation != orientation) {
       setState(() {
@@ -71,10 +77,29 @@ class _AccountScreenState extends State<AccountScreen> {
     _lastOrientation = orientation;
   }
 
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<AccountBloc>().add(LoadAccount());
+      }
+    }
+  }
+
   @override
   void dispose() {
     _shakeDetector?.stopListening();
     _accelSub?.cancel();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
@@ -123,7 +148,11 @@ class _AccountScreenState extends State<AccountScreen> {
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(acc.name),
+                              Text(
+                                acc.name.trim().isEmpty
+                                    ? S.of(context).account
+                                    : acc.name,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 acc.moneyDetails?.currency ?? '',

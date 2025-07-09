@@ -19,12 +19,15 @@ class AccountAddScreen extends StatefulWidget {
 class _AccountAddScreenState extends State<AccountAddScreen> {
   late TextEditingController _nameController;
   late TextEditingController _balanceController;
+  late final GlobalKey<FormState> _formKey;
+  bool _autoValidate = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _balanceController = TextEditingController();
+    _formKey = GlobalKey<FormState>();
   }
 
   @override
@@ -76,39 +79,54 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
               IconButton(
                 icon: const Icon(Icons.check, color: Colors.white),
                 onPressed: () {
-                  context.read<AccountAddBloc>().add(AccountAddSubmitted());
+                  setState(() => _autoValidate = true);
+                  if (_formKey.currentState?.validate() ?? false) {
+                    context.read<AccountAddBloc>().add(AccountAddSubmitted());
+                  }
                 },
               ),
             ],
           ),
-          body: Column(
-            children: [
-              AccountNameField(
-                controller: _nameController,
-                onChanged: (v) => context.read<AccountAddBloc>().add(
-                  AccountAddNameChanged(v),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                autovalidateMode: _autoValidate
+                    ? AutovalidateMode.always
+                    : AutovalidateMode.disabled,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AccountNameField(
+                      controller: _nameController,
+                      onChanged: (v) => context.read<AccountAddBloc>().add(
+                        AccountAddNameChanged(v),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return "Account name is required";
+                        }
+                        return null;
+                      },
+                    ),
+                    AccountBalanceField(
+                      controller: _balanceController,
+                      onChanged: (v) => context.read<AccountAddBloc>().add(
+                        AccountAddBalanceChanged(v),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    AccountCurrencyPicker(
+                      currency: state.currency,
+                      onChanged: (val) => context.read<AccountAddBloc>().add(
+                        AccountAddCurrencyChanged(val),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              AccountBalanceField(
-                controller: _balanceController,
-                onChanged: (v) => context.read<AccountAddBloc>().add(
-                  AccountAddBalanceChanged(v),
-                ),
-              ),
-              const SizedBox(height: 16),
-              AccountCurrencyPicker(
-                currency: state.currency,
-                onChanged: (val) => context.read<AccountAddBloc>().add(
-                  AccountAddCurrencyChanged(val),
-                ),
-              ),
-              const Spacer(),
-              AccountAddSubmitButton(
-                onPressed: () {
-                  context.read<AccountAddBloc>().add(AccountAddSubmitted());
-                },
-              ),
-            ],
+            ),
           ),
         );
       },
