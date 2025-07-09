@@ -29,6 +29,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   SyncStatus? _lastSyncStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   Future<void> _pickDate(
     BuildContext context,
@@ -70,9 +71,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   void _onSyncStatusChanged() {
@@ -95,11 +99,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
