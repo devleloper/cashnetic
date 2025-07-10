@@ -4,6 +4,9 @@ import 'package:cashnetic/data/api_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 import 'package:drift/drift.dart';
+import 'package:cashnetic/data/models/account_create/account_request.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'package:cashnetic/data/models/transaction_request/transaction_request.dart';
 
 class SyncManager {
   final AppDatabase db;
@@ -24,26 +27,29 @@ class SyncManager {
         final payload = jsonDecode(event.payload);
         switch (event.entity) {
           case 'account':
+            final dto = AccountRequestDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createAccount(payload);
+              await api.createAccount(dto);
             } else if (event.type == 'update') {
-              await api.updateAccount(payload['id'].toString(), payload);
+              await api.updateAccount(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
               await api.deleteAccount(payload['id'].toString());
             }
             break;
           case 'category':
+            final dto = CategoryDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createCategory(payload);
+              await api.createCategory(dto);
             } else if (event.type == 'update') {
-              await api.updateCategory(payload['id'].toString(), payload);
+              await api.updateCategory(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
               await api.deleteCategory(payload['id'].toString());
             }
             break;
           case 'transaction':
+            final dto = TransactionRequestDTO.fromJson(payload);
             if (event.type == 'create') {
-              final response = await api.createTransaction(payload);
+              final response = await api.createTransaction(dto);
               final serverData = response.data;
               final serverId = serverData['id'];
               final clientId = payload['clientId'];
@@ -73,7 +79,7 @@ class SyncManager {
               final id = payload['id'];
               final clientId = payload['clientId'];
               if (id != null) {
-                await api.updateTransaction(id.toString(), payload);
+                await api.updateTransaction(id.toString(), dto);
               } else if (clientId != null) {
                 // Ищем локально по clientId, если нет serverId
                 final tx = await db
@@ -83,10 +89,7 @@ class SyncManager {
                     )
                     .getSingleOrNull();
                 if (tx != null) {
-                  await api.updateTransaction(
-                    tx.data['id'].toString(),
-                    payload,
-                  );
+                  await api.updateTransaction(tx.data['id'].toString(), dto);
                 }
               }
             } else if (event.type == 'delete') {
@@ -127,28 +130,31 @@ class SyncManager {
         final payload = jsonDecode(event.payload);
         switch (event.entity) {
           case 'account':
+            final dto = AccountRequestDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createAccount(payload);
+              await api.createAccount(dto);
             } else if (event.type == 'update') {
-              await api.updateAccount(payload['id'].toString(), payload);
+              await api.updateAccount(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
               await api.deleteAccount(payload['id'].toString());
             }
             break;
           case 'category':
+            final dto = CategoryDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createCategory(payload);
+              await api.createCategory(dto);
             } else if (event.type == 'update') {
-              await api.updateCategory(payload['id'].toString(), payload);
+              await api.updateCategory(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
               await api.deleteCategory(payload['id'].toString());
             }
             break;
           case 'transaction':
+            final dto = TransactionRequestDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createTransaction(payload);
+              await api.createTransaction(dto);
             } else if (event.type == 'update') {
-              await api.updateTransaction(payload['id'].toString(), payload);
+              await api.updateTransaction(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
               await api.deleteTransaction(payload['id'].toString());
             }
