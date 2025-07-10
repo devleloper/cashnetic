@@ -94,6 +94,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTransaction(int id) =>
       (delete(transactions)..where((tbl) => tbl.id.equals(id))).go();
 
+  // Insert or replace (upsert) для транзакции
+  Future<int> insertOrReplaceTransaction(Transaction entry) =>
+      into(transactions).insertOnConflictUpdate(entry);
+
   // PendingEvents DAO
   Future<int> insertPendingEvent(PendingEventsCompanion entry) =>
       into(pendingEvents).insert(entry);

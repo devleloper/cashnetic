@@ -169,17 +169,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Получаем выбранный аккаунт из AccountBloc
+    final accountState = context.watch<AccountBloc>().state;
+    int accountId = ALL_ACCOUNTS_ID;
+    if (accountState is AccountLoaded && accountState.accounts.isNotEmpty) {
+      accountId = accountState.selectedAccountId;
+    }
     return BlocProvider(
-      create: (context) =>
-          TransactionsBloc(
-            transactionRepository: getIt<TransactionsRepository>(),
-            categoryRepository: getIt<CategoriesRepository>(),
-          )..add(
-            TransactionsLoad(
-              isIncome: widget.isIncome,
-              accountId: ALL_ACCOUNTS_ID,
-            ),
-          ),
+      create: (context) => TransactionsBloc(
+        transactionRepository: getIt<TransactionsRepository>(),
+        categoryRepository: getIt<CategoriesRepository>(),
+      )..add(TransactionsLoad(isIncome: widget.isIncome, accountId: accountId)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
           if (state is TransactionsLoading) {
@@ -262,7 +262,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       context.read<TransactionsBloc>().add(
                         TransactionsLoad(
                           isIncome: widget.isIncome,
-                          accountId: ALL_ACCOUNTS_ID,
+                          accountId: accountId,
                         ),
                       );
                     },
@@ -285,7 +285,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 context.read<TransactionsBloc>().add(
                   TransactionsLoad(
                     isIncome: widget.isIncome,
-                    accountId: ALL_ACCOUNTS_ID,
+                    accountId: accountId,
                   ),
                 );
                 // Анимация FlyTransactionChip больше не используется

@@ -25,26 +25,74 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
     int? pageSize,
   }) async {
     debugPrint('[TransactionsRepositoryImpl] ENTER getTransactions');
+    List<Transaction> allTransactions = [];
+    final testFrom = DateTime(2000, 1, 1);
+    final testTo = DateTime(2100, 1, 1);
+    if (accountId == ALL_ACCOUNTS_ID) {
+      final accountsResult = await _accountRepo.getAllAccounts();
+      final accounts = accountsResult.fold((_) => <Account>[], (accs) => accs);
+      final ids = accounts.map((a) => a.id).toList();
+      final result = await _transactionRepo.fetchAllTransactionsByPeriod(
+        ids,
+        testFrom,
+        testTo,
+      );
+      allTransactions = result.fold((_) => <Transaction>[], (txs) => txs);
+    } else if (accountId != null) {
+      await _transactionRepo.fetchTransactionsFromApiByPeriod(
+        accountId,
+        testFrom,
+        testTo,
+      );
+    }
     final result = await _transactionRepo.getTransactionsByPeriod(
       accountId ?? ALL_ACCOUNTS_ID,
-      from ?? DateTime.now().subtract(const Duration(days: 30)),
-      to ?? DateTime.now(),
+      testFrom,
+      testTo,
     );
-    final txs = result.fold((_) => <Transaction>[], (txs) => txs);
-    var filtered = txs;
+    var filtered = result.fold((_) => <Transaction>[], (txs) => txs);
+    if (accountId == ALL_ACCOUNTS_ID && allTransactions.isNotEmpty) {
+      filtered = allTransactions;
+    }
     if (categoryId != null) {
       filtered = filtered.where((t) => t.categoryId == categoryId).toList();
     }
     if (page != null && pageSize != null) {
       final start = page * pageSize;
-      final end = start + pageSize;
       filtered = filtered.skip(start).take(pageSize).toList();
     }
     debugPrint(
-      '[TransactionsRepositoryImpl] Returning transactions count: ${filtered.length}',
+      '[TransactionsRepositoryImpl] Returning transactions count:  [33m${filtered.length}  [0m',
     );
     debugPrint('[TransactionsRepositoryImpl] EXIT getTransactions');
     return filtered;
+  }
+
+  /// Получить транзакции по диапазону accountId (от startId до endId включительно)
+  Future<List<Transaction>> fetchTransactionsForAccountRange({
+    required int startId,
+    required int endId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final ids = List.generate(endId - startId + 1, (i) => startId + i);
+    final testFrom = from ?? DateTime(2000, 1, 1);
+    final testTo = to ?? DateTime(2100, 1, 1);
+    final futures = ids
+        .map(
+          (id) => _transactionRepo.fetchTransactionsFromApiByPeriod(
+            id,
+            testFrom,
+            testTo,
+          ),
+        )
+        .toList();
+    final results = await Future.wait(futures);
+    final allTransactions = <Transaction>[];
+    for (final result in results) {
+      result.fold((_) {}, (txs) => allTransactions.addAll(txs));
+    }
+    return allTransactions;
   }
 
   @override

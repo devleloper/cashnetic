@@ -138,4 +138,6 @@ class ApiClient {
       ); // TODO: заменить на TransactionRequestDTO
   Future<Response> deleteTransaction(String id) =>
       _dio.delete('/transactions/$id');
+
+  Dio get dio => _dio;
 }

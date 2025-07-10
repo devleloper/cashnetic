@@ -12,6 +12,7 @@ import 'package:cashnetic/data/models/transaction/transaction.dart';
 import 'dart:convert';
 import 'package:cashnetic/data/mappers/transaction_form_mapper.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
+import '../models/transaction_response/transaction_response.dart';
 
 class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
@@ -237,6 +238,118 @@ class DriftTransactionRepository {
     final toDelete = all.where((t) => t.accountId == accountId).toList();
     for (final t in toDelete) {
       await dbInstance.deleteTransaction(t.id);
+    }
+  }
+
+  // --- API SYNC ---
+  Future<Either<Failure, List<domain.Transaction>>>
+  fetchTransactionsFromApiByPeriod(
+    int accountId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      debugPrint(
+        '[fetchTransactionsFromApiByPeriod] FORCED accountId=1, original= [33m$accountId [0m',
+      );
+      final response = await apiClient.dio.get(
+        '/transactions/account/1/period',
+        queryParameters: {
+          'startDate': startDate.toIso8601String().substring(0, 10),
+          'endDate': endDate.toIso8601String().substring(0, 10),
+        },
+      );
+      final data = response.data as List;
+      final remoteTransactions = <domain.Transaction>[];
+      for (final json in data) {
+        final dto = TransactionResponseDTO.fromJson(json);
+        final domainOrFailure = dto.toDomain();
+        domainOrFailure.fold(
+          (failure) => debugPrint(
+            '[fetchTransactionsFromApiByPeriod] Parse error:  [31m$failure [0m',
+          ),
+          (domainTx) async {
+            // Сохраняем в БД
+            final dbTx = db.Transaction(
+              id: domainTx.id,
+              accountId: domainTx.accountId,
+              categoryId: domainTx.categoryId,
+              amount: domainTx.amount,
+              timestamp: domainTx.timestamp,
+              comment: domainTx.comment,
+              createdAt: domainTx.timeInterval.createdAt,
+              updatedAt: domainTx.timeInterval.updatedAt,
+            );
+            await dbInstance.insertOrReplaceTransaction(dbTx);
+            remoteTransactions.add(domainTx);
+          },
+        );
+      }
+      return Right(remoteTransactions);
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, domain.Transaction>> fetchTransactionFromApiById(
+    int id,
+  ) async {
+    try {
+      final response = await apiClient.getTransaction(id.toString());
+      final data = response.data;
+      final dto = TransactionDTO.fromJson(data);
+      final tx = db.Transaction(
+        id: dto.id,
+        accountId: dto.accountId,
+        categoryId: dto.categoryId,
+        amount: double.tryParse(dto.amount) ?? 0.0,
+        timestamp: DateTime.parse(dto.transactionDate),
+        comment: dto.comment,
+        createdAt: DateTime.parse(dto.createdAt),
+        updatedAt: DateTime.parse(dto.updatedAt),
+      );
+      await dbInstance.insertTransaction(
+        db.TransactionsCompanion(
+          id: Value(tx.id),
+          accountId: Value(tx.accountId),
+          categoryId: Value(tx.categoryId),
+          amount: Value(tx.amount),
+          timestamp: Value(tx.timestamp),
+          comment: Value(tx.comment ?? ''),
+          createdAt: Value(tx.createdAt),
+          updatedAt: Value(tx.updatedAt),
+        ),
+      );
+      return Right(tx.toDomain());
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, List<domain.Transaction>>>
+  fetchAllTransactionsByPeriod(
+    List<int> accountIds,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      final futures = accountIds.map(
+        (accountId) =>
+            fetchTransactionsFromApiByPeriod(accountId, startDate, endDate),
+      );
+      final results = await Future.wait(futures);
+      final allTransactions = <domain.Transaction>[];
+      for (final result in results) {
+        result.fold(
+          (failure) => debugPrint(
+            '[fetchAllTransactionsByPeriod] Error:  [31m$failure [0m',
+          ),
+          (txs) => allTransactions.addAll(txs),
+        );
+      }
+      return Right(allTransactions);
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
     }
   }
 }

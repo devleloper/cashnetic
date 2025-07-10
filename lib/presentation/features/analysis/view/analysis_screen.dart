@@ -22,20 +22,22 @@ class AnalysisScreen extends StatefulWidget {
 
 class _AnalysisScreenState extends State<AnalysisScreen> {
   SyncStatus? _lastSyncStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     if (_lastSyncStatus == syncStatusNotifier.status) return;
     _lastSyncStatus = syncStatusNotifier.status;
     if (syncStatusNotifier.status == SyncStatus.online) {
@@ -53,11 +55,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
