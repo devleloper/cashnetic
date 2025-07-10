@@ -31,6 +31,7 @@ class Categories extends Table {
 // Таблица транзакций
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get clientId => text().nullable()(); // UUID для offline-first
   IntColumn get accountId =>
       integer().customConstraint('REFERENCES accounts(id) NOT NULL')();
   IntColumn get categoryId =>

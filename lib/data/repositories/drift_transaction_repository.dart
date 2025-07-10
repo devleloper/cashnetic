@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:cashnetic/data/mappers/transaction_form_mapper.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
 import '../models/transaction_response/transaction_response.dart';
+import 'package:uuid/uuid.dart';
 
 class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
@@ -26,8 +27,11 @@ class DriftTransactionRepository {
     TransactionForm form,
   ) async {
     try {
+      final uuid = Uuid();
+      final generatedClientId = uuid.v4();
       final id = await dbInstance.insertTransaction(
         db.TransactionsCompanion(
+          clientId: Value(generatedClientId),
           accountId: Value(form.accountId ?? 0),
           categoryId: Value(form.categoryId ?? 0),
           amount: Value(form.amount ?? 0.0),
@@ -37,10 +41,11 @@ class DriftTransactionRepository {
       );
       // Сохраняем событие в pending_events
       final dtoOrFailure = form.toDTO();
-      final payload = dtoOrFailure.fold(
-        (_) => <String, dynamic>{},
-        (dto) => dto.toJson(),
-      );
+      final payload = dtoOrFailure.fold((_) => <String, dynamic>{}, (dto) {
+        final map = dto.toJson();
+        map['clientId'] = generatedClientId;
+        return map;
+      });
       await dbInstance.insertPendingEvent(
         db.PendingEventsCompanion(
           entity: Value('transaction'),
