@@ -64,7 +64,7 @@ class _TransactionsFlyChipState extends State<TransactionsFlyChip>
       animation: _controller,
       builder: (context, child) {
         final pos = _positionAnim.value;
-        // Центр чипа всегда совпадает с pos (центр FAB/экрана)
+        // Chip center always matches pos (center of FAB/screen)
         final left = (pos.dx - 28).clamp(0.0, screenSize.width - 56);
         final top = (pos.dy - 28).clamp(0.0, screenSize.height - 56);
         return Stack(

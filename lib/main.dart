@@ -60,9 +60,9 @@ class _CashneticAppState extends State<CashneticApp> {
   @override
   void initState() {
     super.initState();
-    // Автоматический запуск синхронизации при старте приложения
+    // Automatically start sync on app launch
     Future.microtask(() => _runSync());
-    // Слушаем изменения connectivity
+    // Listen for connectivity changes
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> results,
     ) {
@@ -91,7 +91,7 @@ class _CashneticAppState extends State<CashneticApp> {
   void dispose() {
     _connectivitySubscription.cancel();
     _syncStatusNotifier.dispose();
-    workerManager.dispose(); // Явное завершение всех worker-изолятов
+    workerManager.dispose(); // Explicitly dispose all worker isolates
     super.dispose();
   }
 

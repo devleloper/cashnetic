@@ -114,10 +114,10 @@ class DriftCategoryRepository {
   Future<Either<Failure, List<domain.Category>>> getAllCategories() async {
     debugPrint('[DriftCategoryRepository] ENTER getAllCategories');
     try {
-      // Получаем локальные категории
+      // Get local categories
       final local = await dbInstance.getAllCategories();
       try {
-        // Пробуем загрузить с сервера
+        // Try to load from server
         final response = await apiClient.getCategories();
         final remoteCategories = (response.data as List)
             .map((json) => CategoryDTO.fromJson(json))
@@ -131,9 +131,9 @@ class DriftCategoryRepository {
               ),
             )
             .toList();
-        // Заменяем все локальные категории на серверные
+        // Replace all local categories with server ones
         await dbInstance.replaceAllCategories(remoteCategories);
-        // Удаляем дефолтные категории, если они вдруг остались (edge-case)
+        // Remove default categories if they remain (edge-case)
         final defaultNames = [
           'Продукты',
           'Ремонт',
@@ -163,7 +163,7 @@ class DriftCategoryRepository {
         debugPrint('[DriftCategoryRepository] EXIT getAllCategories (remote)');
         return Right(remoteCategories.map((c) => c.toDomain()).toList());
       } catch (_) {
-        // Если сервер недоступен и локальных категорий нет — только тогда добавляем дефолтные
+        // If server is unavailable and there are no local categories — add defaults
         if (local.isEmpty) {
           await _initDefaultCategories();
           final withDefaults = await dbInstance.getAllCategories();
@@ -211,7 +211,7 @@ class DriftCategoryRepository {
           color: Value(form.color ?? '#E0E0E0'),
         ),
       );
-      // Сохраняем событие в pending_events
+      // Save event to pending_events
       final dto = form.toCreateDTO();
       final payload = dto != null ? dto.toJson() : <String, dynamic>{};
       await dbInstance.insertPendingEvent(
@@ -253,7 +253,7 @@ class DriftCategoryRepository {
         ),
       );
       await dbInstance.updateCategory(updated);
-      // Сохраняем событие в pending_events
+      // Save event to pending_events
       final dto = form.toUpdateDTO(id);
       final payload = dto != null ? dto.toJson() : <String, dynamic>{};
       await dbInstance.insertPendingEvent(
@@ -278,7 +278,7 @@ class DriftCategoryRepository {
   Future<Either<Failure, void>> deleteCategory(int id) async {
     try {
       await dbInstance.deleteCategory(id);
-      // Сохраняем событие в pending_events
+      // Save event to pending_events
       await dbInstance.insertPendingEvent(
         db.PendingEventsCompanion(
           entity: Value('category'),
@@ -299,13 +299,13 @@ class DriftCategoryRepository {
     List<dynamic> allTransactions,
   ) async {
     try {
-      // Проверяем, есть ли транзакции с этой категорией
+      // Check if there are transactions with this category
       final transactions = await dbInstance.getAllTransactions();
       final hasTransactions = transactions.any(
         (t) => t.categoryId == categoryId,
       );
       if (hasTransactions) {
-        return Right(false); // Категория используется, не удаляем
+        return Right(false); // Category is used, do not delete
       }
       await dbInstance.deleteCategory(categoryId);
       return Right(true);

@@ -51,7 +51,7 @@ class _AccountScreenState extends State<AccountScreen> {
       shakeThresholdGravity: 2.2,
     );
     _accelSub = accelerometerEvents.listen((event) {
-      // z < 0 — экран вниз, z > 0 — экран вверх
+      // z < 0 — screen down, z > 0 — screen up
       final isFaceDown = event.z < 0;
       if (_lastFaceDown != null && _lastFaceDown != isFaceDown) {
         setState(() {
@@ -66,7 +66,7 @@ class _AccountScreenState extends State<AccountScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
     syncStatusNotifier.addListener(_onSyncStatusChanged);
     final orientation = MediaQuery.of(context).orientation;
     if (_lastOrientation != null && _lastOrientation != orientation) {

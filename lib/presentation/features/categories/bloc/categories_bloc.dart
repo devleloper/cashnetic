@@ -80,9 +80,8 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     final result = await categoriesRepository.searchCategories(event.query);
     result.fold(
       (failure) {
-        // Не эмитим CategoriesError, просто игнорируем ошибку поиска
-        // Можно добавить лог или обработку через SnackBar в UI
-        // debugPrint('Search error:  [31m [1m${failure.message} [0m');
+        // Don't emit CategoriesError, just ignore search error
+        // You can add log or handle via SnackBar in UI
       },
       (filtered) {
         emit(

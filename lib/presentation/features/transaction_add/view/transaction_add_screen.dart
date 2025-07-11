@@ -154,7 +154,10 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         children: [
           MyListTileRow(
             title: S.of(context).account,
-            value: state.account?.name ?? '—',
+            value:
+                (state.account == null || (state.account!.name.trim().isEmpty))
+                ? S.of(context).account
+                : state.account!.name,
             onTap: isSaving
                 ? () {}
                 : () => _selectAccount(context, state.accounts, state.account),

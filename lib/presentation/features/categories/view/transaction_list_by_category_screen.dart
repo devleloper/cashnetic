@@ -16,7 +16,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Запросим категории, если нужно
+    // Request categories if needed
     context.read<CategoriesBloc>().add(LoadCategories());
     return Scaffold(
       appBar: AppBar(

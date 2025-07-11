@@ -34,7 +34,7 @@ extension DbCategoryMapper on db.Category {
 extension CategoryFormMapper on CategoryForm {
   CategoryDTO toCreateDTO() {
     return CategoryDTO(
-      id: 0, // id не нужен для create, но требуется по модели
+      id: 0, // id not needed for create, but required by model
       name: name ?? '',
       emoji: emoji ?? '',
       isIncome: isIncome ?? false,

@@ -17,9 +17,9 @@ class AccountBalanceChart extends StatefulWidget {
 
 class _AccountBalanceChartState extends State<AccountBalanceChart> {
   AccountChartMode _mode = AccountChartMode.days;
-  DateTime? _selectedMonth; // для режима дней
-  int? _selectedYear; // для режима месяцев
-  int? _lastDialogBarIndex; // чтобы не показывать несколько диалогов подряд
+  DateTime? _selectedMonth; // for day mode
+  int? _selectedYear; // for month mode
+  int? _lastDialogBarIndex; // to avoid showing multiple dialogs in a row
   Timer? _longPressTimer;
 
   List<DailyBalancePoint> get _chartData {
@@ -33,13 +33,13 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
           .toList();
       return points;
     } else {
-      // Группировка по месяцам: суммируем доходы и расходы, отображаем все месяцы выбранного года
+      // Group by months: sum income and expenses, show all months of the selected year
       final byMonth = <String, List<DailyBalancePoint>>{};
       for (final p in widget.points) {
         final key = '${p.date.year}-${p.date.month}';
         byMonth.putIfAbsent(key, () => []).add(p);
       }
-      // Найти минимальную и максимальную дату среди всех транзакций
+      // Find min and max date among all transactions
       final minDate = widget.points
           .map((e) => e.date)
           .reduce((a, b) => a.isBefore(b) ? a : b);
@@ -129,7 +129,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
   @override
   Widget build(BuildContext context) {
     final points = _chartData;
-    // Вычисляем подпись справа
+    // Calculate right label
     String rightLabel = '';
     Widget? rightWidget;
     if (_mode == AccountChartMode.days) {
@@ -200,7 +200,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
                   onChanged: (mode) {
                     setState(() {
                       _mode = mode;
-                      // Сброс выбранного периода при смене режима
+                      // Reset selected period when changing mode
                       if (_mode == AccountChartMode.days) {
                         _selectedYear = null;
                       } else {
@@ -225,7 +225,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: MediaQuery.of(context).size.width, // всегда на всю ширину
+              width: MediaQuery.of(context).size.width, // always full width
               height: 300,
               child: BarChart(
                 BarChartData(
@@ -292,7 +292,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
                       }
                       final idx = response.spot!.touchedBarGroupIndex;
                       if (_lastDialogBarIndex == idx) return;
-                      // Показываем AlertDialog только если палец удерживается 400 мс
+                      // Show AlertDialog only if finger is held for 400 ms
                       if (event is FlLongPressEnd || event is FlTapUpEvent) {
                         _longPressTimer?.cancel();
                         return;
@@ -323,7 +323,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
                             return const SizedBox.shrink();
                           final dt = points[idx].date;
                           if (_mode == AccountChartMode.days) {
-                            // Подписи только под днями с транзакциями
+                            // Labels only under days with transactions
                             return SizedBox(
                               width: 40,
                               child: SideTitleWidget(
@@ -339,7 +339,7 @@ class _AccountBalanceChartState extends State<AccountBalanceChart> {
                               ),
                             );
                           } else {
-                            // Для месяцев — подпись ММ.ГГ
+                            // For months — label MM.YY
                             return SizedBox(
                               width: 40,
                               child: SideTitleWidget(

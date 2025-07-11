@@ -26,10 +26,10 @@ final getIt = GetIt.instance;
 void setupDependencies() {
   getIt.registerLazySingleton<AppDatabase>(() => AppDatabase());
 
-  // Регистрация ApiClient
+  // Register ApiClient
   getIt.registerLazySingleton<ApiClient>(() => ApiClient());
 
-  // Регистрация SyncManager
+  // Register SyncManager
   getIt.registerLazySingleton<SyncManager>(
     () => SyncManager(getIt<AppDatabase>(), getIt<ApiClient>()),
   );

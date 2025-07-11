@@ -18,11 +18,11 @@ class CategorySearchField extends StatefulWidget {
 class _CategorySearchFieldState extends State<CategorySearchField>
     with SingleTickerProviderStateMixin {
   late FocusNode _focusNode;
-  // --- Анимация крестика: контроллер, fade и вращение ---
+  // --- Cross icon animation: controller, fade, and rotation ---
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<double> _rotationAnim;
-  // --- Конец: анимация крестика ---
+  // --- End: cross icon animation ---
   bool _isFocused = false;
 
   @override
@@ -30,7 +30,7 @@ class _CategorySearchFieldState extends State<CategorySearchField>
     super.initState();
     _focusNode = FocusNode();
     _focusNode.addListener(_handleFocusChange);
-    // --- Инициализация анимации крестика ---
+    // --- Cross icon animation initialization ---
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
@@ -40,19 +40,19 @@ class _CategorySearchFieldState extends State<CategorySearchField>
       curve: Curves.easeInOut,
     );
     _rotationAnim = Tween<double>(begin: -0.5, end: 0.0).animate(_fadeAnim);
-    // --- Конец инициализации анимации ---
+    // --- End of animation initialization ---
   }
 
   void _handleFocusChange() {
     setState(() {
       _isFocused = _focusNode.hasFocus;
-      // --- Запуск анимации крестика ---
+      // --- Start cross icon animation ---
       if (_isFocused) {
         _animController.forward();
       } else {
         _animController.reverse();
       }
-      // --- Конец запуска анимации ---
+      // --- End of animation start ---
     });
   }
 
@@ -60,9 +60,9 @@ class _CategorySearchFieldState extends State<CategorySearchField>
   void dispose() {
     _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
-    // --- Освобождение ресурсов анимации ---
+    // --- Dispose animation resources ---
     _animController.dispose();
-    // --- Конец освобождения ресурсов анимации ---
+    // --- End of resource disposal ---
     super.dispose();
   }
 

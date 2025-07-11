@@ -3,7 +3,7 @@ class Category {
   final String name;
   final String emoji;
   final bool isIncome;
-  final String color; // hex-код цвета
+  final String color; // hex color code
 
   Category({
     required this.id,

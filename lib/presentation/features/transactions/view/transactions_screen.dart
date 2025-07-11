@@ -42,7 +42,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
     syncStatusNotifier.addListener(_onSyncStatusChanged);
   }
 
@@ -169,7 +169,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Получаем выбранный аккаунт из AccountBloc
+    // Get selected account from AccountBloc
     final accountState = context.watch<AccountBloc>().state;
     int accountId = ALL_ACCOUNTS_ID;
     if (accountState is AccountLoaded && accountState.accounts.isNotEmpty) {
@@ -227,7 +227,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     categories: categories,
                     isIncome: widget.isIncome,
                     onTap: (t, cat) async {
-                      // Получаем имя и валюту аккаунта из AccountBloc
+                      // Get account name and currency from AccountBloc
                       String accountName = S.of(context).account;
                       String currency = 'RUB';
                       final accountState = context.read<AccountBloc>().state;
@@ -239,7 +239,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         accountName = acc.name;
                         currency = acc.moneyDetails.currency;
                       }
-                      // Открыть экран редактирования операции модально
+                      // Open transaction edit screen as modal
                       await showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -288,7 +288,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     accountId: accountId,
                   ),
                 );
-                // Анимация FlyTransactionChip больше не используется
+                // FlyTransactionChip animation is no longer used
               },
               child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),

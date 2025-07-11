@@ -14,6 +14,7 @@ import 'package:cashnetic/data/api_client.dart';
 import 'package:cashnetic/data/models/account/account.dart';
 import 'dart:convert';
 import 'package:cashnetic/data/mappers/account_form_mapper.dart';
+import 'package:uuid/uuid.dart';
 
 class DriftAccountRepository {
   final db.AppDatabase dbInstance;
@@ -23,29 +24,59 @@ class DriftAccountRepository {
 
   Future<Either<Failure, List<domain.Account>>> getAllAccounts() async {
     try {
-      // 1. Получаем локально
+      // 1. Get local accounts
       final local = await dbInstance.getAllAccounts();
-      // 2. Пробуем обновить с сервера
+      // 2. Try to update from server
       try {
         final response = await apiClient.getAccounts();
         final remoteAccounts = (response.data as List)
             .map((json) => AccountDTO.fromJson(json))
-            .map(
-              (dto) => db.Account(
-                id: dto.id,
-                name: dto.name,
-                currency: dto.currency,
-                balance: double.tryParse(dto.balance) ?? 0.0,
-                createdAt: DateTime.parse(dto.createdAt),
-                updatedAt: DateTime.parse(dto.updatedAt),
-              ),
-            )
             .toList();
-        // 3. Обновляем локальную БД
-        await dbInstance.replaceAllAccounts(remoteAccounts);
-        return Right(remoteAccounts.map((a) => a.toDomain()).toList());
+        // 3. Map clientId <-> serverId
+        for (final remoteDto in remoteAccounts) {
+          if (remoteDto.clientId != null) {
+            // Find local account with this clientId
+            final localAcc =
+                local.where((a) => a.clientId == remoteDto.clientId).isNotEmpty
+                ? local.firstWhere((a) => a.clientId == remoteDto.clientId)
+                : null;
+            if (localAcc != null && localAcc.id != remoteDto.id) {
+              // Update id for account and all related transactions
+              await dbInstance.updateAccount(
+                localAcc.copyWith(id: remoteDto.id),
+              );
+              // Update accountId for all transactions
+              final allTx = await dbInstance.getAllTransactions();
+              for (final tx in allTx) {
+                if (tx.accountId == localAcc.id) {
+                  await dbInstance.updateTransaction(
+                    tx.copyWith(accountId: remoteDto.id),
+                  );
+                }
+              }
+            }
+          }
+        }
+        // 4. Insert server accounts (insertOnConflictUpdate)
+        for (final dto in remoteAccounts) {
+          final acc = db.Account(
+            id: dto.id,
+            clientId: dto.clientId,
+            name: dto.name,
+            currency: dto.currency,
+            balance: double.tryParse(dto.balance) ?? 0.0,
+            createdAt: DateTime.parse(dto.createdAt),
+            updatedAt: DateTime.parse(dto.updatedAt),
+          );
+          await dbInstance
+              .into(dbInstance.accounts)
+              .insertOnConflictUpdate(acc);
+        }
+        // 5. Return merged list
+        final all = await dbInstance.getAllAccounts();
+        return Right(all.map((a) => a.toDomain()).toList());
       } catch (_) {
-        // 4. Если ошибка — возвращаем локальные данные
+        // 6. If error — return local data
         return Right(local.map((e) => e.toDomain()).toList());
       }
     } catch (e) {
@@ -57,19 +88,24 @@ class DriftAccountRepository {
     AccountForm account,
   ) async {
     try {
+      final uuid = Uuid();
+      final generatedClientId = uuid.v4();
       final id = await dbInstance.insertAccount(
         db.AccountsCompanion(
+          clientId: Value(generatedClientId),
           name: Value(account.name ?? ''),
           currency: Value(account.moneyDetails?.currency ?? 'RUB'),
           balance: Value(account.moneyDetails?.balance ?? 0.0),
         ),
       );
       // Сохраняем событие в pending_events
+      final payload = account.toCreateDTO().toJson();
+      payload['clientId'] = generatedClientId;
       await dbInstance.insertPendingEvent(
         db.PendingEventsCompanion(
           entity: Value('account'),
           type: Value('create'),
-          payload: Value(jsonEncode(account.toCreateDTO().toJson())),
+          payload: Value(jsonEncode(payload)),
           createdAt: Value(DateTime.now()),
           status: Value('pending'),
         ),
@@ -140,7 +176,7 @@ class DriftAccountRepository {
   }
 
   Future<Either<Failure, AccountHistory>> getAccountHistory(int id) async {
-    // TODO: Реализовать историю аккаунта (например, выборка транзакций по аккаунту)
+    // TODO: Implement account history (e.g., select transactions by account)
     return Left(RepositoryFailure('Not implemented'));
   }
 

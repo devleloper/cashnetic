@@ -29,7 +29,24 @@ class SyncManager {
           case 'account':
             final dto = AccountRequestDTO.fromJson(payload);
             if (event.type == 'create') {
-              await api.createAccount(dto);
+              final response = await api.createAccount(dto);
+              final serverData = response.data;
+              final serverId = serverData['id'];
+              final localId = payload['id'];
+              if (serverId != null && localId != null) {
+                // Update accountId for all transactions that referenced the local id
+                await db.customUpdate(
+                  'UPDATE transactions SET account_id = ? WHERE account_id = ?',
+                  variables: [
+                    Variable.withInt(serverId),
+                    Variable.withInt(localId),
+                  ],
+                  updates: {db.transactions},
+                );
+                debugPrint(
+                  '[SyncManager] Updated local transactions accountId=$localId → serverId=$serverId',
+                );
+              }
             } else if (event.type == 'update') {
               await api.updateAccount(payload['id'].toString(), dto);
             } else if (event.type == 'delete') {
@@ -54,7 +71,7 @@ class SyncManager {
               final serverId = serverData['id'];
               final clientId = payload['clientId'];
               if (clientId != null && serverId != null) {
-                // Обновляем локальную транзакцию: ищем по clientId, обновляем id
+                // Update local transaction: find by clientId, update id
                 final tx = await db
                     .customSelect(
                       'SELECT * FROM transactions WHERE client_id = ? LIMIT 1',
@@ -81,7 +98,7 @@ class SyncManager {
               if (id != null) {
                 await api.updateTransaction(id.toString(), dto);
               } else if (clientId != null) {
-                // Ищем локально по clientId, если нет serverId
+                // Find locally by clientId if no serverId
                 final tx = await db
                     .customSelect(
                       'SELECT * FROM transactions WHERE client_id = ? LIMIT 1',
@@ -163,7 +180,7 @@ class SyncManager {
         await db.updatePendingEventStatus(event.id, 'synced');
         await db.deletePendingEvent(event.id);
       } catch (e) {
-        // Оставляем статус failed
+        // Keep status as failed
       }
     }
   }

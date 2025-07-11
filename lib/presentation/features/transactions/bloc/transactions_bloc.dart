@@ -86,7 +86,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     if (event.sort == TransactionsSort.amount) {
       sorted.sort((a, b) => b.amount.compareTo(a.amount));
     } else {
-      // Сортировка по дате и времени транзакции (timestamp)
+      // Sort by transaction date and time (timestamp)
       sorted.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     }
     emit(
@@ -105,7 +105,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     TransactionsChangePeriod event,
     Emitter<TransactionsState> emit,
   ) async {
-    // Звёздочка: корректировка дат
+    // Star: adjust dates
     DateTime start = event.startDate;
     DateTime end = event.endDate;
     if (end.isBefore(start)) {

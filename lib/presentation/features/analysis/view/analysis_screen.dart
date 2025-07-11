@@ -84,7 +84,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             return bd.compareTo(ad);
           });
 
-        // Синхронизированный список для графика и легенды
+        // Synced list for chart and legend
         final chartSections = result.data
             .map(
               (c) => AnalysisPieChartData(
@@ -183,7 +183,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   }
 }
 
-// Делегат для закреплённой легенды
+// Delegate for pinned legend
 class _LegendHeaderDelegate extends SliverPersistentHeaderDelegate {
   final Widget child;
   _LegendHeaderDelegate({required this.child});

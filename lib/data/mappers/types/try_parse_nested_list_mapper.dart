@@ -5,7 +5,7 @@ import 'package:cashnetic/domain/failures/parsing_failure.dart';
 Either<Failure, List<T>> tryParseNestedList<T>(
   Iterable<Either<Failure, T>> list,
 ) {
-  // собирает все успешные Right значения, но если хоть один Left — возвращает его.
+  // Collects all successful Right values, but if any Left — returns it.
   final result = <T>[];
   for (final either in list) {
     if (either.isLeft()) {

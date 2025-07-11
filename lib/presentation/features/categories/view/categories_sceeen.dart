@@ -60,7 +60,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       });
     }
     final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // на всякий случай
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
     syncStatusNotifier.addListener(_onSyncStatusChanged);
   }
 
@@ -104,7 +104,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
-              // 1. Фоновый контент — список категорий
+              // 1. Background content — category list
               Positioned.fill(
                 child: categories.isEmpty
                     ? Center(
@@ -134,7 +134,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         },
                       ),
               ),
-              // 2. LiquidGlass поверх контента, SearchField поверх LiquidGlass
+              // 2. LiquidGlass above content, SearchField above LiquidGlass
               Positioned(
                 top: 24,
                 left: 16,

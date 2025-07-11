@@ -35,7 +35,16 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           emit(AccountError('No accounts'));
           return;
         }
-        final selected = accounts.first;
+        // Check if the selected account exists in the new list
+        int? prevSelectedId;
+        if (state is AccountLoaded) {
+          prevSelectedId = (state as AccountLoaded).selectedAccountId;
+        }
+        final selected =
+            (prevSelectedId != null &&
+                accounts.any((a) => a.id == prevSelectedId))
+            ? accounts.firstWhere((a) => a.id == prevSelectedId)
+            : accounts.first;
         final dailyPoints = await accountRepository.buildDailyPoints(
           selected.id,
         );
@@ -179,7 +188,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         .where((a) => event.accountIds.contains(a.id))
         .toList();
     if (selectedAccounts.isEmpty) return;
-    // Для каждого счета вычисляем его dailyPoints и computedBalance
+    // Calculate dailyPoints and computedBalance for each account
     final Map<int, List<DailyBalancePoint>> accountPoints = {};
     final Map<int, double> accountBalances = {};
     final Map<String, double> aggregatedBalances = {};
@@ -189,7 +198,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       final computed = accountRepository.computeBalance(acc, points);
       accountPoints[acc.id] = points;
       accountBalances[acc.id] = computed;
-      // агрегируем по валютам
+      // Aggregate by currency
       final currency = acc.moneyDetails.currency;
       aggregatedBalances[currency] =
           (aggregatedBalances[currency] ?? 0) + computed;
@@ -197,9 +206,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         selectedCurrencies.add(currency);
       }
     }
-    // Для отображения account используем первый выбранный
+    // Use the first selected account for display
     final selected = selectedAccounts.first;
-    // dailyPoints агрегируем по дням (если нужно для графика)
+    // Aggregate dailyPoints by day (for chart)
     List<DailyBalancePoint> aggregatedPoints = [];
     if (accountPoints.isNotEmpty) {
       final anyPoints = accountPoints.values.first;
@@ -214,7 +223,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         return DailyBalancePoint(date, income, expense);
       });
     }
-    // computedBalance — сумма по всем выбранным счетам
+    // computedBalance is the sum for all selected accounts
     final computedBalance = accountBalances.values.fold<double>(
       0,
       (a, b) => a + b,

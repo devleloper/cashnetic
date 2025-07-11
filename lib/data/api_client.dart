@@ -7,7 +7,7 @@ import 'package:cashnetic/data/models/account_create/account_request.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_request/transaction_request.dart';
 
-/// Singleton Dio client с авторизацией и логированием
+/// Singleton Dio client with auth and logging
 class DioProvider {
   static final Dio _dio =
       Dio(
@@ -27,7 +27,7 @@ class DioProvider {
   static Dio get dio => _dio;
 }
 
-/// Интерцептор для подстановки Bearer Token
+/// Interceptor for Bearer Token injection
 class _AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -99,7 +99,7 @@ List<dynamic> _parseListInIsolate(String jsonStr) {
   return jsonDecode(jsonStr) as List<dynamic>;
 }
 
-/// Базовый API-клиент
+/// Base API client
 class ApiClient {
   final Dio _dio;
   ApiClient([Dio? dio]) : _dio = dio ?? DioProvider.dio;

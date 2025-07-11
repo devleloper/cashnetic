@@ -21,6 +21,17 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -80,6 +91,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    clientId,
     name,
     currency,
     balance,
@@ -100,6 +112,12 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -148,6 +166,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -179,6 +201,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
 
 class Account extends DataClass implements Insertable<Account> {
   final int id;
+  final String? clientId;
   final String name;
   final String currency;
   final double balance;
@@ -186,6 +209,7 @@ class Account extends DataClass implements Insertable<Account> {
   final DateTime updatedAt;
   const Account({
     required this.id,
+    this.clientId,
     required this.name,
     required this.currency,
     required this.balance,
@@ -196,6 +220,9 @@ class Account extends DataClass implements Insertable<Account> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || clientId != null) {
+      map['client_id'] = Variable<String>(clientId);
+    }
     map['name'] = Variable<String>(name);
     map['currency'] = Variable<String>(currency);
     map['balance'] = Variable<double>(balance);
@@ -207,6 +234,9 @@ class Account extends DataClass implements Insertable<Account> {
   AccountsCompanion toCompanion(bool nullToAbsent) {
     return AccountsCompanion(
       id: Value(id),
+      clientId: clientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientId),
       name: Value(name),
       currency: Value(currency),
       balance: Value(balance),
@@ -222,6 +252,7 @@ class Account extends DataClass implements Insertable<Account> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Account(
       id: serializer.fromJson<int>(json['id']),
+      clientId: serializer.fromJson<String?>(json['clientId']),
       name: serializer.fromJson<String>(json['name']),
       currency: serializer.fromJson<String>(json['currency']),
       balance: serializer.fromJson<double>(json['balance']),
@@ -234,6 +265,7 @@ class Account extends DataClass implements Insertable<Account> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'clientId': serializer.toJson<String?>(clientId),
       'name': serializer.toJson<String>(name),
       'currency': serializer.toJson<String>(currency),
       'balance': serializer.toJson<double>(balance),
@@ -244,6 +276,7 @@ class Account extends DataClass implements Insertable<Account> {
 
   Account copyWith({
     int? id,
+    Value<String?> clientId = const Value.absent(),
     String? name,
     String? currency,
     double? balance,
@@ -251,6 +284,7 @@ class Account extends DataClass implements Insertable<Account> {
     DateTime? updatedAt,
   }) => Account(
     id: id ?? this.id,
+    clientId: clientId.present ? clientId.value : this.clientId,
     name: name ?? this.name,
     currency: currency ?? this.currency,
     balance: balance ?? this.balance,
@@ -260,6 +294,7 @@ class Account extends DataClass implements Insertable<Account> {
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
       id: data.id.present ? data.id.value : this.id,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
       name: data.name.present ? data.name.value : this.name,
       currency: data.currency.present ? data.currency.value : this.currency,
       balance: data.balance.present ? data.balance.value : this.balance,
@@ -272,6 +307,7 @@ class Account extends DataClass implements Insertable<Account> {
   String toString() {
     return (StringBuffer('Account(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('balance: $balance, ')
@@ -283,12 +319,13 @@ class Account extends DataClass implements Insertable<Account> {
 
   @override
   int get hashCode =>
-      Object.hash(id, name, currency, balance, createdAt, updatedAt);
+      Object.hash(id, clientId, name, currency, balance, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Account &&
           other.id == this.id &&
+          other.clientId == this.clientId &&
           other.name == this.name &&
           other.currency == this.currency &&
           other.balance == this.balance &&
@@ -298,6 +335,7 @@ class Account extends DataClass implements Insertable<Account> {
 
 class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<int> id;
+  final Value<String?> clientId;
   final Value<String> name;
   final Value<String> currency;
   final Value<double> balance;
@@ -305,6 +343,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<DateTime> updatedAt;
   const AccountsCompanion({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     this.name = const Value.absent(),
     this.currency = const Value.absent(),
     this.balance = const Value.absent(),
@@ -313,6 +352,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     required String name,
     required String currency,
     this.balance = const Value.absent(),
@@ -322,6 +362,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
        currency = Value(currency);
   static Insertable<Account> custom({
     Expression<int>? id,
+    Expression<String>? clientId,
     Expression<String>? name,
     Expression<String>? currency,
     Expression<double>? balance,
@@ -330,6 +371,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (clientId != null) 'client_id': clientId,
       if (name != null) 'name': name,
       if (currency != null) 'currency': currency,
       if (balance != null) 'balance': balance,
@@ -340,6 +382,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 
   AccountsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? clientId,
     Value<String>? name,
     Value<String>? currency,
     Value<double>? balance,
@@ -348,6 +391,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   }) {
     return AccountsCompanion(
       id: id ?? this.id,
+      clientId: clientId ?? this.clientId,
       name: name ?? this.name,
       currency: currency ?? this.currency,
       balance: balance ?? this.balance,
@@ -361,6 +405,9 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -384,6 +431,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   String toString() {
     return (StringBuffer('AccountsCompanion(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('balance: $balance, ')
@@ -1693,6 +1741,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$AccountsTableCreateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       required String name,
       required String currency,
       Value<double> balance,
@@ -1702,6 +1751,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
 typedef $$AccountsTableUpdateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       Value<String> name,
       Value<String> currency,
       Value<double> balance,
@@ -1743,6 +1793,11 @@ class $$AccountsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1811,6 +1866,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -1848,6 +1908,9 @@ class $$AccountsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -1919,6 +1982,7 @@ class $$AccountsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<double> balance = const Value.absent(),
@@ -1926,6 +1990,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
+                clientId: clientId,
                 name: name,
                 currency: currency,
                 balance: balance,
@@ -1935,6 +2000,7 @@ class $$AccountsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 required String name,
                 required String currency,
                 Value<double> balance = const Value.absent(),
@@ -1942,6 +2008,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
+                clientId: clientId,
                 name: name,
                 currency: currency,
                 balance: balance,

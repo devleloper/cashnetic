@@ -39,7 +39,7 @@ class DriftTransactionRepository {
           comment: Value(form.comment ?? ''),
         ),
       );
-      // Сохраняем событие в pending_events
+      // Save event in pending_events
       final dtoOrFailure = form.toDTO();
       final payload = dtoOrFailure.fold((_) => <String, dynamic>{}, (dto) {
         final map = dto.toJson();
@@ -97,7 +97,7 @@ class DriftTransactionRepository {
         updatedAt: DateTime.now(),
       );
       await dbInstance.updateTransaction(updated);
-      // Сохраняем событие в pending_events
+      // Save event in pending_events
       final dtoOrFailure = form.toDTO();
       final payload = dtoOrFailure.fold((_) => <String, dynamic>{}, (dto) {
         final map = dto.toJson();
@@ -126,7 +126,7 @@ class DriftTransactionRepository {
   Future<Either<Failure, void>> deleteTransaction(int id) async {
     try {
       await dbInstance.deleteTransaction(id);
-      // Сохраняем событие в pending_events
+      // Save event in pending_events
       await dbInstance.insertPendingEvent(
         db.PendingEventsCompanion(
           entity: Value('transaction'),
@@ -155,15 +155,25 @@ class DriftTransactionRepository {
       debugPrint(
         '[DriftTransactionRepository] All transactions count:  [33m${all.length} [0m',
       );
-      final filtered = all
-          .where(
-            (t) =>
-                (accountId == ALL_ACCOUNTS_ID || t.accountId == accountId) &&
-                t.timestamp.isAfter(startDate) &&
-                t.timestamp.isBefore(endDate),
-          )
-          .map(_mapDbToDomain)
-          .toList();
+      List<db.Transaction> filtered;
+      if (accountId == ALL_ACCOUNTS_ID) {
+        filtered = all
+            .where(
+              (t) =>
+                  t.timestamp.isAfter(startDate) &&
+                  t.timestamp.isBefore(endDate),
+            )
+            .toList();
+      } else {
+        filtered = all
+            .where(
+              (t) =>
+                  t.accountId == accountId &&
+                  t.timestamp.isAfter(startDate) &&
+                  t.timestamp.isBefore(endDate),
+            )
+            .toList();
+      }
       debugPrint(
         '[DriftTransactionRepository] Filtered transactions count: ${filtered.length}',
       );
@@ -173,7 +183,7 @@ class DriftTransactionRepository {
         );
       }
       debugPrint('[DriftTransactionRepository] EXIT getTransactionsByPeriod');
-      return Right(filtered);
+      return Right(filtered.map(_mapDbToDomain).toList());
     } catch (e) {
       debugPrint(
         '[DriftTransactionRepository] ERROR in getTransactionsByPeriod: ${e.toString()}',
@@ -202,8 +212,20 @@ class DriftTransactionRepository {
               ),
             )
             .toList();
-        await dbInstance.replaceAllTransactions(remoteTransactions);
-        return Right(remoteTransactions.map((t) => t.toDomain()).toList());
+        // 1. Find local unsynced transactions (clientId != null && id == null or id not in remote)
+        final remoteIds = remoteTransactions.map((t) => t.id).toSet();
+        final unsynced = local
+            .where((t) => t.id == null || !remoteIds.contains(t.id))
+            .toList();
+        // 2. Insert server transactions (insertOnConflictUpdate)
+        for (final tx in remoteTransactions) {
+          await dbInstance
+              .into(dbInstance.transactions)
+              .insertOnConflictUpdate(tx);
+        }
+        // 3. Return merged list
+        final all = await dbInstance.getAllTransactions();
+        return Right(all.map((t) => t.toDomain()).toList());
       } catch (_) {
         return Right(local.map((e) => e.toDomain()).toList());
       }
@@ -274,7 +296,7 @@ class DriftTransactionRepository {
             '[fetchTransactionsFromApiByPeriod] Parse error:  [31m$failure [0m',
           ),
           (domainTx) async {
-            // Сохраняем в БД
+            // Save to DB
             final dbTx = db.Transaction(
               id: domainTx.id,
               accountId: domainTx.accountId,

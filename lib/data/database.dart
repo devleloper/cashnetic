@@ -6,12 +6,13 @@ import 'dart:io';
 
 part 'database.g.dart';
 
-// Синглтон базы данных
+// Database singleton
 final appDatabaseSingleton = AppDatabase();
 
-// Таблица счетов
+// Accounts table
 class Accounts extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get clientId => text().nullable()(); // UUID for offline-first
   TextColumn get name => text()();
   TextColumn get currency => text()();
   RealColumn get balance => real().withDefault(const Constant(0.0))();
@@ -19,7 +20,7 @@ class Accounts extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// Таблица категорий
+// Categories table
 class Categories extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
@@ -28,10 +29,10 @@ class Categories extends Table {
   TextColumn get color => text().withDefault(const Constant('#E0E0E0'))();
 }
 
-// Таблица транзакций
+// Transactions table
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get clientId => text().nullable()(); // UUID для offline-first
+  TextColumn get clientId => text().nullable()(); // UUID for offline-first
   IntColumn get accountId =>
       integer().customConstraint('REFERENCES accounts(id) NOT NULL')();
   IntColumn get categoryId =>
@@ -43,7 +44,7 @@ class Transactions extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// Таблица событий для event sourcing
+// Event sourcing table
 class PendingEvents extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get entity => text()(); // account, category, transaction
@@ -95,7 +96,7 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteTransaction(int id) =>
       (delete(transactions)..where((tbl) => tbl.id.equals(id))).go();
 
-  // Insert or replace (upsert) для транзакции
+  // Insert or replace (upsert) for transaction
   Future<int> insertOrReplaceTransaction(Transaction entry) =>
       into(transactions).insertOnConflictUpdate(entry);
 
@@ -112,7 +113,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // Массовая замена аккаунтов (удалить все и вставить новые)
+  // Batch replace accounts (delete all and insert new)
   Future<void> replaceAllAccounts(List<Account> newAccounts) async {
     await batch((batch) {
       batch.deleteWhere(accounts, (_) => const Constant(true));
@@ -120,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  // Массовая замена категорий
+  // Batch replace categories
   Future<void> replaceAllCategories(List<Category> newCategories) async {
     await batch((batch) {
       batch.deleteWhere(categories, (_) => const Constant(true));
@@ -128,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  // Массовая замена транзакций
+  // Batch replace transactions
   Future<void> replaceAllTransactions(List<Transaction> newTransactions) async {
     await batch((batch) {
       batch.deleteWhere(transactions, (_) => const Constant(true));

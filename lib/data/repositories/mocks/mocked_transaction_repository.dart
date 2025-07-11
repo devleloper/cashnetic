@@ -57,7 +57,7 @@ class MockedTransactionRepository {
   Future<Either<Failure, Unit>> deleteTransaction(int id) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
     _transactions.removeAt(index);
     return right(unit);
@@ -66,7 +66,7 @@ class MockedTransactionRepository {
   Future<Either<Failure, Transaction>> getTransactionById(int id) async {
     final transaction = _transactions.where((a) => a.id == id).firstOrNull;
     if (transaction == null) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
     return right(transaction);
   }
@@ -92,7 +92,7 @@ class MockedTransactionRepository {
   ) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
 
     final existing = _transactions[index];
