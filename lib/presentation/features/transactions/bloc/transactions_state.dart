@@ -18,6 +18,7 @@ class TransactionsLoaded extends TransactionsState {
   final DateTime startDate;
   final DateTime endDate;
   final TransactionsSort sort;
+  final bool isLocalFallback;
   const TransactionsLoaded({
     required this.transactions,
     required this.categories,
@@ -25,6 +26,8 @@ class TransactionsLoaded extends TransactionsState {
     required this.startDate,
     required this.endDate,
     required this.sort,
+
+    required this.isLocalFallback,
   });
   @override
   List<Object?> get props => [
@@ -34,6 +37,7 @@ class TransactionsLoaded extends TransactionsState {
     startDate,
     endDate,
     sort,
+    isLocalFallback,
   ];
 }
 

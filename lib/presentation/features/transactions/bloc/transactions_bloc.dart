@@ -6,6 +6,7 @@ import 'package:cashnetic/presentation/features/categories/repositories/categori
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   final TransactionsRepository transactionRepository;
@@ -36,7 +37,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       '[TransactionsBloc] _onLoad: isIncome=${event.isIncome}, accountId=${event.accountId}, start=$start, end=$end',
     );
     emit(TransactionsLoading());
-    final txs = await transactionRepository.getTransactions(
+    final (txs, isLocalFallback) = await transactionRepository.getTransactions(
       accountId: event.accountId,
       from: start,
       to: end,
@@ -72,6 +73,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         startDate: start,
         endDate: end,
         sort: TransactionsSort.date,
+        isLocalFallback: isLocalFallback,
       ),
     );
   }
@@ -97,6 +99,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         startDate: current.startDate,
         endDate: current.endDate,
         sort: event.sort,
+        isLocalFallback: current.isLocalFallback,
       ),
     );
   }
@@ -121,7 +124,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
             : false,
         accountId: (state as TransactionsLoaded).transactions.isNotEmpty
             ? (state as TransactionsLoaded).transactions.first.accountId
-            : 1,
+            : ALL_ACCOUNTS_ID,
         startDate: start,
         endDate: end,
       ),

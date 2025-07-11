@@ -15,6 +15,7 @@ import 'package:cashnetic/data/models/account/account.dart';
 import 'dart:convert';
 import 'package:cashnetic/data/mappers/account_form_mapper.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/foundation.dart';
 
 class DriftAccountRepository {
   final db.AppDatabase dbInstance;
@@ -114,6 +115,9 @@ class DriftAccountRepository {
       if (acc == null) {
         return Left(RepositoryFailure('Account not found after insert'));
       }
+      debugPrint(
+        '[DriftAccountRepository] Created account: id= [33m${acc.id} [0m, clientId=${acc.clientId}',
+      );
       return Right(acc.toDomain());
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));

@@ -142,7 +142,7 @@ class DriftTransactionRepository {
     }
   }
 
-  Future<Either<Failure, List<domain.Transaction>>> getTransactionsByPeriod(
+  Future<(List<domain.Transaction>, bool)> getTransactionsByPeriod(
     int accountId,
     DateTime startDate,
     DateTime endDate,
@@ -183,12 +183,12 @@ class DriftTransactionRepository {
         );
       }
       debugPrint('[DriftTransactionRepository] EXIT getTransactionsByPeriod');
-      return Right(filtered.map(_mapDbToDomain).toList());
+      return (filtered.map(_mapDbToDomain).toList(), false);
     } catch (e) {
       debugPrint(
         '[DriftTransactionRepository] ERROR in getTransactionsByPeriod: ${e.toString()}',
       );
-      return Left(RepositoryFailure(e.toString()));
+      return (<domain.Transaction>[], true);
     }
   }
 

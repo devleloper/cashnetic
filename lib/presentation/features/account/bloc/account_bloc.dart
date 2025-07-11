@@ -8,6 +8,7 @@ import 'package:cashnetic/domain/entities/forms/account_form.dart';
 import 'package:cashnetic/domain/entities/value_objects/money_details.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/di/di.dart';
+import 'package:flutter/foundation.dart';
 
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   final AccountRepository accountRepository = getIt<AccountRepository>();
@@ -28,48 +29,70 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
   ) async {
     emit(AccountLoading());
     final result = await accountRepository.getAllAccounts();
-    await result.fold(
-      (failure) async => emit(AccountError(failure.toString())),
-      (accounts) async {
-        if (accounts.isEmpty) {
-          emit(AccountError('No accounts'));
-          return;
-        }
-        // Check if the selected account exists in the new list
-        int? prevSelectedId;
-        if (state is AccountLoaded) {
-          prevSelectedId = (state as AccountLoaded).selectedAccountId;
-        }
-        final selected =
-            (prevSelectedId != null &&
-                accounts.any((a) => a.id == prevSelectedId))
-            ? accounts.firstWhere((a) => a.id == prevSelectedId)
-            : accounts.first;
-        final dailyPoints = await accountRepository.buildDailyPoints(
-          selected.id,
+    await result.fold((failure) async => emit(AccountError(failure.toString())), (
+      accounts,
+    ) async {
+      if (accounts.isEmpty) {
+        emit(AccountError('No accounts'));
+        return;
+      }
+      int? prevSelectedId;
+      String? prevSelectedClientId;
+      if (state is AccountLoaded) {
+        prevSelectedId = (state as AccountLoaded).selectedAccountId;
+        final prev = (state as AccountLoaded).accounts.isNotEmpty
+            ? (state as AccountLoaded).accounts.firstWhere(
+                (a) => a.id == prevSelectedId,
+                orElse: () => (state as AccountLoaded).account,
+              )
+            : (state as AccountLoaded).account;
+        prevSelectedClientId = prev.clientId;
+      }
+      debugPrint(
+        '[AccountBloc] prevSelectedId= [33m [1m [4m [7m [41m [30m [1m [4m [7m [41m [30m$prevSelectedId [0m, prevSelectedClientId=$prevSelectedClientId',
+      );
+      // Try to find by previous id
+      Account? selected;
+      if (prevSelectedId != null &&
+          accounts.any((a) => a.id == prevSelectedId)) {
+        selected = accounts.firstWhere((a) => a.id == prevSelectedId);
+      } else if (prevSelectedClientId != null && accounts.isNotEmpty) {
+        // Try to find by clientId (after id remapping)
+        selected = accounts.firstWhere(
+          (a) => a.clientId != null && a.clientId == prevSelectedClientId,
+          orElse: () => accounts.first,
         );
-        final computedBalance = accountRepository.computeBalance(
-          selected,
-          dailyPoints,
-        );
-        final aggregatedBalances = {
-          selected.moneyDetails.currency: selected.moneyDetails.balance,
-        };
-        final selectedCurrencies = [selected.moneyDetails.currency];
-        emit(
-          AccountLoaded(
-            account: selected,
-            dailyPoints: dailyPoints,
-            computedBalance: computedBalance,
-            accounts: accounts,
-            selectedAccountId: selected.id,
-            selectedAccountIds: [selected.id],
-            aggregatedBalances: aggregatedBalances,
-            selectedCurrencies: selectedCurrencies,
-          ),
-        );
-      },
-    );
+      } else if (accounts.isNotEmpty) {
+        selected = accounts.first;
+      } else {
+        emit(AccountError('No accounts'));
+        return;
+      }
+      debugPrint(
+        '[AccountBloc] selected.id=${selected.id}, selected.clientId=${selected.clientId}',
+      );
+      final dailyPoints = await accountRepository.buildDailyPoints(selected.id);
+      final computedBalance = accountRepository.computeBalance(
+        selected,
+        dailyPoints,
+      );
+      final aggregatedBalances = {
+        selected.moneyDetails.currency: selected.moneyDetails.balance,
+      };
+      final selectedCurrencies = [selected.moneyDetails.currency];
+      emit(
+        AccountLoaded(
+          account: selected,
+          dailyPoints: dailyPoints,
+          computedBalance: computedBalance,
+          accounts: accounts,
+          selectedAccountId: selected.id,
+          selectedAccountIds: [selected.id],
+          aggregatedBalances: aggregatedBalances,
+          selectedCurrencies: selectedCurrencies,
+        ),
+      );
+    });
   }
 
   Future<void> _onUpdateName(
@@ -150,10 +173,16 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     final currentState = state;
     if (currentState is! AccountLoaded) return;
     final accounts = currentState.accounts;
-    final selected = accounts.firstWhere(
-      (a) => a.id == event.accountId,
-      orElse: () => accounts.first,
-    );
+    final selected = accounts.isNotEmpty
+        ? accounts.firstWhere(
+            (a) => a.id == event.accountId,
+            orElse: () => accounts.first,
+          )
+        : null;
+    if (selected == null) {
+      emit(AccountError('No accounts available'));
+      return;
+    }
     final dailyPoints = await accountRepository.buildDailyPoints(selected.id);
     final computedBalance = accountRepository.computeBalance(
       selected,

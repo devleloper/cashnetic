@@ -53,28 +53,32 @@ class HistoryListView extends StatelessWidget {
                   )
                   .join(', '),
         );
-        final cat = categories.firstWhere(
-          (c) => c.id == e.categoryId,
-          orElse: () => Category(
-            id: 0,
-            name: '—',
-            emoji: '❓',
-            isIncome: false,
-            color: '#E0E0E0',
-          ),
-        );
+        final cat = categories.isNotEmpty
+            ? categories.firstWhere(
+                (c) => c.id == e.categoryId,
+                orElse: () => categories.first,
+              )
+            : null;
         debugPrint(
           '[HistoryListView] Found category: id=' +
-              cat.id.toString() +
+              (cat?.id.toString() ?? 'null') +
               ', name=' +
-              cat.name +
+              (cat?.name ?? '—') +
               ', emoji=' +
-              cat.emoji,
+              (cat?.emoji ?? '❓'),
         );
-        final bgColor = lightColorFor(cat.name);
+        final bgColor = lightColorFor(cat?.name ?? '—');
         return HistoryListItem(
           transaction: e,
-          category: cat,
+          category:
+              cat ??
+              Category(
+                id: 0,
+                name: '—',
+                emoji: '❓',
+                isIncome: false,
+                color: '#E0E0E0',
+              ),
           bgColor: bgColor,
           onEdited: onEdited,
         );

@@ -243,10 +243,12 @@ class TransactionAddBloc
       final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
-      final selected = filtered.firstWhere(
-        (c) => c.name == event.name && c.emoji == event.emoji,
-        orElse: () => filtered.last,
-      );
+      final selected = filtered.isNotEmpty
+          ? filtered.firstWhere(
+              (c) => c.name == event.name && c.emoji == event.emoji,
+              orElse: () => filtered.last,
+            )
+          : throw Exception('No category found');
       emit(
         TransactionAddLoaded(
           categories: filtered,

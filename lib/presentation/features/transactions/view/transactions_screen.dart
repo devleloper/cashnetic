@@ -218,6 +218,21 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
             body: Column(
               children: [
+                if (state.isLocalFallback)
+                  Container(
+                    width: double.infinity,
+                    color: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: const Center(
+                      child: Text(
+                        'Offline mode',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 TransactionsTotalRow(total: total),
 
                 const SizedBox(height: 8),
@@ -231,7 +246,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       String accountName = S.of(context).account;
                       String currency = 'RUB';
                       final accountState = context.read<AccountBloc>().state;
-                      if (accountState is AccountLoaded) {
+                      if (accountState is AccountLoaded &&
+                          accountState.accounts.isNotEmpty) {
                         final acc = accountState.accounts.firstWhere(
                           (a) => a.id == t.accountId,
                           orElse: () => accountState.accounts.first,

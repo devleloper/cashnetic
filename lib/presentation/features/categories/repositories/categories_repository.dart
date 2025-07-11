@@ -72,7 +72,7 @@ class CategoriesRepositoryImpl implements CategoriesRepository {
   Future<Either<Failure, Map<int, List<Transaction>>>>
   getTransactionsByCategory() async {
     try {
-      final txs = await transactionsRepository.getTransactions();
+      final (txs, _) = await transactionsRepository.getTransactions();
       final Map<int, List<Transaction>> byCategory = {};
       for (final tx in txs) {
         if (tx.categoryId != null) {

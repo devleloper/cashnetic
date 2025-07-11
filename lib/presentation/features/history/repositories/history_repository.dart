@@ -39,20 +39,25 @@ class HistoryRepositoryImpl implements HistoryRepository {
     required int page,
     required int pageSize,
   }) async {
-    final txs = await transactionRepository.getTransactions(from: from, to: to);
+    final (txs, _) = await transactionRepository.getTransactions(
+      from: from,
+      to: to,
+    );
     final cats = await categoryRepository.getCategories();
     // Фильтруем по типу
     var filtered = txs.where((t) {
-      final cat = cats.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => Category(
-          id: 0,
-          name: 'Unknown',
-          emoji: '❓',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => cats.first,
+            )
+          : Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       return type == HistoryType.expense
           ? cat.isIncome == false
           : cat.isIncome == true;

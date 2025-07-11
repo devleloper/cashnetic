@@ -20,6 +20,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
 import 'presentation/widgets/widgets.dart';
+import 'presentation/features/account/bloc/account_event.dart';
 
 enum SyncStatus { offline, syncing, online, error }
 
@@ -35,6 +36,8 @@ class SyncStatusNotifier extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,6 +85,11 @@ class _CashneticAppState extends State<CashneticApp> {
       _syncStatusNotifier.setStatus(SyncStatus.online);
       // After going online, perform a full sync with the API
       await getIt<SyncManager>().fullSync();
+      // Dispatch LoadAccount to update account screen with fresh data
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        context.read<AccountBloc>().add(LoadAccount());
+      }
     } catch (e) {
       _syncStatusNotifier.setStatus(
         SyncStatus.error,
@@ -149,6 +157,7 @@ class _CashneticAppState extends State<CashneticApp> {
                   darkTheme: darkThemeData(),
                   themeMode: themeMode,
                   routerConfig: _router.config(),
+
                   builder: (context, child) {
                     if (state is! SettingsLoaded) {
                       return Scaffold(

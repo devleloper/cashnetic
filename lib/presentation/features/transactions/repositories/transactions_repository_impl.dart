@@ -16,7 +16,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
   final _accountRepo = getIt<DriftAccountRepository>();
 
   @override
-  Future<List<Transaction>> getTransactions({
+  Future<(List<Transaction>, bool)> getTransactions({
     int? accountId,
     int? categoryId,
     DateTime? from,
@@ -45,12 +45,15 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         testTo,
       );
     }
-    final result = await _transactionRepo.getTransactionsByPeriod(
+    List<Transaction> filtered = [];
+    bool isLocalFallback = false;
+    final tuple = await _transactionRepo.getTransactionsByPeriod(
       accountId ?? ALL_ACCOUNTS_ID,
       testFrom,
       testTo,
     );
-    var filtered = result.fold((_) => <Transaction>[], (txs) => txs);
+    filtered = tuple.$1;
+    isLocalFallback = tuple.$2;
     if (accountId == ALL_ACCOUNTS_ID && allTransactions.isNotEmpty) {
       filtered = allTransactions;
     }
@@ -65,7 +68,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
       '[TransactionsRepositoryImpl] Returning transactions count:  [33m${filtered.length}  [0m',
     );
     debugPrint('[TransactionsRepositoryImpl] EXIT getTransactions');
-    return filtered;
+    return (filtered, isLocalFallback);
   }
 
   /// Получить транзакции по диапазону accountId (от startId до endId включительно)

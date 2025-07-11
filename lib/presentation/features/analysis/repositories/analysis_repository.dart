@@ -35,22 +35,24 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
 
   @override
   Future<List<int>> getAllAvailableYears(AnalysisType type) async {
-    final txs = await transactionRepository.getTransactions(
+    final (txs, _) = await transactionRepository.getTransactions(
       from: DateTime(2000, 1, 1),
       to: DateTime(2100, 12, 31, 23, 59, 59),
     );
     final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
-      final cat = cats.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => Category(
-          id: 0,
-          name: '',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => cats.first,
+            )
+          : Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       return type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
     }).toList();
     final years = filtered.map((t) => t.timestamp.year).toSet().toList()
@@ -63,22 +65,24 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     final start = DateTime(year, 1, 1);
     final end = DateTime(year, 12, 31, 23, 59, 59);
     final allYears = await getAllAvailableYears(type);
-    final txs = await transactionRepository.getTransactions(
+    final (txs, _) = await transactionRepository.getTransactions(
       from: start,
       to: end,
     );
     final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
-      final cat = cats.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => Category(
-          id: 0,
-          name: '',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => cats.first,
+            )
+          : Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       return type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
     }).toList();
     if (filtered.isEmpty) {
@@ -97,16 +101,15 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     final data = <CategoryChartData>[];
     int colorIdx = 0;
     byCategory.forEach((catId, txs) {
-      final cat = cats.firstWhere(
-        (c) => c.id == catId,
-        orElse: () => Category(
-          id: 0,
-          name: 'Other',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere((c) => c.id == catId, orElse: () => cats.first)
+          : Category(
+              id: 0,
+              name: 'Other',
+              emoji: '',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
       final lastDate = txs.isNotEmpty
@@ -152,23 +155,25 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     for (final year in years) {
       final start = DateTime(year, 1, 1);
       final end = DateTime(year, 12, 31, 23, 59, 59);
-      final txs = await transactionRepository.getTransactions(
+      final (txs, _) = await transactionRepository.getTransactions(
         from: start,
         to: end,
       );
       allTxs.addAll(txs);
     }
     final filtered = allTxs.where((t) {
-      final cat = cats.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => Category(
-          id: 0,
-          name: '',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => cats.first,
+            )
+          : Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       return type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
     }).toList();
     if (filtered.isEmpty) {
@@ -187,16 +192,15 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     final data = <CategoryChartData>[];
     int colorIdx = 0;
     byCategory.forEach((catId, txs) {
-      final cat = cats.firstWhere(
-        (c) => c.id == catId,
-        orElse: () => Category(
-          id: 0,
-          name: 'Other',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere((c) => c.id == catId, orElse: () => cats.first)
+          : Category(
+              id: 0,
+              name: 'Other',
+              emoji: '',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
       final lastDate = txs.isNotEmpty
@@ -229,19 +233,24 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     DateTime to,
     AnalysisType type,
   ) async {
-    final txs = await transactionRepository.getTransactions(from: from, to: to);
+    final (txs, _) = await transactionRepository.getTransactions(
+      from: from,
+      to: to,
+    );
     final cats = await categoryRepository.getCategories();
     final filtered = txs.where((t) {
-      final cat = cats.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => Category(
-          id: 0,
-          name: '',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => cats.first,
+            )
+          : Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       return type == AnalysisType.expense ? !cat.isIncome : cat.isIncome;
     }).toList();
     if (filtered.isEmpty) {
@@ -260,16 +269,15 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
     final data = <CategoryChartData>[];
     int colorIdx = 0;
     byCategory.forEach((catId, txs) {
-      final cat = cats.firstWhere(
-        (c) => c.id == catId,
-        orElse: () => Category(
-          id: 0,
-          name: 'Other',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = cats.isNotEmpty
+          ? cats.firstWhere((c) => c.id == catId, orElse: () => cats.first)
+          : Category(
+              id: 0,
+              name: 'Other',
+              emoji: '',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       final amount = txs.fold<double>(0, (sum, t) => sum + t.amount);
       final percent = total > 0 ? (amount / total) * 100 : 0;
       final lastDate = txs.isNotEmpty

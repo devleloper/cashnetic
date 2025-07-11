@@ -34,16 +34,18 @@ class TransactionsListView extends StatelessWidget {
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final t = transactions[index];
-        final cat = categories.firstWhere(
-          (c) => c.id == t.categoryId,
-          orElse: () => Category(
-            id: 0,
-            name: isIncome ? S.of(context).income : S.of(context).expense,
-            emoji: isIncome ? '💰' : '💸',
-            isIncome: isIncome,
-            color: '#E0E0E0',
-          ),
-        );
+        final cat = categories.isNotEmpty
+            ? categories.firstWhere(
+                (c) => c.id == t.categoryId,
+                orElse: () => categories.first,
+              )
+            : Category(
+                id: 0,
+                name: '—',
+                emoji: '❓',
+                isIncome: false,
+                color: '#E0E0E0',
+              );
         return MyItemListTile(
           transaction: t,
           category: cat,
