@@ -392,35 +392,181 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          height: 18,
-          width: 120,
-          color: Colors.white,
-          margin: const EdgeInsets.symmetric(vertical: 8),
+    return Column(
+      children: [
+        Container(
+          color: const Color(0xFFD9F3DB),
+          padding: const EdgeInsets.only(
+            top: 16,
+            bottom: 8,
+            left: 16,
+            right: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 32,
+                      width: 110,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 32,
+                      width: 110,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 32,
+                      width: 180,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        backgroundColor: Colors.green,
-        leading: Icon(Icons.arrow_back, color: Colors.white),
-        actions: [Icon(Icons.calendar_month, color: Colors.white)],
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: const Color(0xFFD9F3DB),
-            padding: const EdgeInsets.only(
-              top: 16,
-              bottom: 8,
-              left: 16,
-              right: 16,
+        const SizedBox(height: 4),
+        Expanded(child: ShimmerTransactionListPlaceholder(itemCount: 8)),
+      ],
+    );
+  }
+}
+
+/// Shimmer placeholder for analysis screen loading (mimics analysis screen layout)
+class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
+  const ShimmerAnalysisScreenPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Container(
+            color: const Color(0xFFE6F4EA),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: List.generate(
+                2,
+                (i) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 32,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            color: const Color(0xFFE6F4EA),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 16, width: 80, color: Colors.white),
+                    Container(height: 16, width: 100, color: Colors.white),
                     Shimmer.fromColors(
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
@@ -439,7 +585,7 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 16, width: 80, color: Colors.white),
+                    Container(height: 16, width: 100, color: Colors.white),
                     Shimmer.fromColors(
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
@@ -454,243 +600,116 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        height: 32,
-                        width: 180,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(height: 16, width: 60, color: Colors.white),
-                    Container(height: 16, width: 80, color: Colors.white),
+                    Container(height: 16, width: 100, color: Colors.white),
                   ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          Expanded(child: ShimmerTransactionListPlaceholder(itemCount: 8)),
-        ],
-      ),
-    );
-  }
-}
-
-/// Shimmer placeholder for analysis screen loading (mimics analysis screen layout)
-class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
-  const ShimmerAnalysisScreenPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Container(
-          height: 18,
-          width: 140,
-          color: Colors.white,
-          margin: const EdgeInsets.symmetric(vertical: 8),
         ),
-        backgroundColor: Colors.green,
-        leading: const BackButton(color: Colors.white),
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Container(
-              color: const Color(0xFFE6F4EA),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: List.generate(
-                  2,
-                  (i) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      child: Container(
-                        height: 32,
-                        width: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
+        SliverToBoxAdapter(child: SizedBox(height: 32)),
+        // Pie chart placeholder
+        SliverToBoxAdapter(
+          child: Center(
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                width: 180,
+                height: 180,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              color: const Color(0xFFE6F4EA),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: 24)),
+        // Legend placeholder
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: List.generate(
+                4,
+                (i) => Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Row(
                     children: [
-                      Container(height: 16, width: 100, color: Colors.white),
-                      Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          height: 32,
-                          width: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          shape: BoxShape.circle,
                         ),
                       ),
+                      const SizedBox(width: 4),
+                      Container(width: 40, height: 10, color: Colors.white),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(height: 16, width: 100, color: Colors.white),
-                      Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Container(
-                          height: 32,
-                          width: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(height: 16, width: 60, color: Colors.white),
-                      Container(height: 16, width: 100, color: Colors.white),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-          SliverToBoxAdapter(child: SizedBox(height: 32)),
-          // Pie chart placeholder
-          SliverToBoxAdapter(
-            child: Center(
+        ),
+        SliverToBoxAdapter(child: SizedBox(height: 24)),
+        // Category list placeholder
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 2.0,
+              ),
               child: Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
                 highlightColor: Colors.grey[100]!,
-                child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.grey[200],
+                    radius: 22,
+                    child: Container(),
                   ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 60,
-                    height: 60,
+                  title: Container(
+                    height: 14,
+                    width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  subtitle: Container(
+                    height: 12,
+                    width: 60,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
               ),
             ),
+            childCount: 6,
           ),
-          SliverToBoxAdapter(child: SizedBox(height: 24)),
-          // Legend placeholder
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: List.generate(
-                  4,
-                  (i) => Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Container(width: 40, height: 10, color: Colors.white),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: 24)),
-          // Category list placeholder
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 2.0,
-                ),
-                child: Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey[200],
-                      radius: 22,
-                      child: Container(),
-                    ),
-                    title: Container(
-                      height: 14,
-                      width: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    subtitle: Container(
-                      height: 12,
-                      width: 60,
-                      margin: const EdgeInsets.only(top: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              childCount: 6,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

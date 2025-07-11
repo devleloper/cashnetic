@@ -12,6 +12,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'dart:async';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   String _search = '';
   late final TextEditingController _controller;
   SyncStatus? _lastSyncStatus;
+  Completer<void>? _refreshCompleter;
 
   @override
   void initState() {
@@ -83,6 +85,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<CategoriesBloc, CategoriesState>(
       builder: (context, state) {
+        // RefreshIndicator: complete only on Loaded/Error
+        if (_refreshCompleter != null &&
+            (state is CategoriesLoaded || state is CategoriesError)) {
+          _refreshCompleter?.complete();
+          _refreshCompleter = null;
+        }
         if (state is CategoriesLoading) {
           return const Scaffold(body: ShimmerCategoryListPlaceholder());
         }
@@ -105,33 +113,42 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             children: [
               // 1. Background content — category list
               Positioned.fill(
-                child: categories.isEmpty
-                    ? Center(
-                        child: Text(
-                          S.of(context).noCategoriesFoundForYourQuery,
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : CategoryList(
-                        categories: categories,
-                        txByCategory: txByCategory,
-                        onCategoryTap: (cat) async {
-                          context.read<CategoriesBloc>().add(
-                            LoadTransactionsForCategory(cat.id),
-                          );
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => TransactionListByCategoryScreen(
-                                category: cat,
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _refreshCompleter = Completer<void>();
+                    context.read<CategoriesBloc>().add(
+                      InitCategoriesWithTransactions(),
+                    );
+                    return _refreshCompleter!.future;
+                  },
+                  child: categories.isEmpty
+                      ? Center(
+                          child: Text(
+                            S.of(context).noCategoriesFoundForYourQuery,
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : CategoryList(
+                          categories: categories,
+                          txByCategory: txByCategory,
+                          onCategoryTap: (cat) async {
+                            context.read<CategoriesBloc>().add(
+                              LoadTransactionsForCategory(cat.id),
+                            );
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TransactionListByCategoryScreen(
+                                  category: cat,
+                                ),
                               ),
-                            ),
-                          );
-                          context.read<CategoriesBloc>().add(
-                            LoadTransactionsForCategory(cat.id),
-                          );
-                        },
-                      ),
+                            );
+                            context.read<CategoriesBloc>().add(
+                              LoadTransactionsForCategory(cat.id),
+                            );
+                          },
+                        ),
+                ),
               ),
               // 2. LiquidGlass above content, SearchField above LiquidGlass
               Positioned(

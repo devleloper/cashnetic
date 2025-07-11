@@ -35,6 +35,7 @@ class _AccountScreenState extends State<AccountScreen> {
   StreamSubscription<AccelerometerEvent>? _accelSub;
   bool? _lastFaceDown;
   SyncStatus? _lastSyncStatus;
+  Completer<void>? _refreshCompleter;
 
   @override
   void initState() {
@@ -108,6 +109,12 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
       builder: (context, state) {
+        // RefreshIndicator: complete only on Loaded/Error
+        if (_refreshCompleter != null &&
+            (state is AccountLoaded || state is AccountError)) {
+          _refreshCompleter?.complete();
+          _refreshCompleter = null;
+        }
         if (state is AccountLoading) {
           return const ShimmerAccountScreenPlaceholder();
         }
@@ -257,9 +264,16 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: AccountBalanceChart(points: state.dailyPoints),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _refreshCompleter = Completer<void>();
+                    context.read<AccountBloc>().add(LoadAccount());
+                    return _refreshCompleter!.future;
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: AccountBalanceChart(points: state.dailyPoints),
+                  ),
                 ),
               ),
             ],

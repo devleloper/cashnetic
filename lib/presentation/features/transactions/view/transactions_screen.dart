@@ -24,6 +24,7 @@ import 'package:cashnetic/domain/constants/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'dart:async';
 
 @RoutePage()
 class TransactionsScreen extends StatefulWidget {
@@ -38,6 +39,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   final Key historyIconKey = UniqueKey();
   final Key fabKey = UniqueKey();
   SyncStatus? _lastSyncStatus;
+  Completer<void>? _refreshCompleter;
 
   @override
   void didChangeDependencies() {
@@ -183,6 +185,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       )..add(TransactionsLoad(isIncome: widget.isIncome, accountId: accountId)),
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
+          // RefreshIndicator: complete only on Loaded/Error
+          if (_refreshCompleter != null &&
+              (state is TransactionsLoaded || state is TransactionsError)) {
+            _refreshCompleter?.complete();
+            _refreshCompleter = null;
+          }
           if (state is TransactionsLoading) {
             return Scaffold(
               appBar: AppBar(
@@ -281,51 +289,63 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 TransactionsTotalRow(total: total),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: TransactionsListView(
-                    transactions: transactions,
-                    categories: categories,
-                    isIncome: widget.isIncome,
-                    onTap: (t, cat) async {
-                      // Get account name and currency from AccountBloc
-                      String accountName = S.of(context).account;
-                      String currency = 'RUB';
-                      final accountState = context.read<AccountBloc>().state;
-                      if (accountState is AccountLoaded &&
-                          accountState.accounts.isNotEmpty) {
-                        final acc = accountState.accounts.firstWhere(
-                          (a) => a.id == t.accountId,
-                          orElse: () => accountState.accounts.first,
-                        );
-                        accountName = acc.name;
-                        currency = acc.moneyDetails.currency;
-                      }
-                      // Open transaction edit screen as modal
-                      await showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) {
-                          final mq = MediaQuery.of(context);
-                          final maxChildSize =
-                              (mq.size.height - mq.padding.top) /
-                              mq.size.height;
-                          return DraggableScrollableSheet(
-                            initialChildSize: 0.85,
-                            minChildSize: 0.4,
-                            maxChildSize: maxChildSize,
-                            expand: false,
-                            builder: (context, scrollController) =>
-                                TransactionEditScreen(transactionId: t.id),
-                          );
-                        },
-                      );
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      _refreshCompleter = Completer<void>();
                       context.read<TransactionsBloc>().add(
                         TransactionsLoad(
                           isIncome: widget.isIncome,
                           accountId: accountId,
                         ),
                       );
+                      return _refreshCompleter!.future;
                     },
+                    child: TransactionsListView(
+                      transactions: transactions,
+                      categories: categories,
+                      isIncome: widget.isIncome,
+                      onTap: (t, cat) async {
+                        // Get account name and currency from AccountBloc
+                        String accountName = S.of(context).account;
+                        String currency = 'RUB';
+                        final accountState = context.read<AccountBloc>().state;
+                        if (accountState is AccountLoaded &&
+                            accountState.accounts.isNotEmpty) {
+                          final acc = accountState.accounts.firstWhere(
+                            (a) => a.id == t.accountId,
+                            orElse: () => accountState.accounts.first,
+                          );
+                          accountName = acc.name;
+                          currency = acc.moneyDetails.currency;
+                        }
+                        // Open transaction edit screen as modal
+                        await showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) {
+                            final mq = MediaQuery.of(context);
+                            final maxChildSize =
+                                (mq.size.height - mq.padding.top) /
+                                mq.size.height;
+                            return DraggableScrollableSheet(
+                              initialChildSize: 0.85,
+                              minChildSize: 0.4,
+                              maxChildSize: maxChildSize,
+                              expand: false,
+                              builder: (context, scrollController) =>
+                                  TransactionEditScreen(transactionId: t.id),
+                            );
+                          },
+                        );
+                        context.read<TransactionsBloc>().add(
+                          TransactionsLoad(
+                            isIncome: widget.isIncome,
+                            accountId: accountId,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

@@ -12,6 +12,7 @@ import '../widgets/cashnetic_pie_chart_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'dart:async';
 
 class AnalysisScreen extends StatefulWidget {
   final AnalysisType type;
@@ -24,6 +25,7 @@ class AnalysisScreen extends StatefulWidget {
 class _AnalysisScreenState extends State<AnalysisScreen> {
   SyncStatus? _lastSyncStatus;
   SyncStatusNotifier? _syncStatusNotifier;
+  Completer<void>? _refreshCompleter;
 
   @override
   void didChangeDependencies() {
@@ -64,8 +66,27 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<AnalysisBloc, AnalysisState>(
       builder: (context, state) {
+        // RefreshIndicator: complete only on Loaded/Error
+        if (_refreshCompleter != null &&
+            (state is AnalysisLoaded || state is AnalysisError)) {
+          _refreshCompleter?.complete();
+          _refreshCompleter = null;
+        }
         if (state is AnalysisLoading) {
-          return const ShimmerAnalysisScreenPlaceholder();
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                widget.type == AnalysisType.expense
+                    ? S.of(context).expenseAnalysis
+                    : S.of(context).incomeAnalysis,
+                style: const TextStyle(fontSize: 20, color: Colors.white),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.green,
+              leading: const BackButton(color: Colors.white),
+            ),
+            body: const ShimmerAnalysisScreenPlaceholder(),
+          );
         }
         if (state is AnalysisError) {
           return Scaffold(body: Center(child: Text(state.message)));
@@ -106,75 +127,87 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             backgroundColor: Colors.green,
             leading: const BackButton(color: Colors.white),
           ),
-          body: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Container(
-                  color: Color(0xFFE6F4EA),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: AnalysisYearFilterChips(
-                    availableYears: state.availableYears,
-                    selectedYears: selectedYears,
-                    type: widget.type,
-                    onChanged: (newYears) {
-                      context.read<AnalysisBloc>().add(
-                        ChangeYears(years: newYears, type: widget.type),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  color: Color(0xFFE6F4EA),
-                  child: AnalysisPeriodSelector(
-                    periodStart: result.periodStart,
-                    periodEnd: result.periodEnd,
-                    type: widget.type,
-                    onChanged: (from, to) {
-                      context.read<AnalysisBloc>().add(
-                        ChangePeriod(from: from, to: to, type: widget.type),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  color: Color(0xFFE6F4EA),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: AnalysisTotalSummary(total: result.total),
-                ),
-              ),
-              SliverToBoxAdapter(child: SizedBox(height: 42)),
-              if (result.total > 0 && result.data.isNotEmpty)
+          body: RefreshIndicator(
+            onRefresh: () async {
+              _refreshCompleter = Completer<void>();
+              final year = state is AnalysisLoaded
+                  ? state.selectedYear
+                  : DateTime.now().year;
+              context.read<AnalysisBloc>().add(
+                LoadAnalysis(year: year, type: widget.type),
+              );
+              return _refreshCompleter!.future;
+            },
+            child: CustomScrollView(
+              slivers: [
                 SliverToBoxAdapter(
-                  child: CashneticPieChartWidget(data: chartSections),
-                ),
-              SliverToBoxAdapter(child: SizedBox(height: 28)),
-              if (result.data.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: Text(
-                      S.of(context).noDataForAnalysis,
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                  child: Container(
+                    color: Color(0xFFE6F4EA),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: AnalysisYearFilterChips(
+                      availableYears: state.availableYears,
+                      selectedYears: selectedYears,
+                      type: widget.type,
+                      onChanged: (newYears) {
+                        context.read<AnalysisBloc>().add(
+                          ChangeYears(years: newYears, type: widget.type),
+                        );
+                      },
                     ),
                   ),
-                )
-              else
-                AnalysisCategorySliverList(
-                  sortedData: sortedData,
-                  type: widget.type,
                 ),
-            ],
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    color: Color(0xFFE6F4EA),
+                    child: AnalysisPeriodSelector(
+                      periodStart: result.periodStart,
+                      periodEnd: result.periodEnd,
+                      type: widget.type,
+                      onChanged: (from, to) {
+                        context.read<AnalysisBloc>().add(
+                          ChangePeriod(from: from, to: to, type: widget.type),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: Color(0xFFE6F4EA),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: AnalysisTotalSummary(total: result.total),
+                  ),
+                ),
+                SliverToBoxAdapter(child: SizedBox(height: 42)),
+                if (result.total > 0 && result.data.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: CashneticPieChartWidget(data: chartSections),
+                  ),
+                SliverToBoxAdapter(child: SizedBox(height: 28)),
+                if (result.data.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        S.of(context).noDataForAnalysis,
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    ),
+                  )
+                else
+                  AnalysisCategorySliverList(
+                    sortedData: sortedData,
+                    type: widget.type,
+                  ),
+              ],
+            ),
           ),
         );
       },

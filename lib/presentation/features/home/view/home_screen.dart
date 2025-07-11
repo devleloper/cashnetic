@@ -15,6 +15,13 @@ import 'package:cashnetic/di/di.dart';
 import 'dart:developer';
 import 'package:cashnetic/main.dart';
 import 'package:provider/provider.dart';
+import 'package:cashnetic/presentation/features/transactions/bloc/transactions_bloc.dart';
+import 'package:cashnetic/presentation/features/transactions/bloc/transactions_event.dart';
+import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
+import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
+import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -105,94 +112,143 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AutoTabsRouter(
-      routes: [
-        ExpensesTabRoute(),
-        IncomesTabRoute(),
-        AccountRoute(),
-        CategoriesRoute(),
-        SettingsRoute(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<TransactionsBloc>(
+          create: (context) => TransactionsBloc(
+            transactionRepository: getIt<TransactionsRepository>(),
+            categoryRepository: getIt<CategoriesRepository>(),
+          ),
+        ),
+        BlocProvider<CategoriesBloc>(create: (context) => CategoriesBloc()),
       ],
-      builder: (context, child) {
-        final tabsRouter = AutoTabsRouter.of(context);
-        SystemUiOverlayStyle overlayStyle = const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.light,
-          systemNavigationBarColor: Colors.green,
-          systemNavigationBarIconBrightness: Brightness.light,
-          systemNavigationBarDividerColor: Colors.green,
-        );
-        SystemChrome.setSystemUIOverlayStyle(overlayStyle);
+      child: AutoTabsRouter(
+        routes: [
+          ExpensesTabRoute(),
+          IncomesTabRoute(),
+          AccountRoute(),
+          CategoriesRoute(),
+          SettingsRoute(),
+        ],
+        builder: (context, child) {
+          final tabsRouter = AutoTabsRouter.of(context);
+          SystemUiOverlayStyle overlayStyle = const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.green,
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.green,
+          );
+          SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-        return ThemeSwitchingArea(
-          child: Scaffold(
-            appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
-                ? null
-                : _buildAppBar(context, tabsRouter.activeIndex),
-            body: child,
-            bottomNavigationBar: Container(
-              color: Colors.green,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-              child: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: constraints.maxWidth,
-                        ),
-                        child: GNav(
-                          selectedIndex: tabsRouter.activeIndex,
-                          onTabChange: (index) {
-                            tabsRouter.setActiveIndex(index);
-                            if (index == 2) {
-                              context.read<AccountBloc>().add(LoadAccount());
-                            }
-                          },
-                          backgroundColor: Colors.green,
-                          tabBackgroundColor: Colors.white,
-                          activeColor: Colors.green,
-                          color: Colors.white,
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 18,
+          return ThemeSwitchingArea(
+            child: Scaffold(
+              appBar:
+                  (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                  ? null
+                  : _buildAppBar(context, tabsRouter.activeIndex),
+              body: child,
+              bottomNavigationBar: Container(
+                color: Colors.green,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 20,
+                ),
+                child: SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: constraints.maxWidth,
                           ),
-                          gap: 6,
-                          tabs: [
-                            GButton(
-                              icon: Icons.bar_chart,
-                              text: S.of(context).expenses,
+                          child: GNav(
+                            selectedIndex: tabsRouter.activeIndex,
+                            onTabChange: (index) {
+                              tabsRouter.setActiveIndex(index);
+                              final accountState = context
+                                  .read<AccountBloc>()
+                                  .state;
+                              int accountId = -1;
+                              if (accountState is AccountLoaded &&
+                                  accountState.accounts.isNotEmpty) {
+                                accountId = accountState.selectedAccountId;
+                              }
+                              switch (index) {
+                                case 0: // Expenses
+                                  context.read<TransactionsBloc>().add(
+                                    TransactionsLoad(
+                                      isIncome: false,
+                                      accountId: accountId,
+                                    ),
+                                  );
+                                  break;
+                                case 1: // Incomes
+                                  context.read<TransactionsBloc>().add(
+                                    TransactionsLoad(
+                                      isIncome: true,
+                                      accountId: accountId,
+                                    ),
+                                  );
+                                  break;
+                                case 2: // Account
+                                  context.read<AccountBloc>().add(
+                                    LoadAccount(),
+                                  );
+                                  break;
+                                case 3: // Categories
+                                  context.read<CategoriesBloc>().add(
+                                    LoadCategories(),
+                                  );
+                                  break;
+                                // case 4: // Settings — если нужно, добавить событие
+                              }
+                            },
+                            backgroundColor: Colors.green,
+                            tabBackgroundColor: Colors.white,
+                            activeColor: Colors.green,
+                            color: Colors.white,
+                            curve: Curves.easeInOut,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 18,
                             ),
-                            GButton(
-                              icon: Icons.show_chart,
-                              text: S.of(context).income,
-                            ),
-                            GButton(
-                              icon: Icons.account_balance_wallet,
-                              text: S.of(context).account,
-                            ),
-                            GButton(
-                              icon: Icons.list_alt,
-                              text: S.of(context).categories,
-                            ),
-                            GButton(
-                              icon: Icons.settings,
-                              text: S.of(context).settings,
-                            ),
-                          ],
+                            gap: 6,
+                            tabs: [
+                              GButton(
+                                icon: Icons.bar_chart,
+                                text: S.of(context).expenses,
+                              ),
+                              GButton(
+                                icon: Icons.show_chart,
+                                text: S.of(context).income,
+                              ),
+                              GButton(
+                                icon: Icons.account_balance_wallet,
+                                text: S.of(context).account,
+                              ),
+                              GButton(
+                                icon: Icons.list_alt,
+                                text: S.of(context).categories,
+                              ),
+                              GButton(
+                                icon: Icons.settings,
+                                text: S.of(context).settings,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
