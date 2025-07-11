@@ -14,6 +14,7 @@ import 'package:cashnetic/data/mappers/transaction_form_mapper.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
 import '../models/transaction_response/transaction_response.dart';
 import 'package:uuid/uuid.dart';
+import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftTransactionRepository {
   final db.AppDatabase dbInstance;
@@ -97,22 +98,48 @@ class DriftTransactionRepository {
         updatedAt: DateTime.now(),
       );
       await dbInstance.updateTransaction(updated);
-      // Save event in pending_events
-      final dtoOrFailure = form.toDTO();
-      final payload = dtoOrFailure.fold((_) => <String, dynamic>{}, (dto) {
-        final map = dto.toJson();
-        map['id'] = id;
-        return map;
-      });
-      await dbInstance.insertPendingEvent(
-        db.PendingEventsCompanion(
-          entity: Value('transaction'),
-          type: Value('update'),
-          payload: Value(jsonEncode(payload)),
-          createdAt: Value(DateTime.now()),
-          status: Value('pending'),
-        ),
-      );
+      // --- DIFF LOGIC ---
+      final oldJson = TransactionDTO(
+        id: existing.id,
+        accountId: existing.accountId ?? 0,
+        categoryId: existing.categoryId ?? 0,
+        amount: existing.amount.toString(),
+        transactionDate: existing.timestamp.toIso8601String(),
+        comment: existing.comment,
+        createdAt: existing.createdAt.toIso8601String(),
+        updatedAt: existing.updatedAt.toIso8601String(),
+      ).toJson();
+      final newJson = TransactionDTO(
+        id: updated.id,
+        accountId: updated.accountId ?? 0,
+        categoryId: updated.categoryId ?? 0,
+        amount: updated.amount.toString(),
+        transactionDate: updated.timestamp.toIso8601String(),
+        comment: updated.comment,
+        createdAt: updated.createdAt.toIso8601String(),
+        updatedAt: updated.updatedAt.toIso8601String(),
+      ).toJson();
+      final diff = generateDiff(oldJson, newJson);
+      if (diff.isNotEmpty) {
+        diff['id'] = id; // always include id for update
+        await dbInstance.insertPendingEvent(
+          db.PendingEventsCompanion(
+            entity: Value('transaction'),
+            type: Value('update'),
+            payload: Value(jsonEncode(diff)),
+            createdAt: Value(DateTime.now()),
+            status: Value('pending'),
+          ),
+        );
+        debugPrint(
+          '[DriftTransactionRepository] Saved diff to pending_events: ' +
+              diff.toString(),
+        );
+      } else {
+        debugPrint(
+          '[DriftTransactionRepository] No diff detected, nothing to sync',
+        );
+      }
       final tx = await dbInstance.getTransactionById(id);
       if (tx == null) {
         return Left(RepositoryFailure('Transaction not found after update'));

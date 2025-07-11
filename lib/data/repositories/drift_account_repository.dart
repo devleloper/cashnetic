@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'package:cashnetic/data/mappers/account_form_mapper.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftAccountRepository {
   final db.AppDatabase dbInstance;
@@ -165,6 +166,48 @@ class DriftAccountRepository {
         updatedAt: DateTime.now(),
       );
       await dbInstance.updateAccount(updated);
+      // --- DIFF LOGIC ---
+      final oldJson = AccountDTO(
+        id: acc.id,
+        clientId: acc.clientId,
+        userId: 0, // not present in db.Account
+        name: acc.name,
+        balance: acc.balance.toString(),
+        currency: acc.currency,
+        createdAt: acc.createdAt.toIso8601String(),
+        updatedAt: acc.updatedAt.toIso8601String(),
+      ).toJson();
+      final newJson = AccountDTO(
+        id: updated.id,
+        clientId: updated.clientId,
+        userId: 0, // not present in db.Account
+        name: updated.name,
+        balance: updated.balance.toString(),
+        currency: updated.currency,
+        createdAt: updated.createdAt.toIso8601String(),
+        updatedAt: updated.updatedAt.toIso8601String(),
+      ).toJson();
+      final diff = generateDiff(oldJson, newJson);
+      if (diff.isNotEmpty) {
+        diff['id'] = id; // always include id for update
+        await dbInstance.insertPendingEvent(
+          db.PendingEventsCompanion(
+            entity: Value('account'),
+            type: Value('update'),
+            payload: Value(jsonEncode(diff)),
+            createdAt: Value(DateTime.now()),
+            status: Value('pending'),
+          ),
+        );
+        debugPrint(
+          '[DriftAccountRepository] Saved diff to pending_events: ' +
+              diff.toString(),
+        );
+      } else {
+        debugPrint(
+          '[DriftAccountRepository] No diff detected, nothing to sync',
+        );
+      }
       return Right(
         AccountForm(
           name: updated.name,

@@ -56,7 +56,18 @@ class PendingEvents extends Table {
   )(); // pending, syncing, synced, failed
 }
 
-@DriftDatabase(tables: [Accounts, Categories, Transactions, PendingEvents])
+// Sync state table for revision/timestamp tracking
+class SyncState extends Table {
+  TextColumn get entity => text()(); // account, category, transaction
+  TextColumn get lastRevision =>
+      text().nullable()(); // revision or timestamp as string
+  @override
+  Set<Column> get primaryKey => {entity};
+}
+
+@DriftDatabase(
+  tables: [Accounts, Categories, Transactions, PendingEvents, SyncState],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -110,6 +121,20 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updatePendingEventStatus(int id, String status) async {
     await (update(pendingEvents)..where((tbl) => tbl.id.equals(id))).write(
       PendingEventsCompanion(status: Value(status)),
+    );
+  }
+
+  // SyncState DAO
+  Future<String?> getLastRevision(String entity) async {
+    final row = await (select(
+      syncState,
+    )..where((tbl) => tbl.entity.equals(entity))).getSingleOrNull();
+    return row?.lastRevision;
+  }
+
+  Future<void> setLastRevision(String entity, String revision) async {
+    await into(syncState).insertOnConflictUpdate(
+      SyncStateCompanion(entity: Value(entity), lastRevision: Value(revision)),
     );
   }
 

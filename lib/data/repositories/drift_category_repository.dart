@@ -10,6 +10,7 @@ import 'package:cashnetic/data/api_client.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'dart:convert';
 import 'package:cashnetic/domain/entities/forms/category_form.dart';
+import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftCategoryRepository {
   final db.AppDatabase dbInstance;
@@ -253,18 +254,42 @@ class DriftCategoryRepository {
         ),
       );
       await dbInstance.updateCategory(updated);
-      // Save event to pending_events
-      final dto = form.toUpdateDTO(id);
-      final payload = dto != null ? dto.toJson() : <String, dynamic>{};
-      await dbInstance.insertPendingEvent(
-        db.PendingEventsCompanion(
-          entity: Value('category'),
-          type: Value('update'),
-          payload: Value(jsonEncode(payload)),
-          createdAt: Value(DateTime.now()),
-          status: Value('pending'),
-        ),
-      );
+      // --- DIFF LOGIC ---
+      final oldJson = CategoryDTO(
+        id: existing.id,
+        name: existing.name,
+        emoji: existing.emoji,
+        isIncome: existing.isIncome,
+        color: existing.color,
+      ).toJson();
+      final newJson = CategoryDTO(
+        id: updated.id,
+        name: updated.name,
+        emoji: updated.emoji,
+        isIncome: updated.isIncome,
+        color: updated.color,
+      ).toJson();
+      final diff = generateDiff(oldJson, newJson);
+      if (diff.isNotEmpty) {
+        diff['id'] = id; // always include id for update
+        await dbInstance.insertPendingEvent(
+          db.PendingEventsCompanion(
+            entity: Value('category'),
+            type: Value('update'),
+            payload: Value(jsonEncode(diff)),
+            createdAt: Value(DateTime.now()),
+            status: Value('pending'),
+          ),
+        );
+        debugPrint(
+          '[DriftCategoryRepository] Saved diff to pending_events: ' +
+              diff.toString(),
+        );
+      } else {
+        debugPrint(
+          '[DriftCategoryRepository] No diff detected, nothing to sync',
+        );
+      }
       final cat = await dbInstance.getCategoryById(id);
       if (cat == null) {
         return Left(RepositoryFailure('Category not found after update'));

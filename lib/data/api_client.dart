@@ -188,30 +188,45 @@ class ApiClient {
   ApiClient([Dio? dio]) : _dio = dio ?? DioProvider.dio;
 
   // Accounts
-  Future<Response> getAccounts() => _dio.get('/accounts');
+  Future<Response> getAccounts({String? since}) => _dio.get(
+    '/accounts',
+    queryParameters: since != null ? {'since': since} : null,
+  );
   Future<Response> getAccount(String id) => _dio.get('/accounts/$id');
   Future<Response> createAccount(AccountRequestDTO dto) =>
       _dio.post('/accounts', data: dto.toJson());
   Future<Response> updateAccount(String id, AccountRequestDTO dto) =>
       _dio.put('/accounts/$id', data: dto.toJson());
+  Future<Response> patchAccount(String id, Map<String, dynamic> diff) =>
+      _dio.patch('/accounts/$id', data: diff);
   Future<Response> deleteAccount(String id) => _dio.delete('/accounts/$id');
 
   // Categories
-  Future<Response> getCategories() => _dio.get('/categories');
+  Future<Response> getCategories({String? since}) => _dio.get(
+    '/categories',
+    queryParameters: since != null ? {'since': since} : null,
+  );
   Future<Response> getCategory(String id) => _dio.get('/categories/$id');
   Future<Response> createCategory(CategoryDTO dto) =>
       _dio.post('/categories', data: dto.toJson());
   Future<Response> updateCategory(String id, CategoryDTO dto) =>
       _dio.put('/categories/$id', data: dto.toJson());
+  Future<Response> patchCategory(String id, Map<String, dynamic> diff) =>
+      _dio.patch('/categories/$id', data: diff);
   Future<Response> deleteCategory(String id) => _dio.delete('/categories/$id');
 
   // Transactions
-  Future<Response> getTransactions() => _dio.get('/transactions');
+  Future<Response> getTransactions({String? since}) => _dio.get(
+    '/transactions',
+    queryParameters: since != null ? {'since': since} : null,
+  );
   Future<Response> getTransaction(String id) => _dio.get('/transactions/$id');
   Future<Response> createTransaction(TransactionRequestDTO dto) =>
       _dio.post('/transactions', data: dto.toJson());
   Future<Response> updateTransaction(String id, TransactionRequestDTO dto) =>
       _dio.put('/transactions/$id', data: dto.toJson());
+  Future<Response> patchTransaction(String id, Map<String, dynamic> diff) =>
+      _dio.patch('/transactions/$id', data: diff);
   Future<Response> deleteTransaction(String id) =>
       _dio.delete('/transactions/$id');
 
