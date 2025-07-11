@@ -73,8 +73,12 @@ class SafeLogInterceptor extends Interceptor {
   }
 }
 
-class IsolateJsonInterceptor extends Interceptor {
+class IsolateConfig {
   static const int bigListThreshold = 1000;
+}
+
+class IsolateJsonInterceptor extends Interceptor {
+  static const int bigListThreshold = IsolateConfig.bigListThreshold;
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
@@ -101,14 +105,22 @@ List<dynamic> _parseListInIsolate(String jsonStr) {
   return jsonDecode(jsonStr) as List<dynamic>;
 }
 
+class RetryConfig {
+  static const int maxRetries = 3;
+  static const Duration baseDelay = Duration(milliseconds: 500);
+  static const int jitterMs = 250;
+}
+
 class RetryInterceptor extends Interceptor {
   final int maxRetries;
   final Duration baseDelay;
+  final int jitterMs;
   final List<int> retryableStatuses;
 
   RetryInterceptor({
-    this.maxRetries = 3,
-    this.baseDelay = const Duration(milliseconds: 500),
+    this.maxRetries = RetryConfig.maxRetries,
+    this.baseDelay = RetryConfig.baseDelay,
+    this.jitterMs = RetryConfig.jitterMs,
     this.retryableStatuses = const [500, 502, 503, 504, 408, 429],
   });
 
@@ -119,7 +131,9 @@ class RetryInterceptor extends Interceptor {
     if (retryableStatuses.contains(err.response?.statusCode) &&
         retryCount < maxRetries) {
       retryCount++;
-      final delay = baseDelay * pow(2, retryCount - 1).toInt();
+      final base = baseDelay * pow(2, retryCount - 1).toInt();
+      final jitter = Random().nextInt(jitterMs); // up to jitterMs ms
+      final delay = base + Duration(milliseconds: jitter);
       debugPrint(
         '[RetryInterceptor] Attempt $retryCount for ${requestOptions.uri} after $delay',
       );
