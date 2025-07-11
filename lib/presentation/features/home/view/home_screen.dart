@@ -256,3 +256,87 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 }
+
+class SyncStatusBanner extends StatelessWidget {
+  const SyncStatusBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SyncStatusListener();
+  }
+}
+
+class _SyncStatusListener extends StatefulWidget {
+  const _SyncStatusListener();
+  @override
+  State<_SyncStatusListener> createState() => _SyncStatusListenerState();
+}
+
+class _SyncStatusListenerState extends State<_SyncStatusListener> {
+  SyncStatus? _lastStatus;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    final status = syncStatusNotifier.status;
+    if (_lastStatus == status) return;
+    _lastStatus = status;
+    String? message;
+    Color? color;
+    switch (status) {
+      case SyncStatus.offline:
+        message = 'Offline';
+        color = Colors.red;
+        break;
+      case SyncStatus.syncing:
+        message = 'Sync...';
+        color = Colors.orange;
+        break;
+      case SyncStatus.online:
+        message = 'Online';
+        color = Colors.green;
+        break;
+      case SyncStatus.error:
+        message = syncStatusNotifier.errorMessage ?? 'Sync error';
+        color = Colors.red;
+        break;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message ?? ''),
+        backgroundColor: color,
+        duration: status == SyncStatus.syncing
+            ? Duration(seconds: 2)
+            : Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
+  }
+}

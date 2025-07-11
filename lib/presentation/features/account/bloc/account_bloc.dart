@@ -212,16 +212,18 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     List<DailyBalancePoint> aggregatedPoints = [];
     if (accountPoints.isNotEmpty) {
       final anyPoints = accountPoints.values.first;
-      aggregatedPoints = List.generate(anyPoints.length, (i) {
-        final date = anyPoints[i].date;
-        double income = 0;
-        double expense = 0;
-        for (final points in accountPoints.values) {
-          income += points[i].income;
-          expense += points[i].expense;
-        }
-        return DailyBalancePoint(date, income, expense);
-      });
+      if (anyPoints.isNotEmpty) {
+        aggregatedPoints = List.generate(anyPoints.length, (i) {
+          final date = anyPoints[i].date;
+          double income = 0;
+          double expense = 0;
+          for (final points in accountPoints.values) {
+            income += points[i].income;
+            expense += points[i].expense;
+          }
+          return DailyBalancePoint(date, income, expense);
+        });
+      }
     }
     // computedBalance is the sum for all selected accounts
     final computedBalance = accountBalances.values.fold<double>(

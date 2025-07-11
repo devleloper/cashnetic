@@ -19,6 +19,7 @@ import 'package:cashnetic/data/sync_manager.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
+import 'presentation/widgets/widgets.dart';
 
 enum SyncStatus { offline, syncing, online, error }
 
@@ -79,6 +80,8 @@ class _CashneticAppState extends State<CashneticApp> {
     try {
       await getIt<SyncManager>().sync();
       _syncStatusNotifier.setStatus(SyncStatus.online);
+      // After going online, perform a full sync with the API
+      await getIt<SyncManager>().fullSync();
     } catch (e) {
       _syncStatusNotifier.setStatus(
         SyncStatus.error,
@@ -159,7 +162,8 @@ class _CashneticAppState extends State<CashneticApp> {
                         ),
                       );
                     }
-                    return child!;
+                    // Используем SnackBar-баннер для статуса синхронизации
+                    return Stack(children: [child!, const SyncStatusBanner()]);
                   },
                 );
               },

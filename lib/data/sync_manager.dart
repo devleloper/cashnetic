@@ -7,6 +7,10 @@ import 'package:drift/drift.dart';
 import 'package:cashnetic/data/models/account_create/account_request.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_request/transaction_request.dart';
+import 'package:cashnetic/di/di.dart';
+import 'package:cashnetic/data/repositories/drift_account_repository.dart';
+import 'package:cashnetic/data/repositories/drift_category_repository.dart';
+import 'package:cashnetic/data/repositories/drift_transaction_repository.dart';
 
 class SyncManager {
   final AppDatabase db;
@@ -138,6 +142,7 @@ class SyncManager {
     _isSyncing = false;
   }
 
+  /// Retry all failed events in the pending_events table
   Future<void> retryFailed() async {
     final failedEvents = (await db.getAllPendingEvents())
         .where((e) => e.status == 'failed')
@@ -182,6 +187,33 @@ class SyncManager {
       } catch (e) {
         // Keep status as failed
       }
+    }
+  }
+
+  /// Fetch all data from API and update local database (accounts, categories, transactions)
+  Future<void> fullSync() async {
+    debugPrint('[SyncManager] Starting fullSync: fetch all from API');
+    try {
+      // Fetch and update accounts
+      await getIt<DriftAccountRepository>().getAllAccounts();
+      // Fetch and update categories
+      await getIt<DriftCategoryRepository>().getAllCategories();
+      // Fetch and update transactions for all accounts
+      final accounts = await getIt<DriftAccountRepository>().getAllAccounts();
+      final ids = accounts.fold(
+        (_) => <int>[],
+        (accs) => accs.map((a) => a.id).toList(),
+      );
+      if (ids.isNotEmpty) {
+        await getIt<DriftTransactionRepository>().fetchAllTransactionsByPeriod(
+          ids,
+          DateTime(2000, 1, 1),
+          DateTime(2100, 1, 1),
+        );
+      }
+      debugPrint('[SyncManager] fullSync completed');
+    } catch (e) {
+      debugPrint('[SyncManager] fullSync error: $e');
     }
   }
 }

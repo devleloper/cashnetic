@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:cashnetic/data/models/account_create/account_request.dart';
 import 'package:cashnetic/data/models/category/category.dart';
 import 'package:cashnetic/data/models/transaction_request/transaction_request.dart';
+import 'dart:math';
 
 /// Singleton Dio client with auth and logging
 class DioProvider {
@@ -22,6 +23,7 @@ class DioProvider {
           _AuthInterceptor(),
           SafeLogInterceptor(),
           IsolateJsonInterceptor(),
+          RetryInterceptor(), // Add retry interceptor here
         ]);
 
   static Dio get dio => _dio;
@@ -97,6 +99,73 @@ class IsolateJsonInterceptor extends Interceptor {
 
 List<dynamic> _parseListInIsolate(String jsonStr) {
   return jsonDecode(jsonStr) as List<dynamic>;
+}
+
+class RetryInterceptor extends Interceptor {
+  final int maxRetries;
+  final Duration baseDelay;
+  final List<int> retryableStatuses;
+
+  RetryInterceptor({
+    this.maxRetries = 3,
+    this.baseDelay = const Duration(milliseconds: 500),
+    this.retryableStatuses = const [500, 502, 503, 504, 408, 429],
+  });
+
+  @override
+  Future<void> onError(DioError err, ErrorInterceptorHandler handler) async {
+    final requestOptions = err.requestOptions;
+    int retryCount = requestOptions.extra['retryCount'] ?? 0;
+    if (retryableStatuses.contains(err.response?.statusCode) &&
+        retryCount < maxRetries) {
+      retryCount++;
+      final delay = baseDelay * pow(2, retryCount - 1).toInt();
+      debugPrint(
+        '[RetryInterceptor] Attempt $retryCount for ${requestOptions.uri} after $delay',
+      );
+      await Future.delayed(delay);
+      final newOptions = Options(
+        method: requestOptions.method,
+        headers: requestOptions.headers,
+        responseType: requestOptions.responseType,
+        contentType: requestOptions.contentType,
+        extra: Map<String, dynamic>.from(requestOptions.extra)
+          ..['retryCount'] = retryCount,
+        followRedirects: requestOptions.followRedirects,
+        validateStatus: requestOptions.validateStatus,
+        receiveDataWhenStatusError: requestOptions.receiveDataWhenStatusError,
+        sendTimeout: requestOptions.sendTimeout,
+        receiveTimeout: requestOptions.receiveTimeout,
+      );
+      try {
+        final response = await err.requestOptions.cancelToken != null
+            ? err.requestOptions.cancelToken!.whenCancel.then((_) => null)
+            : null;
+        if (response == null) {
+          final dio = Dio();
+          final result = await dio.request(
+            requestOptions.path,
+            data: requestOptions.data,
+            queryParameters: requestOptions.queryParameters,
+            options: newOptions,
+            cancelToken: requestOptions.cancelToken,
+            onSendProgress: requestOptions.onSendProgress,
+            onReceiveProgress: requestOptions.onReceiveProgress,
+          );
+          debugPrint(
+            '[RetryInterceptor] Success on retry $retryCount for ${requestOptions.uri}',
+          );
+          return handler.resolve(result);
+        }
+      } catch (e) {
+        debugPrint(
+          '[RetryInterceptor] Retry $retryCount failed for ${requestOptions.uri}: $e',
+        );
+        return handler.next(err);
+      }
+    }
+    return handler.next(err);
+  }
 }
 
 /// Base API client
