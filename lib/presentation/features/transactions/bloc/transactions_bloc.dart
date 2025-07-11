@@ -6,6 +6,7 @@ import 'package:cashnetic/presentation/features/categories/repositories/categori
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   final TransactionsRepository transactionRepository;
@@ -36,7 +37,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       '[TransactionsBloc] _onLoad: isIncome=${event.isIncome}, accountId=${event.accountId}, start=$start, end=$end',
     );
     emit(TransactionsLoading());
-    final txs = await transactionRepository.getTransactions(
+    final (txs, isLocalFallback) = await transactionRepository.getTransactions(
       accountId: event.accountId,
       from: start,
       to: end,
@@ -50,7 +51,9 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       final cat = cats.firstWhereOrNull((c) => c.id == t.categoryId);
       return cat != null && cat.isIncome == event.isIncome;
     }).toList();
-    debugPrint('[TransactionsBloc] Transactions count: ${filteredTxs.length}');
+    debugPrint(
+      '[TransactionsBloc] Transactions count:  [33m${filteredTxs.length} [0m',
+    );
     debugPrint('[TransactionsBloc] Categories count: ${cats.length}');
     debugPrint(
       '[TransactionsBloc] Filtered categories count: ${filteredCats.length}',
@@ -60,6 +63,14 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         '[TransactionsBloc] Emitting TransactionsError: filteredCats.isEmpty=true',
       );
       emit(TransactionsError('Failed to load data'));
+      return;
+    }
+    // If there are no transactions at all, emit error
+    if (filteredTxs.isEmpty) {
+      debugPrint(
+        '[TransactionsBloc] Emitting TransactionsError: filteredTxs.isEmpty=true',
+      );
+      emit(TransactionsError('No data available'));
       return;
     }
     // If there are no transactions, still show the UI (empty list)
@@ -72,6 +83,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         startDate: start,
         endDate: end,
         sort: TransactionsSort.date,
+        isLocalFallback: isLocalFallback,
       ),
     );
   }
@@ -86,7 +98,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     if (event.sort == TransactionsSort.amount) {
       sorted.sort((a, b) => b.amount.compareTo(a.amount));
     } else {
-      // Сортировка по дате и времени транзакции (timestamp)
+      // Sort by transaction date and time (timestamp)
       sorted.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     }
     emit(
@@ -97,6 +109,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         startDate: current.startDate,
         endDate: current.endDate,
         sort: event.sort,
+        isLocalFallback: current.isLocalFallback,
       ),
     );
   }
@@ -105,7 +118,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     TransactionsChangePeriod event,
     Emitter<TransactionsState> emit,
   ) async {
-    // Звёздочка: корректировка дат
+    // Star: adjust dates
     DateTime start = event.startDate;
     DateTime end = event.endDate;
     if (end.isBefore(start)) {
@@ -121,7 +134,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
             : false,
         accountId: (state as TransactionsLoaded).transactions.isNotEmpty
             ? (state as TransactionsLoaded).transactions.first.accountId
-            : 1,
+            : ALL_ACCOUNTS_ID,
         startDate: start,
         endDate: end,
       ),

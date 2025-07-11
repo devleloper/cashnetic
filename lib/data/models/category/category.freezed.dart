@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryDTO {
 
- int get id; String get name; String get emoji; bool get isIncome; String get color;
+ int get id; String get name; String get emoji; bool get isIncome; String? get color;
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $CategoryDTOCopyWith<$Res>  {
   factory $CategoryDTOCopyWith(CategoryDTO value, $Res Function(CategoryDTO) _then) = _$CategoryDTOCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String emoji, bool isIncome, String color
+ int id, String name, String emoji, bool isIncome, String? color
 });
 
 
@@ -66,14 +66,14 @@ class _$CategoryDTOCopyWithImpl<$Res>
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,emoji: null == emoji ? _self.emoji : emoji // ignore: cast_nullable_to_non_nullable
 as String,isIncome: null == isIncome ? _self.isIncome : isIncome // ignore: cast_nullable_to_non_nullable
-as bool,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -84,14 +84,14 @@ as String,
 @JsonSerializable()
 
 class _CategoryDTO implements CategoryDTO {
-  const _CategoryDTO({required this.id, required this.name, required this.emoji, required this.isIncome, required this.color});
+  const _CategoryDTO({required this.id, required this.name, required this.emoji, required this.isIncome, this.color});
   factory _CategoryDTO.fromJson(Map<String, dynamic> json) => _$CategoryDTOFromJson(json);
 
 @override final  int id;
 @override final  String name;
 @override final  String emoji;
 @override final  bool isIncome;
-@override final  String color;
+@override final  String? color;
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
@@ -126,7 +126,7 @@ abstract mixin class _$CategoryDTOCopyWith<$Res> implements $CategoryDTOCopyWith
   factory _$CategoryDTOCopyWith(_CategoryDTO value, $Res Function(_CategoryDTO) _then) = __$CategoryDTOCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String emoji, bool isIncome, String color
+ int id, String name, String emoji, bool isIncome, String? color
 });
 
 
@@ -143,14 +143,14 @@ class __$CategoryDTOCopyWithImpl<$Res>
 
 /// Create a copy of CategoryDTO
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? emoji = null,Object? isIncome = null,Object? color = freezed,}) {
   return _then(_CategoryDTO(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,emoji: null == emoji ? _self.emoji : emoji // ignore: cast_nullable_to_non_nullable
 as String,isIncome: null == isIncome ? _self.isIncome : isIncome // ignore: cast_nullable_to_non_nullable
-as bool,color: null == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,color: freezed == color ? _self.color : color // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

@@ -8,6 +8,7 @@ part of 'account.dart';
 
 _AccountDTO _$AccountDTOFromJson(Map<String, dynamic> json) => _AccountDTO(
   id: (json['id'] as num).toInt(),
+  clientId: json['clientId'] as String?,
   userId: (json['userId'] as num).toInt(),
   name: json['name'] as String,
   balance: json['balance'] as String,
@@ -19,6 +20,7 @@ _AccountDTO _$AccountDTOFromJson(Map<String, dynamic> json) => _AccountDTO(
 Map<String, dynamic> _$AccountDTOToJson(_AccountDTO instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'clientId': instance.clientId,
       'userId': instance.userId,
       'name': instance.name,
       'balance': instance.balance,

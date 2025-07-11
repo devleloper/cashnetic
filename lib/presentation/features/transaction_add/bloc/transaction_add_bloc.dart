@@ -6,6 +6,7 @@ import 'package:cashnetic/di/di.dart';
 import '../repositories/transaction_add_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
+import 'package:flutter/material.dart';
 
 class TransactionAddBloc
     extends Bloc<TransactionAddEvent, TransactionAddState> {
@@ -213,8 +214,18 @@ class TransactionAddBloc
         emit(TransactionAddError(validationError));
         return;
       }
-      await repository.addTransaction(form);
-      emit(TransactionAddSuccess());
+      final category = await repository.addTransaction(form);
+      final emoji = category?.emoji ?? '💸';
+      final color = category != null
+          ? Color(int.parse(category.color.replaceFirst('#', '0xff')))
+          : const Color(0xFFE6F4EA);
+      emit(
+        TransactionAddSuccess(
+          categoryEmoji: emoji,
+          categoryColor: color,
+          selectedDate: current.selectedDate,
+        ),
+      );
     } catch (e) {
       emit(TransactionAddError('Error while saving: $e'));
     }
@@ -232,10 +243,12 @@ class TransactionAddBloc
       final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
-      final selected = filtered.firstWhere(
-        (c) => c.name == event.name && c.emoji == event.emoji,
-        orElse: () => filtered.last,
-      );
+      final selected = filtered.isNotEmpty
+          ? filtered.firstWhere(
+              (c) => c.name == event.name && c.emoji == event.emoji,
+              orElse: () => filtered.last,
+            )
+          : throw Exception('No category found');
       emit(
         TransactionAddLoaded(
           categories: filtered,

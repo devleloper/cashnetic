@@ -19,16 +19,69 @@ import 'package:cashnetic/presentation/features/transactions/widgets/transaction
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/di/di.dart';
+import 'package:cashnetic/presentation/theme/light_color_for.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'dart:async';
 
 @RoutePage()
-class TransactionsScreen extends StatelessWidget {
+class TransactionsScreen extends StatefulWidget {
   final bool isIncome;
-  final GlobalKey historyIconKey = GlobalKey();
   TransactionsScreen({Key? key, required this.isIncome}) : super(key: key);
+
+  @override
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends State<TransactionsScreen> {
+  final Key historyIconKey = UniqueKey();
+  final Key fabKey = UniqueKey();
+  SyncStatus? _lastSyncStatus;
+  Completer<void>? _refreshCompleter;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<TransactionsBloc>().add(
+          TransactionsLoad(
+            isIncome: widget.isIncome,
+            accountId: ALL_ACCOUNTS_ID,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
 
   void _animateTransactionToHistory(
     BuildContext context,
     Transaction tx,
+    GlobalKey historyIconKey,
   ) async {
     final overlay = Overlay.of(context);
 
@@ -89,7 +142,7 @@ class TransactionsScreen extends StatelessWidget {
           id: 0,
           name: '',
           emoji: '❓',
-          isIncome: isIncome,
+          isIncome: widget.isIncome,
           color: '#FFF',
         ),
       );
@@ -119,22 +172,143 @@ class TransactionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // accountId всегда 0 — показываем все транзакции
-
+    // Get selected account from AccountBloc
+    final accountState = context.watch<AccountBloc>().state;
+    int accountId = ALL_ACCOUNTS_ID;
+    if (accountState is AccountLoaded && accountState.accounts.isNotEmpty) {
+      accountId = accountState.selectedAccountId;
+    }
     return BlocProvider(
       create: (context) => TransactionsBloc(
         transactionRepository: getIt<TransactionsRepository>(),
         categoryRepository: getIt<CategoriesRepository>(),
-      )..add(TransactionsLoad(isIncome: isIncome, accountId: 0)),
-      child: BlocBuilder<TransactionsBloc, TransactionsState>(
+      )..add(TransactionsLoad(isIncome: widget.isIncome, accountId: accountId)),
+      child: BlocConsumer<TransactionsBloc, TransactionsState>(
+        listener: (context, state) {
+          if (state is TransactionsError) {
+            // If there is an error and no local data, show an error dialog after build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Error'),
+                  content: const Text('Failed to load data.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            });
+          }
+        },
         builder: (context, state) {
+          // RefreshIndicator: complete only on Loaded/Error
+          if (_refreshCompleter != null &&
+              (state is TransactionsLoaded || state is TransactionsError)) {
+            _refreshCompleter?.complete();
+            _refreshCompleter = null;
+          }
           if (state is TransactionsLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  widget.isIncome
+                      ? S.of(context).income
+                      : S.of(context).expenses,
+                ),
+                actions: [
+                  IconButton(
+                    key: historyIconKey,
+                    icon: const Icon(Icons.history, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              HistoryScreen(isIncome: widget.isIncome),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              body: const ShimmerTransactionListPlaceholder(),
             );
           }
           if (state is TransactionsError) {
-            return Scaffold(body: Center(child: Text(state.message)));
+            // Always return a Scaffold so AlertDialog can be shown
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  widget.isIncome
+                      ? S.of(context).income
+                      : S.of(context).expenses,
+                ),
+                actions: [
+                  IconButton(
+                    key: historyIconKey,
+                    icon: const Icon(Icons.history, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              HistoryScreen(isIncome: widget.isIncome),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  _refreshCompleter = Completer<void>();
+                  context.read<TransactionsBloc>().add(
+                    TransactionsLoad(
+                      isIncome: widget.isIncome,
+                      accountId: accountId,
+                    ),
+                  );
+                  return _refreshCompleter!.future;
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: const Center(
+                        child: Text(
+                          'Failed to fetch data',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              floatingActionButton: FloatingActionButton(
+                key: fabKey,
+                heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
+                backgroundColor: Colors.green,
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          TransactionAddScreen(isIncome: widget.isIncome),
+                    ),
+                  );
+                  context.read<TransactionsBloc>().add(
+                    TransactionsLoad(
+                      isIncome: widget.isIncome,
+                      accountId: accountId,
+                    ),
+                  );
+                },
+                child: const Icon(Icons.add, size: 32, color: Colors.white),
+              ),
+            );
           }
           if (state is! TransactionsLoaded) {
             return const SizedBox.shrink();
@@ -143,90 +317,160 @@ class TransactionsScreen extends StatelessWidget {
           final categories = state.categories;
           final total = state.total;
           return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                widget.isIncome ? S.of(context).income : S.of(context).expenses,
+              ),
+              actions: [
+                IconButton(
+                  key: historyIconKey,
+                  icon: const Icon(Icons.history, color: Colors.white),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            HistoryScreen(isIncome: widget.isIncome),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
             body: Column(
               children: [
+                if (state.isLocalFallback)
+                  Container(
+                    width: double.infinity,
+                    color: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: const Center(
+                      child: Text(
+                        'Offline mode',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 TransactionsTotalRow(total: total),
-
                 const SizedBox(height: 8),
                 Expanded(
-                  child: TransactionsListView(
-                    transactions: transactions,
-                    categories: categories,
-                    isIncome: isIncome,
-                    onTap: (t, cat) async {
-                      // Получаем имя и валюту аккаунта из AccountBloc
-                      String accountName = S.of(context).account;
-                      String currency = 'RUB';
-                      final accountState = context.read<AccountBloc>().state;
-                      if (accountState is AccountLoaded) {
-                        final acc = accountState.accounts.firstWhere(
-                          (a) => a.id == t.accountId,
-                          orElse: () => accountState.accounts.first,
-                        );
-                        accountName = acc.name;
-                        currency = acc.moneyDetails.currency;
-                      }
-                      // Открыть экран редактирования операции модально
-                      await showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) {
-                          final mq = MediaQuery.of(context);
-                          final maxChildSize =
-                              (mq.size.height - mq.padding.top) /
-                              mq.size.height;
-                          return DraggableScrollableSheet(
-                            initialChildSize: 0.85,
-                            minChildSize: 0.4,
-                            maxChildSize: maxChildSize,
-                            expand: false,
-                            builder: (context, scrollController) =>
-                                TransactionEditScreen(transactionId: t.id),
-                          );
-                        },
-                      );
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      _refreshCompleter = Completer<void>();
                       context.read<TransactionsBloc>().add(
-                        TransactionsLoad(isIncome: isIncome, accountId: 0),
+                        TransactionsLoad(
+                          isIncome: widget.isIncome,
+                          accountId: accountId,
+                        ),
                       );
+                      return _refreshCompleter!.future;
                     },
+                    child: transactions.isEmpty
+                        ? RefreshIndicator(
+                            onRefresh: () async {
+                              _refreshCompleter = Completer<void>();
+                              context.read<TransactionsBloc>().add(
+                                TransactionsLoad(
+                                  isIncome: widget.isIncome,
+                                  accountId: accountId,
+                                ),
+                              );
+                              return _refreshCompleter!.future;
+                            },
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.5,
+                                  child: Center(
+                                    child: Text(
+                                      S.of(context).noDataForAnalysis,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : TransactionsListView(
+                            transactions: transactions,
+                            categories: categories,
+                            isIncome: widget.isIncome,
+                            onTap: (t, cat) async {
+                              // Get account name and currency from AccountBloc
+                              String accountName = S.of(context).account;
+                              String currency = 'RUB';
+                              final accountState = context
+                                  .read<AccountBloc>()
+                                  .state;
+                              if (accountState is AccountLoaded &&
+                                  accountState.accounts.isNotEmpty) {
+                                final acc = accountState.accounts.firstWhere(
+                                  (a) => a.id == t.accountId,
+                                  orElse: () => accountState.accounts.first,
+                                );
+                                accountName = acc.name;
+                                currency = acc.moneyDetails.currency;
+                              }
+                              // Open transaction edit screen as modal
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) {
+                                  final mq = MediaQuery.of(context);
+                                  final maxChildSize =
+                                      (mq.size.height - mq.padding.top) /
+                                      mq.size.height;
+                                  return DraggableScrollableSheet(
+                                    initialChildSize: 0.85,
+                                    minChildSize: 0.4,
+                                    maxChildSize: maxChildSize,
+                                    expand: false,
+                                    builder: (context, scrollController) =>
+                                        TransactionEditScreen(
+                                          transactionId: t.id,
+                                        ),
+                                  );
+                                },
+                              );
+                              context.read<TransactionsBloc>().add(
+                                TransactionsLoad(
+                                  isIncome: widget.isIncome,
+                                  accountId: accountId,
+                                ),
+                              );
+                            },
+                          ),
                   ),
                 ),
               ],
             ),
             floatingActionButton: FloatingActionButton(
-              heroTag: isIncome ? 'income_fab' : 'expense_fab',
+              key: fabKey,
+              heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
               backgroundColor: Colors.green,
               onPressed: () async {
-                final result = await showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) {
-                    final mq = MediaQuery.of(context);
-                    final maxChildSize =
-                        (mq.size.height - mq.padding.top) / mq.size.height;
-                    return DraggableScrollableSheet(
-                      initialChildSize: 0.7,
-                      minChildSize: 0.4,
-                      maxChildSize: maxChildSize,
-                      expand: false,
-                      builder: (context, scrollController) =>
-                          TransactionAddScreen(isIncome: isIncome),
-                    );
-                  },
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TransactionAddScreen(isIncome: widget.isIncome),
+                  ),
                 );
                 context.read<TransactionsBloc>().add(
-                  TransactionsLoad(isIncome: isIncome, accountId: 0),
+                  TransactionsLoad(
+                    isIncome: widget.isIncome,
+                    accountId: accountId,
+                  ),
                 );
-                if (result != null &&
-                    result is Map &&
-                    result['animateToHistory'] == true) {
-                  _animateTransactionToHistory(
-                    context,
-                    result['transaction'] as Transaction,
-                  );
-                }
+                // FlyTransactionChip animation is no longer used
               },
               child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),

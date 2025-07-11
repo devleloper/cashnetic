@@ -16,12 +16,13 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _SettingsScreenBody();
+    return _SettingsScreenBody();
   }
 }
 
 class _SettingsScreenBody extends StatelessWidget {
-  const _SettingsScreenBody({super.key});
+  _SettingsScreenBody({super.key});
+  final GlobalKey switchKey = GlobalKey();
 
   void _showAboutDialog(BuildContext context) {
     showDialog(
@@ -67,7 +68,6 @@ class _SettingsScreenBody extends StatelessWidget {
                 ThemeSwitcher(
                   clipper: ThemeSwitcherCircleClipper(),
                   builder: (context) {
-                    final switchKey = GlobalKey();
                     return SettingsSwitchListTile(
                       switchKey: switchKey,
                       title: Text(S.of(context).darkTheme),

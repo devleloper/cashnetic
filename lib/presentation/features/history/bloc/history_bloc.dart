@@ -8,7 +8,7 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   final HistoryRepository historyRepository = getIt<HistoryRepository>();
 
-  // Текущее состояние фильтров и сортировки
+  // Current filter and sort state
   DateTime _from = DateTime.now().subtract(const Duration(days: 30));
   DateTime _to = DateTime.now();
   HistoryType _type = HistoryType.expense;
@@ -89,7 +89,7 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       page: _page,
       pageSize: _pageSize,
     );
-    // Lazy loading (постранично)
+    // Lazy loading (pagination)
     final start = _page * _pageSize;
     final end = (_page + 1) * _pageSize;
     final pageItems = txs;

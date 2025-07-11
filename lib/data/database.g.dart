@@ -21,6 +21,17 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -80,6 +91,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    clientId,
     name,
     currency,
     balance,
@@ -100,6 +112,12 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -148,6 +166,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -179,6 +201,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
 
 class Account extends DataClass implements Insertable<Account> {
   final int id;
+  final String? clientId;
   final String name;
   final String currency;
   final double balance;
@@ -186,6 +209,7 @@ class Account extends DataClass implements Insertable<Account> {
   final DateTime updatedAt;
   const Account({
     required this.id,
+    this.clientId,
     required this.name,
     required this.currency,
     required this.balance,
@@ -196,6 +220,9 @@ class Account extends DataClass implements Insertable<Account> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || clientId != null) {
+      map['client_id'] = Variable<String>(clientId);
+    }
     map['name'] = Variable<String>(name);
     map['currency'] = Variable<String>(currency);
     map['balance'] = Variable<double>(balance);
@@ -207,6 +234,9 @@ class Account extends DataClass implements Insertable<Account> {
   AccountsCompanion toCompanion(bool nullToAbsent) {
     return AccountsCompanion(
       id: Value(id),
+      clientId: clientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientId),
       name: Value(name),
       currency: Value(currency),
       balance: Value(balance),
@@ -222,6 +252,7 @@ class Account extends DataClass implements Insertable<Account> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Account(
       id: serializer.fromJson<int>(json['id']),
+      clientId: serializer.fromJson<String?>(json['clientId']),
       name: serializer.fromJson<String>(json['name']),
       currency: serializer.fromJson<String>(json['currency']),
       balance: serializer.fromJson<double>(json['balance']),
@@ -234,6 +265,7 @@ class Account extends DataClass implements Insertable<Account> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'clientId': serializer.toJson<String?>(clientId),
       'name': serializer.toJson<String>(name),
       'currency': serializer.toJson<String>(currency),
       'balance': serializer.toJson<double>(balance),
@@ -244,6 +276,7 @@ class Account extends DataClass implements Insertable<Account> {
 
   Account copyWith({
     int? id,
+    Value<String?> clientId = const Value.absent(),
     String? name,
     String? currency,
     double? balance,
@@ -251,6 +284,7 @@ class Account extends DataClass implements Insertable<Account> {
     DateTime? updatedAt,
   }) => Account(
     id: id ?? this.id,
+    clientId: clientId.present ? clientId.value : this.clientId,
     name: name ?? this.name,
     currency: currency ?? this.currency,
     balance: balance ?? this.balance,
@@ -260,6 +294,7 @@ class Account extends DataClass implements Insertable<Account> {
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
       id: data.id.present ? data.id.value : this.id,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
       name: data.name.present ? data.name.value : this.name,
       currency: data.currency.present ? data.currency.value : this.currency,
       balance: data.balance.present ? data.balance.value : this.balance,
@@ -272,6 +307,7 @@ class Account extends DataClass implements Insertable<Account> {
   String toString() {
     return (StringBuffer('Account(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('balance: $balance, ')
@@ -283,12 +319,13 @@ class Account extends DataClass implements Insertable<Account> {
 
   @override
   int get hashCode =>
-      Object.hash(id, name, currency, balance, createdAt, updatedAt);
+      Object.hash(id, clientId, name, currency, balance, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Account &&
           other.id == this.id &&
+          other.clientId == this.clientId &&
           other.name == this.name &&
           other.currency == this.currency &&
           other.balance == this.balance &&
@@ -298,6 +335,7 @@ class Account extends DataClass implements Insertable<Account> {
 
 class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<int> id;
+  final Value<String?> clientId;
   final Value<String> name;
   final Value<String> currency;
   final Value<double> balance;
@@ -305,6 +343,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<DateTime> updatedAt;
   const AccountsCompanion({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     this.name = const Value.absent(),
     this.currency = const Value.absent(),
     this.balance = const Value.absent(),
@@ -313,6 +352,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     required String name,
     required String currency,
     this.balance = const Value.absent(),
@@ -322,6 +362,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
        currency = Value(currency);
   static Insertable<Account> custom({
     Expression<int>? id,
+    Expression<String>? clientId,
     Expression<String>? name,
     Expression<String>? currency,
     Expression<double>? balance,
@@ -330,6 +371,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (clientId != null) 'client_id': clientId,
       if (name != null) 'name': name,
       if (currency != null) 'currency': currency,
       if (balance != null) 'balance': balance,
@@ -340,6 +382,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
 
   AccountsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? clientId,
     Value<String>? name,
     Value<String>? currency,
     Value<double>? balance,
@@ -348,6 +391,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   }) {
     return AccountsCompanion(
       id: id ?? this.id,
+      clientId: clientId ?? this.clientId,
       name: name ?? this.name,
       currency: currency ?? this.currency,
       balance: balance ?? this.balance,
@@ -361,6 +405,9 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -384,6 +431,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   String toString() {
     return (StringBuffer('AccountsCompanion(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('name: $name, ')
           ..write('currency: $currency, ')
           ..write('balance: $balance, ')
@@ -750,6 +798,17 @@ class $TransactionsTable extends Transactions
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _accountIdMeta = const VerificationMeta(
     'accountId',
   );
@@ -760,7 +819,7 @@ class $TransactionsTable extends Transactions
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
-    $customConstraints: 'REFERENCES accounts(id)',
+    $customConstraints: 'REFERENCES accounts(id) NOT NULL',
   );
   static const VerificationMeta _categoryIdMeta = const VerificationMeta(
     'categoryId',
@@ -832,6 +891,7 @@ class $TransactionsTable extends Transactions
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    clientId,
     accountId,
     categoryId,
     amount,
@@ -854,6 +914,12 @@ class $TransactionsTable extends Transactions
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
     }
     if (data.containsKey('account_id')) {
       context.handle(
@@ -916,6 +982,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      ),
       accountId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}account_id'],
@@ -955,6 +1025,7 @@ class $TransactionsTable extends Transactions
 
 class Transaction extends DataClass implements Insertable<Transaction> {
   final int id;
+  final String? clientId;
   final int accountId;
   final int? categoryId;
   final double amount;
@@ -964,6 +1035,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final DateTime updatedAt;
   const Transaction({
     required this.id,
+    this.clientId,
     required this.accountId,
     this.categoryId,
     required this.amount,
@@ -976,6 +1048,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || clientId != null) {
+      map['client_id'] = Variable<String>(clientId);
+    }
     map['account_id'] = Variable<int>(accountId);
     if (!nullToAbsent || categoryId != null) {
       map['category_id'] = Variable<int>(categoryId);
@@ -993,6 +1068,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   TransactionsCompanion toCompanion(bool nullToAbsent) {
     return TransactionsCompanion(
       id: Value(id),
+      clientId: clientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientId),
       accountId: Value(accountId),
       categoryId: categoryId == null && nullToAbsent
           ? const Value.absent()
@@ -1014,6 +1092,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Transaction(
       id: serializer.fromJson<int>(json['id']),
+      clientId: serializer.fromJson<String?>(json['clientId']),
       accountId: serializer.fromJson<int>(json['accountId']),
       categoryId: serializer.fromJson<int?>(json['categoryId']),
       amount: serializer.fromJson<double>(json['amount']),
@@ -1028,6 +1107,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'clientId': serializer.toJson<String?>(clientId),
       'accountId': serializer.toJson<int>(accountId),
       'categoryId': serializer.toJson<int?>(categoryId),
       'amount': serializer.toJson<double>(amount),
@@ -1040,6 +1120,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
 
   Transaction copyWith({
     int? id,
+    Value<String?> clientId = const Value.absent(),
     int? accountId,
     Value<int?> categoryId = const Value.absent(),
     double? amount,
@@ -1049,6 +1130,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     DateTime? updatedAt,
   }) => Transaction(
     id: id ?? this.id,
+    clientId: clientId.present ? clientId.value : this.clientId,
     accountId: accountId ?? this.accountId,
     categoryId: categoryId.present ? categoryId.value : this.categoryId,
     amount: amount ?? this.amount,
@@ -1060,6 +1142,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   Transaction copyWithCompanion(TransactionsCompanion data) {
     return Transaction(
       id: data.id.present ? data.id.value : this.id,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
       accountId: data.accountId.present ? data.accountId.value : this.accountId,
       categoryId: data.categoryId.present
           ? data.categoryId.value
@@ -1076,6 +1159,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   String toString() {
     return (StringBuffer('Transaction(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
@@ -1090,6 +1174,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   @override
   int get hashCode => Object.hash(
     id,
+    clientId,
     accountId,
     categoryId,
     amount,
@@ -1103,6 +1188,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       identical(this, other) ||
       (other is Transaction &&
           other.id == this.id &&
+          other.clientId == this.clientId &&
           other.accountId == this.accountId &&
           other.categoryId == this.categoryId &&
           other.amount == this.amount &&
@@ -1114,6 +1200,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
 
 class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<int> id;
+  final Value<String?> clientId;
   final Value<int> accountId;
   final Value<int?> categoryId;
   final Value<double> amount;
@@ -1123,6 +1210,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<DateTime> updatedAt;
   const TransactionsCompanion({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     this.accountId = const Value.absent(),
     this.categoryId = const Value.absent(),
     this.amount = const Value.absent(),
@@ -1133,6 +1221,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   });
   TransactionsCompanion.insert({
     this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
     required int accountId,
     this.categoryId = const Value.absent(),
     required double amount,
@@ -1145,6 +1234,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
        timestamp = Value(timestamp);
   static Insertable<Transaction> custom({
     Expression<int>? id,
+    Expression<String>? clientId,
     Expression<int>? accountId,
     Expression<int>? categoryId,
     Expression<double>? amount,
@@ -1155,6 +1245,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (clientId != null) 'client_id': clientId,
       if (accountId != null) 'account_id': accountId,
       if (categoryId != null) 'category_id': categoryId,
       if (amount != null) 'amount': amount,
@@ -1167,6 +1258,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
 
   TransactionsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? clientId,
     Value<int>? accountId,
     Value<int?>? categoryId,
     Value<double>? amount,
@@ -1177,6 +1269,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   }) {
     return TransactionsCompanion(
       id: id ?? this.id,
+      clientId: clientId ?? this.clientId,
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
@@ -1192,6 +1285,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
     }
     if (accountId.present) {
       map['account_id'] = Variable<int>(accountId.value);
@@ -1221,6 +1317,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   String toString() {
     return (StringBuffer('TransactionsCompanion(')
           ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
           ..write('accountId: $accountId, ')
           ..write('categoryId: $categoryId, ')
           ..write('amount: $amount, ')
@@ -1228,6 +1325,619 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('comment: $comment, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PendingEventsTable extends PendingEvents
+    with TableInfo<$PendingEventsTable, PendingEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entityMeta = const VerificationMeta('entity');
+  @override
+  late final GeneratedColumn<String> entity = GeneratedColumn<String>(
+    'entity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entity,
+    type,
+    payload,
+    createdAt,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entity')) {
+      context.handle(
+        _entityMeta,
+        entity.isAcceptableOrUnknown(data['entity']!, _entityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PendingEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      entity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingEventsTable createAlias(String alias) {
+    return $PendingEventsTable(attachedDatabase, alias);
+  }
+}
+
+class PendingEvent extends DataClass implements Insertable<PendingEvent> {
+  final int id;
+  final String entity;
+  final String type;
+  final String payload;
+  final DateTime createdAt;
+  final String status;
+  const PendingEvent({
+    required this.id,
+    required this.entity,
+    required this.type,
+    required this.payload,
+    required this.createdAt,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entity'] = Variable<String>(entity);
+    map['type'] = Variable<String>(type);
+    map['payload'] = Variable<String>(payload);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  PendingEventsCompanion toCompanion(bool nullToAbsent) {
+    return PendingEventsCompanion(
+      id: Value(id),
+      entity: Value(entity),
+      type: Value(type),
+      payload: Value(payload),
+      createdAt: Value(createdAt),
+      status: Value(status),
+    );
+  }
+
+  factory PendingEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingEvent(
+      id: serializer.fromJson<int>(json['id']),
+      entity: serializer.fromJson<String>(json['entity']),
+      type: serializer.fromJson<String>(json['type']),
+      payload: serializer.fromJson<String>(json['payload']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entity': serializer.toJson<String>(entity),
+      'type': serializer.toJson<String>(type),
+      'payload': serializer.toJson<String>(payload),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  PendingEvent copyWith({
+    int? id,
+    String? entity,
+    String? type,
+    String? payload,
+    DateTime? createdAt,
+    String? status,
+  }) => PendingEvent(
+    id: id ?? this.id,
+    entity: entity ?? this.entity,
+    type: type ?? this.type,
+    payload: payload ?? this.payload,
+    createdAt: createdAt ?? this.createdAt,
+    status: status ?? this.status,
+  );
+  PendingEvent copyWithCompanion(PendingEventsCompanion data) {
+    return PendingEvent(
+      id: data.id.present ? data.id.value : this.id,
+      entity: data.entity.present ? data.entity.value : this.entity,
+      type: data.type.present ? data.type.value : this.type,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEvent(')
+          ..write('id: $id, ')
+          ..write('entity: $entity, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, entity, type, payload, createdAt, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingEvent &&
+          other.id == this.id &&
+          other.entity == this.entity &&
+          other.type == this.type &&
+          other.payload == this.payload &&
+          other.createdAt == this.createdAt &&
+          other.status == this.status);
+}
+
+class PendingEventsCompanion extends UpdateCompanion<PendingEvent> {
+  final Value<int> id;
+  final Value<String> entity;
+  final Value<String> type;
+  final Value<String> payload;
+  final Value<DateTime> createdAt;
+  final Value<String> status;
+  const PendingEventsCompanion({
+    this.id = const Value.absent(),
+    this.entity = const Value.absent(),
+    this.type = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  PendingEventsCompanion.insert({
+    this.id = const Value.absent(),
+    required String entity,
+    required String type,
+    required String payload,
+    this.createdAt = const Value.absent(),
+    this.status = const Value.absent(),
+  }) : entity = Value(entity),
+       type = Value(type),
+       payload = Value(payload);
+  static Insertable<PendingEvent> custom({
+    Expression<int>? id,
+    Expression<String>? entity,
+    Expression<String>? type,
+    Expression<String>? payload,
+    Expression<DateTime>? createdAt,
+    Expression<String>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entity != null) 'entity': entity,
+      if (type != null) 'type': type,
+      if (payload != null) 'payload': payload,
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+    });
+  }
+
+  PendingEventsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? entity,
+    Value<String>? type,
+    Value<String>? payload,
+    Value<DateTime>? createdAt,
+    Value<String>? status,
+  }) {
+    return PendingEventsCompanion(
+      id: id ?? this.id,
+      entity: entity ?? this.entity,
+      type: type ?? this.type,
+      payload: payload ?? this.payload,
+      createdAt: createdAt ?? this.createdAt,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entity.present) {
+      map['entity'] = Variable<String>(entity.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('entity: $entity, ')
+          ..write('type: $type, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SyncStateTable extends SyncState
+    with TableInfo<$SyncStateTable, SyncStateData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncStateTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityMeta = const VerificationMeta('entity');
+  @override
+  late final GeneratedColumn<String> entity = GeneratedColumn<String>(
+    'entity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastRevisionMeta = const VerificationMeta(
+    'lastRevision',
+  );
+  @override
+  late final GeneratedColumn<String> lastRevision = GeneratedColumn<String>(
+    'last_revision',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [entity, lastRevision];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SyncStateData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity')) {
+      context.handle(
+        _entityMeta,
+        entity.isAcceptableOrUnknown(data['entity']!, _entityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityMeta);
+    }
+    if (data.containsKey('last_revision')) {
+      context.handle(
+        _lastRevisionMeta,
+        lastRevision.isAcceptableOrUnknown(
+          data['last_revision']!,
+          _lastRevisionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entity};
+  @override
+  SyncStateData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncStateData(
+      entity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity'],
+      )!,
+      lastRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_revision'],
+      ),
+    );
+  }
+
+  @override
+  $SyncStateTable createAlias(String alias) {
+    return $SyncStateTable(attachedDatabase, alias);
+  }
+}
+
+class SyncStateData extends DataClass implements Insertable<SyncStateData> {
+  final String entity;
+  final String? lastRevision;
+  const SyncStateData({required this.entity, this.lastRevision});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entity'] = Variable<String>(entity);
+    if (!nullToAbsent || lastRevision != null) {
+      map['last_revision'] = Variable<String>(lastRevision);
+    }
+    return map;
+  }
+
+  SyncStateCompanion toCompanion(bool nullToAbsent) {
+    return SyncStateCompanion(
+      entity: Value(entity),
+      lastRevision: lastRevision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastRevision),
+    );
+  }
+
+  factory SyncStateData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncStateData(
+      entity: serializer.fromJson<String>(json['entity']),
+      lastRevision: serializer.fromJson<String?>(json['lastRevision']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entity': serializer.toJson<String>(entity),
+      'lastRevision': serializer.toJson<String?>(lastRevision),
+    };
+  }
+
+  SyncStateData copyWith({
+    String? entity,
+    Value<String?> lastRevision = const Value.absent(),
+  }) => SyncStateData(
+    entity: entity ?? this.entity,
+    lastRevision: lastRevision.present ? lastRevision.value : this.lastRevision,
+  );
+  SyncStateData copyWithCompanion(SyncStateCompanion data) {
+    return SyncStateData(
+      entity: data.entity.present ? data.entity.value : this.entity,
+      lastRevision: data.lastRevision.present
+          ? data.lastRevision.value
+          : this.lastRevision,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncStateData(')
+          ..write('entity: $entity, ')
+          ..write('lastRevision: $lastRevision')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(entity, lastRevision);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncStateData &&
+          other.entity == this.entity &&
+          other.lastRevision == this.lastRevision);
+}
+
+class SyncStateCompanion extends UpdateCompanion<SyncStateData> {
+  final Value<String> entity;
+  final Value<String?> lastRevision;
+  final Value<int> rowid;
+  const SyncStateCompanion({
+    this.entity = const Value.absent(),
+    this.lastRevision = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncStateCompanion.insert({
+    required String entity,
+    this.lastRevision = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : entity = Value(entity);
+  static Insertable<SyncStateData> custom({
+    Expression<String>? entity,
+    Expression<String>? lastRevision,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entity != null) 'entity': entity,
+      if (lastRevision != null) 'last_revision': lastRevision,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncStateCompanion copyWith({
+    Value<String>? entity,
+    Value<String?>? lastRevision,
+    Value<int>? rowid,
+  }) {
+    return SyncStateCompanion(
+      entity: entity ?? this.entity,
+      lastRevision: lastRevision ?? this.lastRevision,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entity.present) {
+      map['entity'] = Variable<String>(entity.value);
+    }
+    if (lastRevision.present) {
+      map['last_revision'] = Variable<String>(lastRevision.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncStateCompanion(')
+          ..write('entity: $entity, ')
+          ..write('lastRevision: $lastRevision, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1431,6 +2141,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AccountsTable accounts = $AccountsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
+  late final $PendingEventsTable pendingEvents = $PendingEventsTable(this);
+  late final $SyncStateTable syncState = $SyncStateTable(this);
   late final $SearchQueriesTable searchQueries = $SearchQueriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1440,6 +2152,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accounts,
     categories,
     transactions,
+    pendingEvents,
+    syncState,
     searchQueries,
   ];
 }
@@ -1447,6 +2161,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$AccountsTableCreateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       required String name,
       required String currency,
       Value<double> balance,
@@ -1456,6 +2171,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
 typedef $$AccountsTableUpdateCompanionBuilder =
     AccountsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       Value<String> name,
       Value<String> currency,
       Value<double> balance,
@@ -1497,6 +2213,11 @@ class $$AccountsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1565,6 +2286,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -1602,6 +2328,9 @@ class $$AccountsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -1673,6 +2402,7 @@ class $$AccountsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<double> balance = const Value.absent(),
@@ -1680,6 +2410,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
+                clientId: clientId,
                 name: name,
                 currency: currency,
                 balance: balance,
@@ -1689,6 +2420,7 @@ class $$AccountsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 required String name,
                 required String currency,
                 Value<double> balance = const Value.absent(),
@@ -1696,6 +2428,7 @@ class $$AccountsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
+                clientId: clientId,
                 name: name,
                 currency: currency,
                 balance: balance,
@@ -2058,6 +2791,7 @@ typedef $$CategoriesTableProcessedTableManager =
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       required int accountId,
       Value<int?> categoryId,
       required double amount,
@@ -2069,6 +2803,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
 typedef $$TransactionsTableUpdateCompanionBuilder =
     TransactionsCompanion Function({
       Value<int> id,
+      Value<String?> clientId,
       Value<int> accountId,
       Value<int?> categoryId,
       Value<double> amount,
@@ -2132,6 +2867,11 @@ class $$TransactionsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2221,6 +2961,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get amount => $composableBuilder(
     column: $table.amount,
     builder: (column) => ColumnOrderings(column),
@@ -2304,6 +3049,9 @@ class $$TransactionsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
@@ -2396,6 +3144,7 @@ class $$TransactionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 Value<int> accountId = const Value.absent(),
                 Value<int?> categoryId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
@@ -2405,6 +3154,7 @@ class $$TransactionsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion(
                 id: id,
+                clientId: clientId,
                 accountId: accountId,
                 categoryId: categoryId,
                 amount: amount,
@@ -2416,6 +3166,7 @@ class $$TransactionsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> clientId = const Value.absent(),
                 required int accountId,
                 Value<int?> categoryId = const Value.absent(),
                 required double amount,
@@ -2425,6 +3176,7 @@ class $$TransactionsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TransactionsCompanion.insert(
                 id: id,
+                clientId: clientId,
                 accountId: accountId,
                 categoryId: categoryId,
                 amount: amount,
@@ -2512,6 +3264,364 @@ typedef $$TransactionsTableProcessedTableManager =
       (Transaction, $$TransactionsTableReferences),
       Transaction,
       PrefetchHooks Function({bool accountId, bool categoryId})
+    >;
+typedef $$PendingEventsTableCreateCompanionBuilder =
+    PendingEventsCompanion Function({
+      Value<int> id,
+      required String entity,
+      required String type,
+      required String payload,
+      Value<DateTime> createdAt,
+      Value<String> status,
+    });
+typedef $$PendingEventsTableUpdateCompanionBuilder =
+    PendingEventsCompanion Function({
+      Value<int> id,
+      Value<String> entity,
+      Value<String> type,
+      Value<String> payload,
+      Value<DateTime> createdAt,
+      Value<String> status,
+    });
+
+class $$PendingEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingEventsTable> {
+  $$PendingEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get entity =>
+      $composableBuilder(column: $table.entity, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$PendingEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingEventsTable,
+          PendingEvent,
+          $$PendingEventsTableFilterComposer,
+          $$PendingEventsTableOrderingComposer,
+          $$PendingEventsTableAnnotationComposer,
+          $$PendingEventsTableCreateCompanionBuilder,
+          $$PendingEventsTableUpdateCompanionBuilder,
+          (
+            PendingEvent,
+            BaseReferences<_$AppDatabase, $PendingEventsTable, PendingEvent>,
+          ),
+          PendingEvent,
+          PrefetchHooks Function()
+        > {
+  $$PendingEventsTableTableManager(_$AppDatabase db, $PendingEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> entity = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => PendingEventsCompanion(
+                id: id,
+                entity: entity,
+                type: type,
+                payload: payload,
+                createdAt: createdAt,
+                status: status,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String entity,
+                required String type,
+                required String payload,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> status = const Value.absent(),
+              }) => PendingEventsCompanion.insert(
+                id: id,
+                entity: entity,
+                type: type,
+                payload: payload,
+                createdAt: createdAt,
+                status: status,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingEventsTable,
+      PendingEvent,
+      $$PendingEventsTableFilterComposer,
+      $$PendingEventsTableOrderingComposer,
+      $$PendingEventsTableAnnotationComposer,
+      $$PendingEventsTableCreateCompanionBuilder,
+      $$PendingEventsTableUpdateCompanionBuilder,
+      (
+        PendingEvent,
+        BaseReferences<_$AppDatabase, $PendingEventsTable, PendingEvent>,
+      ),
+      PendingEvent,
+      PrefetchHooks Function()
+    >;
+typedef $$SyncStateTableCreateCompanionBuilder =
+    SyncStateCompanion Function({
+      required String entity,
+      Value<String?> lastRevision,
+      Value<int> rowid,
+    });
+typedef $$SyncStateTableUpdateCompanionBuilder =
+    SyncStateCompanion Function({
+      Value<String> entity,
+      Value<String?> lastRevision,
+      Value<int> rowid,
+    });
+
+class $$SyncStateTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncStateTable> {
+  $$SyncStateTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastRevision => $composableBuilder(
+    column: $table.lastRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncStateTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncStateTable> {
+  $$SyncStateTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get entity => $composableBuilder(
+    column: $table.entity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastRevision => $composableBuilder(
+    column: $table.lastRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncStateTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncStateTable> {
+  $$SyncStateTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get entity =>
+      $composableBuilder(column: $table.entity, builder: (column) => column);
+
+  GeneratedColumn<String> get lastRevision => $composableBuilder(
+    column: $table.lastRevision,
+    builder: (column) => column,
+  );
+}
+
+class $$SyncStateTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncStateTable,
+          SyncStateData,
+          $$SyncStateTableFilterComposer,
+          $$SyncStateTableOrderingComposer,
+          $$SyncStateTableAnnotationComposer,
+          $$SyncStateTableCreateCompanionBuilder,
+          $$SyncStateTableUpdateCompanionBuilder,
+          (
+            SyncStateData,
+            BaseReferences<_$AppDatabase, $SyncStateTable, SyncStateData>,
+          ),
+          SyncStateData,
+          PrefetchHooks Function()
+        > {
+  $$SyncStateTableTableManager(_$AppDatabase db, $SyncStateTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncStateTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncStateTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncStateTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> entity = const Value.absent(),
+                Value<String?> lastRevision = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncStateCompanion(
+                entity: entity,
+                lastRevision: lastRevision,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String entity,
+                Value<String?> lastRevision = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncStateCompanion.insert(
+                entity: entity,
+                lastRevision: lastRevision,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncStateTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncStateTable,
+      SyncStateData,
+      $$SyncStateTableFilterComposer,
+      $$SyncStateTableOrderingComposer,
+      $$SyncStateTableAnnotationComposer,
+      $$SyncStateTableCreateCompanionBuilder,
+      $$SyncStateTableUpdateCompanionBuilder,
+      (
+        SyncStateData,
+        BaseReferences<_$AppDatabase, $SyncStateTable, SyncStateData>,
+      ),
+      SyncStateData,
+      PrefetchHooks Function()
     >;
 typedef $$SearchQueriesTableCreateCompanionBuilder =
     SearchQueriesCompanion Function({Value<int> id, required String query});
@@ -2646,6 +3756,10 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db, _db.transactions);
+  $$PendingEventsTableTableManager get pendingEvents =>
+      $$PendingEventsTableTableManager(_db, _db.pendingEvents);
+  $$SyncStateTableTableManager get syncState =>
+      $$SyncStateTableTableManager(_db, _db.syncState);
   $$SearchQueriesTableTableManager get searchQueries =>
       $$SearchQueriesTableTableManager(_db, _db.searchQueries);
 }

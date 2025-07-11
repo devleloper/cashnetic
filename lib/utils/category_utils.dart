@@ -21,9 +21,9 @@ const List<Color> sectionColors = [
   Colors.red,
   Colors.purple,
   Colors.teal,
-  Color(0xFFfdd835), // ярко-жёлтый
-  Color(0xFF8d6e63), // коричневый
-  Color(0xFF64b5f6), // голубой
+  Color(0xFFfdd835), // bright yellow
+  Color(0xFF8d6e63), // brown
+  Color(0xFF64b5f6), // blue
 ];
 
 String selectedIconFor(String title) => categoryIcons[title] ?? '💸';

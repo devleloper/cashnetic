@@ -16,7 +16,7 @@ class SearchCategories extends CategoriesEvent {
 }
 
 class AddCategory extends CategoriesEvent {
-  final dynamic category; // уточним тип после интеграции domain/data
+  final dynamic category; // clarify type after domain/data integration
   const AddCategory(this.category);
   @override
   List<Object?> get props => [category];

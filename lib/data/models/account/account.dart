@@ -7,6 +7,7 @@ part 'account.g.dart';
 abstract class AccountDTO with _$AccountDTO {
   const factory AccountDTO({
     required int id,
+    String? clientId,
     required int userId,
     required String name,
     required String balance,

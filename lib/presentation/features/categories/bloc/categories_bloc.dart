@@ -78,18 +78,22 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     if (state is! CategoriesLoaded) return;
     final loaded = state as CategoriesLoaded;
     final result = await categoriesRepository.searchCategories(event.query);
-    result.fold((failure) => emit(CategoriesError(failure.toString())), (
-      filtered,
-    ) {
-      emit(
-        CategoriesLoaded(
-          categories: filtered,
-          allCategories: loaded.allCategories,
-          searchQuery: event.query,
-          txByCategory: loaded.txByCategory,
-        ),
-      );
-    });
+    result.fold(
+      (failure) {
+        // Don't emit CategoriesError, just ignore search error
+        // You can add log or handle via SnackBar in UI
+      },
+      (filtered) {
+        emit(
+          CategoriesLoaded(
+            categories: filtered,
+            allCategories: loaded.allCategories,
+            searchQuery: event.query,
+            txByCategory: loaded.txByCategory,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _onAddCategory(

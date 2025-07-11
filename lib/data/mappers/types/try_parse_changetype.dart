@@ -11,7 +11,7 @@ Either<Failure, ChangeType> tryParseChangeType(
     return right(ChangeType.values.byName(source));
   } catch (_) {
     return left(
-      ParsingFailure('Неизвестный ChangeType: "$source" в поле $fieldName'),
+      ParsingFailure('Unknown ChangeType: "$source" in field $fieldName'),
     );
   }
 }

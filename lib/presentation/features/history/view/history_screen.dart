@@ -16,6 +16,10 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_event
 import 'package:cashnetic/domain/entities/category.dart';
 import '../widgets/history_list_view.dart';
 import '../widgets/history_sort_dropdown.dart';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'dart:async';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -26,6 +30,10 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  SyncStatus? _lastSyncStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
+  Completer<void>? _refreshCompleter;
+
   Future<void> _pickDate(
     BuildContext context,
     bool isFrom,
@@ -64,16 +72,104 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
+  }
+
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<HistoryBloc>().add(
+          LoadHistory(
+            widget.isIncome ? HistoryType.income : HistoryType.expense,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<HistoryBloc, HistoryState>(
       builder: (context, state) {
+        // RefreshIndicator: complete only on Loaded/Error
+        if (_refreshCompleter != null &&
+            (state is HistoryLoaded || state is HistoryError)) {
+          _refreshCompleter?.complete();
+          _refreshCompleter = null;
+        }
         if (state is HistoryLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
+                widget.isIncome
+                    ? S.of(context).incomeForTheMonth
+                    : S.of(context).expensesForTheMonth,
+              ),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.calendar_month, color: Colors.white),
+                  onPressed: () async {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider(
+                          create: (context) => AnalysisBloc()
+                            ..add(
+                              LoadAnalysis(
+                                year: DateTime.now().year,
+                                type: widget.isIncome
+                                    ? AnalysisType.income
+                                    : AnalysisType.expense,
+                              ),
+                            ),
+                          child: AnalysisScreen(
+                            type: widget.isIncome
+                                ? AnalysisType.income
+                                : AnalysisType.expense,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            body: const ShimmerHistoryScreenPlaceholder(),
           );
         }
         if (state is HistoryError) {
-          return Scaffold(body: Center(child: Text(state.message)));
+          return Scaffold(
+            body: Center(
+              child: Text(
+                'Failed to fetch data',
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ),
+          );
         }
         if (state is! HistoryLoaded) {
           return const SizedBox.shrink();
@@ -270,28 +366,41 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                   Expanded(
-                    child: list.isEmpty
-                        ? Center(
-                            child: Text(
-                              widget.isIncome
-                                  ? S.of(context).noIncomeForTheLastMonth
-                                  : S.of(context).noExpensesForTheLastMonth,
-                            ),
-                          )
-                        : HistoryListView(
-                            transactions: list,
-                            categories: categories,
-                            isIncome: widget.isIncome,
-                            onEdited: () {
-                              context.read<HistoryBloc>().add(
-                                LoadHistory(
-                                  widget.isIncome
-                                      ? HistoryType.income
-                                      : HistoryType.expense,
-                                ),
-                              );
-                            },
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        _refreshCompleter = Completer<void>();
+                        context.read<HistoryBloc>().add(
+                          LoadHistory(
+                            widget.isIncome
+                                ? HistoryType.income
+                                : HistoryType.expense,
                           ),
+                        );
+                        return _refreshCompleter!.future;
+                      },
+                      child: list.isEmpty
+                          ? Center(
+                              child: Text(
+                                widget.isIncome
+                                    ? S.of(context).noIncomeForTheLastMonth
+                                    : S.of(context).noExpensesForTheLastMonth,
+                              ),
+                            )
+                          : HistoryListView(
+                              transactions: list,
+                              categories: categories,
+                              isIncome: widget.isIncome,
+                              onEdited: () {
+                                context.read<HistoryBloc>().add(
+                                  LoadHistory(
+                                    widget.isIncome
+                                        ? HistoryType.income
+                                        : HistoryType.expense,
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
                   ),
                 ],
               ),

@@ -6,7 +6,7 @@ class AnalysisCategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Если внутри сливеров — используем Column
+    // If inside slivers — use Column
     return Column(
       children: List.generate(data.length, (i) {
         final c = data[i];

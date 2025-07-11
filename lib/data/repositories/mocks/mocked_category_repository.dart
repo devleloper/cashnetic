@@ -8,91 +8,91 @@ class MockedCategoryRepository {
   final List<Category> _mockCategories = [
     Category(
       id: 1,
-      name: 'Продукты',
+      name: 'Products',
       emoji: '🛒',
       isIncome: false,
       color: '#4CAF50',
     ),
     Category(
       id: 2,
-      name: 'Ремонт',
+      name: 'Repair',
       emoji: '🏠',
       isIncome: false,
       color: '#FF9800',
     ),
     Category(
       id: 3,
-      name: 'Одежда',
+      name: 'Clothes',
       emoji: '👗',
       isIncome: false,
       color: '#9C27B0',
     ),
     Category(
       id: 4,
-      name: 'Электроника',
+      name: 'Electronics',
       emoji: '📱',
       isIncome: false,
       color: '#2196F3',
     ),
     Category(
       id: 5,
-      name: 'Развлечения',
+      name: 'Entertainment',
       emoji: '🎉',
       isIncome: false,
       color: '#E91E63',
     ),
     Category(
       id: 6,
-      name: 'Образование',
+      name: 'Education',
       emoji: '🎓',
       isIncome: false,
       color: '#3F51B5',
     ),
     Category(
       id: 7,
-      name: 'Животные',
+      name: 'Animals',
       emoji: '🐶',
       isIncome: false,
       color: '#795548',
     ),
     Category(
       id: 8,
-      name: 'Здоровье',
+      name: 'Health',
       emoji: '💊',
       isIncome: false,
       color: '#F44336',
     ),
     Category(
       id: 9,
-      name: 'Подарки',
+      name: 'Presents',
       emoji: '🎁',
       isIncome: false,
       color: '#FF5722',
     ),
     Category(
       id: 10,
-      name: 'Спорт',
+      name: 'Sports',
       emoji: '🏋️',
       isIncome: false,
       color: '#00BCD4',
     ),
     Category(
       id: 11,
-      name: 'Транспорт',
+      name: 'Transport',
       emoji: '🚌',
       isIncome: false,
       color: '#607D8B',
     ),
     Category(
       id: 12,
-      name: 'Зарплата',
+      name: 'Salary',
       emoji: '💼',
       isIncome: true,
       color: '#8BC34A',
     ),
     Category(
       id: 13,
-      name: 'Подработка',
+      name: 'Side job',
       emoji: '🪙',
       isIncome: true,
       color: '#CDDC39',
@@ -103,7 +103,7 @@ class MockedCategoryRepository {
     try {
       return right(_mockCategories);
     } catch (e) {
-      return left(RepositoryFailure('Ошибка при получении категорий'));
+      return left(RepositoryFailure('Error getting categories'));
     }
   }
 
@@ -136,7 +136,7 @@ class MockedCategoryRepository {
       _mockCategories.add(newCat);
       return right(newCat);
     } catch (e) {
-      return left(RepositoryFailure('Ошибка при добавлении категории: $e'));
+      return left(RepositoryFailure('Error adding category: $e'));
     }
   }
 
@@ -147,11 +147,11 @@ class MockedCategoryRepository {
       final deleted = _mockCategories.length < initialLen;
       return right(deleted);
     } catch (e) {
-      return left(RepositoryFailure('Ошибка при удалении категории: $e'));
+      return left(RepositoryFailure('Error deleting category: $e'));
     }
   }
 
-  /// Удаляет категорию, если нет ни одной транзакции с этим categoryId
+  /// Deletes a category if there are no transactions with this categoryId
   Future<Either<Failure, bool>> deleteCategoryIfUnused(
     int categoryId,
     List<dynamic> allTransactions,
@@ -162,7 +162,7 @@ class MockedCategoryRepository {
       return await deleteCategory(categoryId);
     } catch (e) {
       return left(
-        RepositoryFailure('Ошибка при проверке и удалении категории: $e'),
+        RepositoryFailure('Error checking and deleting category: $e'),
       );
     }
   }

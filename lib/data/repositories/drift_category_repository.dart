@@ -6,11 +6,17 @@ import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
 import 'package:cashnetic/data/mappers/category_mapper.dart';
 import 'package:flutter/foundation.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/data/models/category/category.dart';
+import 'dart:convert';
+import 'package:cashnetic/domain/entities/forms/category_form.dart';
+import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftCategoryRepository {
   final db.AppDatabase dbInstance;
+  final ApiClient apiClient;
 
-  DriftCategoryRepository(this.dbInstance);
+  DriftCategoryRepository(this.dbInstance, this.apiClient);
 
   Future<void> _initDefaultCategories() async {
     debugPrint('[DriftCategoryRepository] ENTER _initDefaultCategories');
@@ -109,21 +115,70 @@ class DriftCategoryRepository {
   Future<Either<Failure, List<domain.Category>>> getAllCategories() async {
     debugPrint('[DriftCategoryRepository] ENTER getAllCategories');
     try {
-      await _initDefaultCategories();
-      final data = await dbInstance.getAllCategories();
-      debugPrint(
-        '[DriftCategoryRepository] Categories after init: count=${data.length}',
-      );
-      for (final cat in data) {
-        debugPrint(
-          '  - id: ${cat.id}, name: ${cat.name}, isIncome: ${cat.isIncome}',
-        );
+      // Get local categories
+      final local = await dbInstance.getAllCategories();
+      try {
+        // Try to load from server
+        final response = await apiClient.getCategories();
+        final remoteCategories = (response.data as List)
+            .map((json) => CategoryDTO.fromJson(json))
+            .map(
+              (dto) => db.Category(
+                id: dto.id,
+                name: dto.name,
+                emoji: dto.emoji,
+                isIncome: dto.isIncome,
+                color: dto.color ?? '#E0E0E0',
+              ),
+            )
+            .toList();
+        // Replace all local categories with server ones
+        await dbInstance.replaceAllCategories(remoteCategories);
+        // Remove default categories if they remain (edge-case)
+        final defaultNames = [
+          'Продукты',
+          'Ремонт',
+          'Одежда',
+          'Электроника',
+          'Развлечения',
+          'Образование',
+          'Животные',
+          'Здоровье',
+          'Подарки',
+          'Спорт',
+          'Транспорт',
+          'Зарплата',
+          'Подработка',
+        ];
+        final allAfterReplace = await dbInstance.getAllCategories();
+        for (final cat in allAfterReplace) {
+          if (defaultNames.contains(cat.name)) {
+            final isInRemote = remoteCategories.any(
+              (r) => r.name == cat.name && r.isIncome == cat.isIncome,
+            );
+            if (!isInRemote) {
+              await dbInstance.deleteCategory(cat.id);
+            }
+          }
+        }
+        debugPrint('[DriftCategoryRepository] EXIT getAllCategories (remote)');
+        return Right(remoteCategories.map((c) => c.toDomain()).toList());
+      } catch (_) {
+        // If server is unavailable and there are no local categories — add defaults
+        if (local.isEmpty) {
+          await _initDefaultCategories();
+          final withDefaults = await dbInstance.getAllCategories();
+          debugPrint(
+            '[DriftCategoryRepository] EXIT getAllCategories (defaults)',
+          );
+          return Right(withDefaults.map((e) => e.toDomain()).toList());
+        }
+        debugPrint('[DriftCategoryRepository] EXIT getAllCategories (local)');
+        return Right(local.map((e) => e.toDomain()).toList());
       }
-      debugPrint('[DriftCategoryRepository] EXIT getAllCategories');
-      return Right(data.map((e) => e.toDomain()).toList());
     } catch (e) {
       debugPrint(
-        '[DriftCategoryRepository] ERROR in getAllCategories: ${e.toString()}',
+        '[DriftCategoryRepository] ERROR in getAllCategories:  [31m${e.toString()} [0m',
       );
       return Left(RepositoryFailure(e.toString()));
     }
@@ -145,19 +200,28 @@ class DriftCategoryRepository {
     }
   }
 
-  Future<Either<Failure, domain.Category>> addCategory({
-    required String name,
-    String emoji = '💰',
-    required bool isIncome,
-    String color = '#E0E0E0',
-  }) async {
+  Future<Either<Failure, domain.Category>> createCategory(
+    CategoryForm form,
+  ) async {
     try {
       final id = await dbInstance.insertCategory(
         db.CategoriesCompanion(
-          name: Value(name),
-          emoji: Value(emoji),
-          isIncome: Value(isIncome),
-          color: Value(color),
+          name: Value(form.name ?? ''),
+          emoji: Value(form.emoji ?? ''),
+          isIncome: Value(form.isIncome ?? false),
+          color: Value(form.color ?? '#E0E0E0'),
+        ),
+      );
+      // Save event to pending_events
+      final dto = form.toCreateDTO();
+      final payload = dto != null ? dto.toJson() : <String, dynamic>{};
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('category'),
+          type: Value('create'),
+          payload: Value(jsonEncode(payload)),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
         ),
       );
       final cat = await dbInstance.getCategoryById(id);
@@ -170,18 +234,103 @@ class DriftCategoryRepository {
     }
   }
 
+  Future<Either<Failure, domain.Category>> updateCategory(
+    int id,
+    CategoryForm form,
+  ) async {
+    try {
+      final existing = await dbInstance.getCategoryById(id);
+      if (existing == null) {
+        return Left(RepositoryFailure('Category not found'));
+      }
+      final updated = existing.copyWithCompanion(
+        db.CategoriesCompanion(
+          name: form.name != null ? Value(form.name!) : const Value.absent(),
+          emoji: form.emoji != null ? Value(form.emoji!) : const Value.absent(),
+          isIncome: form.isIncome != null
+              ? Value(form.isIncome!)
+              : const Value.absent(),
+          color: form.color != null ? Value(form.color!) : const Value.absent(),
+        ),
+      );
+      await dbInstance.updateCategory(updated);
+      // --- DIFF LOGIC ---
+      final oldJson = CategoryDTO(
+        id: existing.id,
+        name: existing.name,
+        emoji: existing.emoji,
+        isIncome: existing.isIncome,
+        color: existing.color,
+      ).toJson();
+      final newJson = CategoryDTO(
+        id: updated.id,
+        name: updated.name,
+        emoji: updated.emoji,
+        isIncome: updated.isIncome,
+        color: updated.color,
+      ).toJson();
+      final diff = generateDiff(oldJson, newJson);
+      if (diff.isNotEmpty) {
+        diff['id'] = id; // always include id for update
+        await dbInstance.insertPendingEvent(
+          db.PendingEventsCompanion(
+            entity: Value('category'),
+            type: Value('update'),
+            payload: Value(jsonEncode(diff)),
+            createdAt: Value(DateTime.now()),
+            status: Value('pending'),
+          ),
+        );
+        debugPrint(
+          '[DriftCategoryRepository] Saved diff to pending_events: ' +
+              diff.toString(),
+        );
+      } else {
+        debugPrint(
+          '[DriftCategoryRepository] No diff detected, nothing to sync',
+        );
+      }
+      final cat = await dbInstance.getCategoryById(id);
+      if (cat == null) {
+        return Left(RepositoryFailure('Category not found after update'));
+      }
+      return Right(cat.toDomain());
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
+  Future<Either<Failure, void>> deleteCategory(int id) async {
+    try {
+      await dbInstance.deleteCategory(id);
+      // Save event to pending_events
+      await dbInstance.insertPendingEvent(
+        db.PendingEventsCompanion(
+          entity: Value('category'),
+          type: Value('delete'),
+          payload: Value(jsonEncode({'id': id})),
+          createdAt: Value(DateTime.now()),
+          status: Value('pending'),
+        ),
+      );
+      return Right(null);
+    } catch (e) {
+      return Left(RepositoryFailure(e.toString()));
+    }
+  }
+
   Future<Either<Failure, bool>> deleteCategoryIfUnused(
     int categoryId,
     List<dynamic> allTransactions,
   ) async {
     try {
-      // Проверяем, есть ли транзакции с этой категорией
+      // Check if there are transactions with this category
       final transactions = await dbInstance.getAllTransactions();
       final hasTransactions = transactions.any(
         (t) => t.categoryId == categoryId,
       );
       if (hasTransactions) {
-        return Right(false); // Категория используется, не удаляем
+        return Right(false); // Category is used, do not delete
       }
       await dbInstance.deleteCategory(categoryId);
       return Right(true);

@@ -19,6 +19,7 @@ extension AccountMapper on AccountDTO {
         (parsedCreatedAt) => updatedAtOrFailure.map(
           (parsedUpdatedAt) => domain.Account(
             id: this.id,
+            clientId: this.clientId,
             userId: userId,
             name: name,
             moneyDetails: MoneyDetails(
@@ -26,7 +27,7 @@ extension AccountMapper on AccountDTO {
               currency: currency,
             ),
             timeInterval: TimeInterval(
-              createdAt: parsedUpdatedAt,
+              createdAt: parsedCreatedAt,
               updatedAt: parsedUpdatedAt,
             ),
           ),
@@ -40,6 +41,7 @@ extension DbAccountMapper on db.Account {
   domain.Account toDomain() {
     return domain.Account(
       id: this.id,
+      clientId: this.clientId,
       userId: 0,
       name: this.name,
       moneyDetails: MoneyDetails(

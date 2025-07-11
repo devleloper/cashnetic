@@ -22,16 +22,20 @@ class CategoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      itemCount: categories.length,
+      itemCount: categories.length + 1, // +1 for empty item
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, i) {
-        final cat = categories[i];
+        if (i == 0) {
+          // First item — spacer
+          return const SizedBox(height: 94);
+        }
+        final cat = categories[i - 1];
         final txCount = txByCategory[cat.id]?.length ?? 0;
-        final amount = amounts != null && i < amounts!.length
-            ? amounts![i]
+        final amount = amounts != null && i - 1 < amounts!.length
+            ? amounts![i - 1]
             : null;
-        final percent = percents != null && i < percents!.length
-            ? percents![i]
+        final percent = percents != null && i - 1 < percents!.length
+            ? percents![i - 1]
             : null;
         return CategoryListTile(
           category: cat,

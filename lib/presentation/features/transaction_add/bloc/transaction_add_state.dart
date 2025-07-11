@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:flutter/material.dart';
 
 abstract class TransactionAddState extends Equatable {
   const TransactionAddState();
@@ -89,7 +90,14 @@ class TransactionAddError extends TransactionAddState {
 }
 
 class TransactionAddSuccess extends TransactionAddState {
-  const TransactionAddSuccess();
+  final String categoryEmoji;
+  final Color categoryColor;
+  final DateTime selectedDate;
+  const TransactionAddSuccess({
+    required this.categoryEmoji,
+    required this.categoryColor,
+    required this.selectedDate,
+  });
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [categoryEmoji, categoryColor, selectedDate];
 }

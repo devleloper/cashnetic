@@ -50,7 +50,11 @@ class AccountSelectSheet extends StatelessWidget {
                       ),
                     ),
                   ),
-                  title: Text(account.name),
+                  title: Text(
+                    account.name.trim().isEmpty
+                        ? S.of(context).account
+                        : account.name,
+                  ),
                   onTap: () => onSelect(account),
                 ),
               ),
