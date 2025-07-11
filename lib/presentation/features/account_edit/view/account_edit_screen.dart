@@ -60,7 +60,9 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                 .where((a) => a.id != excludeId)
                 .map(
                   (a) => ListTile(
-                    title: Text(a.name),
+                    title: Text(
+                      a.name.trim().isEmpty ? S.of(context).account : a.name,
+                    ),
                     onTap: () => Navigator.pop(ctx, a.id),
                   ),
                 )

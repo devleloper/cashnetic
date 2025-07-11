@@ -16,6 +16,9 @@ import 'dart:ui';
 import 'package:cashnetic/domain/entities/account.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -31,6 +34,8 @@ class _AccountScreenState extends State<AccountScreen> {
   Orientation? _lastOrientation;
   StreamSubscription<AccelerometerEvent>? _accelSub;
   bool? _lastFaceDown;
+  SyncStatus? _lastSyncStatus;
+  Completer<void>? _refreshCompleter;
 
   @override
   void initState() {
@@ -48,7 +53,7 @@ class _AccountScreenState extends State<AccountScreen> {
       shakeThresholdGravity: 2.2,
     );
     _accelSub = accelerometerEvents.listen((event) {
-      // z < 0 — экран вниз, z > 0 — экран вверх
+      // z < 0 — screen down, z > 0 — screen up
       final isFaceDown = event.z < 0;
       if (_lastFaceDown != null && _lastFaceDown != isFaceDown) {
         setState(() {
@@ -62,6 +67,9 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
+    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
+    syncStatusNotifier.addListener(_onSyncStatusChanged);
     final orientation = MediaQuery.of(context).orientation;
     if (_lastOrientation != null && _lastOrientation != orientation) {
       setState(() {
@@ -71,10 +79,29 @@ class _AccountScreenState extends State<AccountScreen> {
     _lastOrientation = orientation;
   }
 
+  void _onSyncStatusChanged() {
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    if (_lastSyncStatus == syncStatusNotifier.status) return;
+    _lastSyncStatus = syncStatusNotifier.status;
+    if (syncStatusNotifier.status == SyncStatus.online) {
+      if (mounted) {
+        context.read<AccountBloc>().add(LoadAccount());
+      }
+    }
+  }
+
   @override
   void dispose() {
     _shakeDetector?.stopListening();
     _accelSub?.cancel();
+    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
+      context,
+      listen: false,
+    );
+    syncStatusNotifier.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
@@ -82,10 +109,14 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountBloc, AccountState>(
       builder: (context, state) {
+        // RefreshIndicator: complete only on Loaded/Error
+        if (_refreshCompleter != null &&
+            (state is AccountLoaded || state is AccountError)) {
+          _refreshCompleter?.complete();
+          _refreshCompleter = null;
+        }
         if (state is AccountLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const ShimmerAccountScreenPlaceholder();
         }
         if (state is AccountError) {
           return Scaffold(body: Center(child: Text(state.message)));
@@ -123,7 +154,11 @@ class _AccountScreenState extends State<AccountScreen> {
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(acc.name),
+                              Text(
+                                acc.name.trim().isEmpty
+                                    ? S.of(context).account
+                                    : acc.name,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 acc.moneyDetails?.currency ?? '',
@@ -229,9 +264,16 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: AccountBalanceChart(points: state.dailyPoints),
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    _refreshCompleter = Completer<void>();
+                    context.read<AccountBloc>().add(LoadAccount());
+                    return _refreshCompleter!.future;
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: AccountBalanceChart(points: state.dailyPoints),
+                  ),
                 ),
               ),
             ],

@@ -22,6 +22,7 @@ import 'package:cashnetic/presentation/features/account/bloc/account_state.dart'
 import 'package:cashnetic/data/models/account/account.dart';
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
+import 'package:flutter/foundation.dart';
 
 abstract interface class AccountRepository {
   Future<Either<Failure, List<Account>>> getAllAccounts();
@@ -151,12 +152,19 @@ class AccountRepositoryImpl implements AccountRepository {
 
   @override
   Future<List<DailyBalancePoint>> buildDailyPoints(int accountId) async {
-    // Получаем все транзакции по счету за все время
-    final txs = await transactionsRepository.getTransactions(
+    final (txs, _) = await transactionsRepository.getTransactions(
       accountId: accountId,
-      from: DateTime(2000), // или любая минимальная дата
-      to: DateTime.now().add(const Duration(days: 3650)), // запас на будущее
+      from: DateTime(2000),
+      to: DateTime.now().add(const Duration(days: 3650)),
     );
+    debugPrint(
+      '[buildDailyPoints] accountId=$accountId, txs count=${txs.length}',
+    );
+    for (final t in txs) {
+      debugPrint(
+        '[buildDailyPoints] tx: id=${t.id}, accountId=${t.accountId}, amount=${t.amount}, date=${t.timestamp}, categoryId=${t.categoryId}',
+      );
+    }
     if (txs.isEmpty) return [];
 
     // Получаем все категории
@@ -174,16 +182,18 @@ class AccountRepositoryImpl implements AccountRepository {
     for (final t in txs) {
       final d = DateTime(t.timestamp.year, t.timestamp.month, t.timestamp.day);
       // Найти категорию по t.categoryId
-      final cat = categories.firstWhere(
-        (c) => c.id == t.categoryId,
-        orElse: () => db.Category(
-          id: 0,
-          name: '',
-          emoji: '',
-          isIncome: false,
-          color: '#E0E0E0',
-        ),
-      );
+      final cat = categories.isNotEmpty
+          ? categories.firstWhere(
+              (c) => c.id == t.categoryId,
+              orElse: () => categories.first,
+            )
+          : db.Category(
+              id: 0,
+              name: '—',
+              emoji: '❓',
+              isIncome: false,
+              color: '#E0E0E0',
+            );
       final isIncome = cat.isIncome;
       final p = map[d];
       if (p != null) {

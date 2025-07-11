@@ -36,16 +36,18 @@ class TransactionEditBloc
       );
       final categories = await repository.getCategories();
       final accounts = await repository.getAccounts();
-      final selectedCategory = categories.firstWhere(
-        (c) => c.id == transaction.categoryId,
-        orElse: () => categories.first,
-      );
-      final selectedAccount = accounts.firstWhere(
-        (a) => a.id == transaction.accountId,
-        orElse: () => accounts.isNotEmpty
-            ? accounts.first
-            : throw Exception('No accounts'),
-      );
+      final selectedCategory = categories.isNotEmpty
+          ? categories.firstWhere(
+              (c) => c.id == transaction.categoryId,
+              orElse: () => categories.first,
+            )
+          : throw Exception('No categories');
+      final selectedAccount = accounts.isNotEmpty
+          ? accounts.firstWhere(
+              (a) => a.id == transaction.accountId,
+              orElse: () => accounts.first,
+            )
+          : throw Exception('No accounts');
       emit(
         TransactionEditLoaded(
           transaction: transaction,
@@ -244,10 +246,12 @@ class TransactionEditBloc
       final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
-      final selected = filtered.firstWhere(
-        (c) => c.name == event.name && c.emoji == event.emoji,
-        orElse: () => filtered.last,
-      );
+      final selected = filtered.isNotEmpty
+          ? filtered.firstWhere(
+              (c) => c.name == event.name && c.emoji == event.emoji,
+              orElse: () => filtered.last,
+            )
+          : throw Exception('No category found');
       emit(
         TransactionEditLoaded(
           transaction: current.transaction,

@@ -16,7 +16,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Запросим категории, если нужно
+    // Request categories if needed
     context.read<CategoriesBloc>().add(LoadCategories());
     return Scaffold(
       appBar: AppBar(
@@ -33,16 +33,18 @@ class TransactionListByCategoryScreen extends StatelessWidget {
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (_, i) {
                 final t = txns[i];
-                final cat = categories.firstWhere(
-                  (c) => c.id == t.categoryId,
-                  orElse: () => Category(
-                    id: 0,
-                    name: '—',
-                    emoji: '❓',
-                    isIncome: false,
-                    color: '#E0E0E0',
-                  ),
-                );
+                final cat = categories.isNotEmpty
+                    ? categories.firstWhere(
+                        (c) => c.id == t.categoryId,
+                        orElse: () => categories.first,
+                      )
+                    : Category(
+                        id: 0,
+                        name: '—',
+                        emoji: '❓',
+                        isIncome: false,
+                        color: '#E0E0E0',
+                      );
                 return MyItemListTile(
                   transaction: t,
                   category: Category(

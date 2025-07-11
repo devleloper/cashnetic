@@ -97,5 +97,6 @@
   "validationErrors": "Ошибка валидации:",
   "selectLanguage": "Выберите язык",
   "incomeToday": "Доход за сегодня",
-  "expensesToday": "Расходы за сегодня"
+  "expensesToday": "Расходы за сегодня",
+  "accountNameRequired": "Введите название счёта"
 }

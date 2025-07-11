@@ -22,11 +22,11 @@ class CategoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      itemCount: categories.length + 1, // +1 для пустого элемента
+      itemCount: categories.length + 1, // +1 for empty item
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (_, i) {
         if (i == 0) {
-          // Первый элемент — отступ
+          // First item — spacer
           return const SizedBox(height: 94);
         }
         final cat = categories[i - 1];

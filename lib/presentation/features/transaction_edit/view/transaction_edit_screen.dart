@@ -179,7 +179,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   children: [
                     MyListTileRow(
                       title: S.of(context).account,
-                      value: state.account?.name ?? '',
+                      value:
+                          (state.account == null ||
+                              (state.account.name.trim().isEmpty))
+                          ? S.of(context).account
+                          : state.account.name,
                       onTap: isProcessing
                           ? () {}
                           : () => _selectAccount(context, state.accounts),

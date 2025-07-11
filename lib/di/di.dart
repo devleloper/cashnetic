@@ -18,11 +18,21 @@ import 'package:cashnetic/presentation/features/history/repositories/history_rep
 import 'package:cashnetic/presentation/features/analysis/repositories/analysis_repository.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:get_it/get_it.dart';
+import 'package:cashnetic/data/api_client.dart';
+import 'package:cashnetic/data/sync_manager.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
   getIt.registerLazySingleton<AppDatabase>(() => AppDatabase());
+
+  // Register ApiClient
+  getIt.registerLazySingleton<ApiClient>(() => ApiClient());
+
+  // Register SyncManager
+  getIt.registerLazySingleton<SyncManager>(
+    () => SyncManager(getIt<AppDatabase>(), getIt<ApiClient>()),
+  );
 
   getIt.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(
@@ -55,14 +65,14 @@ void setupDependencies() {
   );
 
   getIt.registerLazySingleton<DriftAccountRepository>(
-    () => DriftAccountRepository(getIt<AppDatabase>()),
+    () => DriftAccountRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
   );
 
   getIt.registerLazySingleton<DriftTransactionRepository>(
-    () => DriftTransactionRepository(getIt<AppDatabase>()),
+    () => DriftTransactionRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<DriftCategoryRepository>(
-    () => DriftCategoryRepository(getIt<AppDatabase>()),
+    () => DriftCategoryRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
   );
 
   getIt.registerLazySingleton<AccountAddRepository>(

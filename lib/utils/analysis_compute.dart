@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
 
-/// Входная модель для изолята
+/// Input model for isolate
 class AnalysisInput {
   final List<Transaction> transactions;
   final List<int> colorValues;
@@ -10,7 +10,7 @@ class AnalysisInput {
   const AnalysisInput({required this.transactions, required this.colorValues});
 }
 
-/// Изолируемая функция анализа
+/// Isolated analysis function
 AnalysisResult computeAnalysisIsolate(AnalysisInput input) {
   final transactions = input.transactions;
   final colorValues = input.colorValues;
@@ -30,7 +30,7 @@ AnalysisResult computeAnalysisIsolate(AnalysisInput input) {
 
   final total = transactions.fold<double>(0, (sum, e) => sum + e.amount);
 
-  final Map<int, num> sums = {}; // categoryId -> сумма
+  final Map<int, num> sums = {}; // categoryId -> sum
   final Map<int, String> titles = {}; // categoryId -> title
   final Map<int, String> icons = {}; // categoryId -> emoji
 

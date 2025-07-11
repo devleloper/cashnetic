@@ -4,6 +4,7 @@ import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/value_objects/time_interval.dart';
 import 'package:cashnetic/domain/failures/failure.dart';
 import 'package:cashnetic/domain/failures/repository_failure.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 class MockedTransactionRepository {
   final List<Transaction> _transactions = [
@@ -56,7 +57,7 @@ class MockedTransactionRepository {
   Future<Either<Failure, Unit>> deleteTransaction(int id) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
     _transactions.removeAt(index);
     return right(unit);
@@ -65,7 +66,7 @@ class MockedTransactionRepository {
   Future<Either<Failure, Transaction>> getTransactionById(int id) async {
     final transaction = _transactions.where((a) => a.id == id).firstOrNull;
     if (transaction == null) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
     return right(transaction);
   }
@@ -76,7 +77,9 @@ class MockedTransactionRepository {
     DateTime endDate,
   ) async {
     final filtered = _transactions.where((t) {
-      return t.accountId == accountId &&
+      final accountMatch =
+          accountId == ALL_ACCOUNTS_ID || t.accountId == accountId;
+      return accountMatch &&
           t.timestamp.isAfter(startDate) &&
           t.timestamp.isBefore(endDate);
     }).toList();
@@ -89,7 +92,7 @@ class MockedTransactionRepository {
   ) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) {
-      return left(RepositoryFailure('Транзакция с id $id не найдена'));
+      return left(RepositoryFailure('Transaction with id $id not found'));
     }
 
     final existing = _transactions[index];
@@ -111,6 +114,9 @@ class MockedTransactionRepository {
   }
 
   Future<List<Transaction>> getTransactionsByAccount(int accountId) async {
+    if (accountId == ALL_ACCOUNTS_ID) {
+      return List<Transaction>.from(_transactions);
+    }
     return _transactions.where((t) => t.accountId == accountId).toList();
   }
 

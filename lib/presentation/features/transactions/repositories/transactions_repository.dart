@@ -3,7 +3,7 @@ import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/domain/entities/account.dart';
 
 abstract class TransactionsRepository {
-  Future<List<Transaction>> getTransactions({
+  Future<(List<Transaction>, bool)> getTransactions({
     int? accountId,
     int? categoryId,
     DateTime? from,
