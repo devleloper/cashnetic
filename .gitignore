@@ -52,7 +52,9 @@ API_IMPL.md
 API_INTERACT.md
 API_PHASE.md
 API_OVERVIEW.md
+PR.md
 .env
+
 
 # Memory Bank (exclude from git)
 memory_bank/
