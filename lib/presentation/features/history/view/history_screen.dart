@@ -120,6 +120,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return Scaffold(
             appBar: AppBar(
               title: Text(
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
                 widget.isIncome
                     ? S.of(context).incomeForTheMonth
                     : S.of(context).expensesForTheMonth,
@@ -161,7 +162,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           );
         }
         if (state is HistoryError) {
-          return Scaffold(body: Center(child: Text(state.message)));
+          return Scaffold(
+            body: Center(
+              child: Text(
+                'Failed to fetch data',
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ),
+          );
         }
         if (state is! HistoryLoaded) {
           return const SizedBox.shrink();

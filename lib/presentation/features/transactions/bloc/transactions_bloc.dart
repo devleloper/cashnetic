@@ -51,7 +51,9 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       final cat = cats.firstWhereOrNull((c) => c.id == t.categoryId);
       return cat != null && cat.isIncome == event.isIncome;
     }).toList();
-    debugPrint('[TransactionsBloc] Transactions count: ${filteredTxs.length}');
+    debugPrint(
+      '[TransactionsBloc] Transactions count:  [33m${filteredTxs.length} [0m',
+    );
     debugPrint('[TransactionsBloc] Categories count: ${cats.length}');
     debugPrint(
       '[TransactionsBloc] Filtered categories count: ${filteredCats.length}',
@@ -61,6 +63,14 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         '[TransactionsBloc] Emitting TransactionsError: filteredCats.isEmpty=true',
       );
       emit(TransactionsError('Failed to load data'));
+      return;
+    }
+    // If there are no transactions at all, emit error
+    if (filteredTxs.isEmpty) {
+      debugPrint(
+        '[TransactionsBloc] Emitting TransactionsError: filteredTxs.isEmpty=true',
+      );
+      emit(TransactionsError('No data available'));
       return;
     }
     // If there are no transactions, still show the UI (empty list)
