@@ -18,6 +18,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -108,9 +109,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return BlocBuilder<AccountBloc, AccountState>(
       builder: (context, state) {
         if (state is AccountLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const ShimmerAccountScreenPlaceholder();
         }
         if (state is AccountError) {
           return Scaffold(body: Center(child: Text(state.message)));

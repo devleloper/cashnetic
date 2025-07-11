@@ -11,6 +11,7 @@ import '../widgets/category_list.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 @RoutePage()
 class CategoriesScreen extends StatefulWidget {
@@ -83,9 +84,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return BlocBuilder<CategoriesBloc, CategoriesState>(
       builder: (context, state) {
         if (state is CategoriesLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: ShimmerCategoryListPlaceholder());
         }
         if (state is CategoriesError) {
           return Scaffold(body: Center(child: Text(state.message)));

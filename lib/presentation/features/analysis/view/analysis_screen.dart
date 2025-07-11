@@ -11,6 +11,7 @@ import '../widgets/analysis_category_sliver_list.dart';
 import '../widgets/cashnetic_pie_chart_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 class AnalysisScreen extends StatefulWidget {
   final AnalysisType type;
@@ -64,9 +65,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     return BlocBuilder<AnalysisBloc, AnalysisState>(
       builder: (context, state) {
         if (state is AnalysisLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const ShimmerAnalysisScreenPlaceholder();
         }
         if (state is AnalysisError) {
           return Scaffold(body: Center(child: Text(state.message)));

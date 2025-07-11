@@ -23,6 +23,7 @@ import 'package:cashnetic/presentation/theme/light_color_for.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 @RoutePage()
 class TransactionsScreen extends StatefulWidget {
@@ -183,12 +184,56 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       child: BlocBuilder<TransactionsBloc, TransactionsState>(
         builder: (context, state) {
           if (state is TransactionsLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  widget.isIncome
+                      ? S.of(context).income
+                      : S.of(context).expenses,
+                ),
+                actions: [
+                  IconButton(
+                    key: historyIconKey,
+                    icon: const Icon(Icons.history, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              HistoryScreen(isIncome: widget.isIncome),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              body: const ShimmerTransactionListPlaceholder(),
             );
           }
           if (state is TransactionsError) {
-            return Scaffold(body: Center(child: Text(state.message)));
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  widget.isIncome
+                      ? S.of(context).income
+                      : S.of(context).expenses,
+                ),
+                actions: [
+                  IconButton(
+                    key: historyIconKey,
+                    icon: const Icon(Icons.history, color: Colors.white),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              HistoryScreen(isIncome: widget.isIncome),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              body: Center(child: Text(state.message)),
+            );
           }
           if (state is! TransactionsLoaded) {
             return const SizedBox.shrink();
@@ -234,7 +279,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     ),
                   ),
                 TransactionsTotalRow(total: total),
-
                 const SizedBox(height: 8),
                 Expanded(
                   child: TransactionsListView(

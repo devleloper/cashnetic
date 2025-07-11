@@ -18,6 +18,7 @@ import '../widgets/history_list_view.dart';
 import '../widgets/history_sort_dropdown.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
+import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 
 class HistoryScreen extends StatefulWidget {
   final bool isIncome;
@@ -108,9 +109,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return BlocBuilder<HistoryBloc, HistoryState>(
       builder: (context, state) {
         if (state is HistoryLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const ShimmerHistoryScreenPlaceholder();
         }
         if (state is HistoryError) {
           return Scaffold(body: Center(child: Text(state.message)));

@@ -198,9 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSizeWidget? _buildAppBar(BuildContext context, int index) {
     switch (index) {
-      case 0:
+      case 0: // Expenses
         return AppBar(
-          centerTitle: true,
           title: Text(S.of(context).expenses),
           actions: [
             IconButton(
@@ -215,9 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         );
-      case 1:
+      case 1: // Incomes
         return AppBar(
-          centerTitle: true,
           title: Text(S.of(context).income),
           actions: [
             IconButton(
@@ -252,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return AppBar(title: Text(S.of(context).settings), centerTitle: true);
       default:
-        return null;
+        // Существующая логика для других вкладок
+        return AppBar(title: Text('Cashnetic'));
     }
   }
 }
