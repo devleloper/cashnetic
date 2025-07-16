@@ -62,3 +62,32 @@ class UpdateLanguage extends SettingsEvent {
   @override
   List<Object?> get props => [language];
 }
+
+class SetPin extends SettingsEvent {
+  final String pin;
+  const SetPin(this.pin);
+  @override
+  List<Object?> get props => [pin];
+}
+
+class CheckPin extends SettingsEvent {
+  final String pin;
+  const CheckPin(this.pin);
+  @override
+  List<Object?> get props => [pin];
+}
+
+class DeletePin extends SettingsEvent {
+  const DeletePin();
+}
+
+class AuthenticateBiometry extends SettingsEvent {
+  final String reason;
+  const AuthenticateBiometry({this.reason = 'Authenticate to access'});
+  @override
+  List<Object?> get props => [reason];
+}
+
+class ToggleBiometry extends SettingsEvent {
+  const ToggleBiometry();
+}

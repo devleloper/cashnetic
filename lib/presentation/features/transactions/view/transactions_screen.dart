@@ -40,20 +40,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   final Key fabKey = UniqueKey();
   SyncStatus? _lastSyncStatus;
   Completer<void>? _refreshCompleter;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     if (_lastSyncStatus == syncStatusNotifier.status) return;
     _lastSyncStatus = syncStatusNotifier.status;
     if (syncStatusNotifier.status == SyncStatus.online) {
@@ -70,11 +72,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 

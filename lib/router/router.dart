@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cashnetic/presentation/features/lock/widgets/lock_screen.dart';
 import 'package:cashnetic/presentation/features/transactions/view/transactions_screen.dart';
 import 'package:cashnetic/presentation/features/transactions/view/expenses_tab_screen.dart';
 import 'package:cashnetic/presentation/features/transactions/view/incomes_tab_screen.dart';
@@ -28,5 +29,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: SettingsRoute.page, path: 'settings'),
       ],
     ),
+    AutoRoute(page: LockRoute.page, path: '/lock'),
   ];
 }

@@ -130,7 +130,7 @@ class _SettingsScreenBody extends StatelessWidget {
                 ListTile(
                   title: Text(S.of(context).passcode),
                   subtitle: Text(
-                    state.passcode != null
+                    (state.passcode != null && state.passcode!.isNotEmpty)
                         ? S.of(context).set
                         : S.of(context).notSet,
                   ),
@@ -138,6 +138,13 @@ class _SettingsScreenBody extends StatelessWidget {
                   onTap: () {
                     // TODO: Implement passcode setup
                     _showPasscodeDialog(context, state.passcode);
+                  },
+                ),
+                SwitchListTile(
+                  title: Text('Biometrics'),
+                  value: state.biometryEnabled,
+                  onChanged: (_) {
+                    context.read<SettingsBloc>().add(const ToggleBiometry());
                   },
                 ),
                 const Divider(height: 1),
@@ -267,6 +274,14 @@ class _SettingsScreenBody extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(S.of(context).cancel),
           ),
+          if (currentPasscode != null && currentPasscode.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(const DeletePin());
+                Navigator.pop(context);
+              },
+              child: Text('Delete'),
+            ),
           TextButton(
             onPressed: () {
               final passcode = controller.text.trim();

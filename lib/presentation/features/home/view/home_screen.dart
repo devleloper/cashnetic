@@ -22,6 +22,7 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_event
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
+import 'package:cashnetic/presentation/features/settings/repositories/pin_service.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -33,35 +34,35 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   SyncStatus? _lastStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void initState() {
     super.initState();
+    _checkPinAndRedirect();
     _testApiGetAccounts();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     final status = syncStatusNotifier.status;
     if (_lastStatus == status) return;
     _lastStatus = status;
@@ -107,6 +108,16 @@ class _HomeScreenState extends State<HomeScreen> {
       log(response.data.toString());
     } catch (e, st) {
       log('API error: $e', stackTrace: st);
+    }
+  }
+
+  Future<void> _checkPinAndRedirect() async {
+    if (isAppUnlocked) return;
+    final pin = await PinService().getPin();
+    if (pin != null && pin.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.router.replace(LockRoute());
+      });
     }
   }
 
@@ -329,30 +340,28 @@ class _SyncStatusListener extends StatefulWidget {
 
 class _SyncStatusListenerState extends State<_SyncStatusListener> {
   SyncStatus? _lastStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     final status = syncStatusNotifier.status;
     if (_lastStatus == status) return;
     _lastStatus = status;

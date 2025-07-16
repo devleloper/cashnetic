@@ -21,6 +21,7 @@ import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
 import 'presentation/widgets/widgets.dart';
 import 'presentation/features/account/bloc/account_event.dart';
+import 'presentation/features/settings/repositories/pin_service.dart';
 
 enum SyncStatus { offline, syncing, online, error }
 
@@ -36,6 +37,9 @@ class SyncStatusNotifier extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+// Глобальный флаг для отслеживания разблокировки приложения
+bool isAppUnlocked = false;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

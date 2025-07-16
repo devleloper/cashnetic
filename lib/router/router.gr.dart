@@ -91,6 +91,69 @@ class IncomesTabRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [LockScreen]
+class LockRoute extends PageRouteInfo<LockRouteArgs> {
+  LockRoute({
+    Key? key,
+    bool biometryEnabled = false,
+    VoidCallback? onUnlock,
+    List<PageRouteInfo>? children,
+  }) : super(
+         LockRoute.name,
+         args: LockRouteArgs(
+           key: key,
+           biometryEnabled: biometryEnabled,
+           onUnlock: onUnlock,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'LockRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LockRouteArgs>(
+        orElse: () => const LockRouteArgs(),
+      );
+      return LockScreen(
+        key: args.key,
+        biometryEnabled: args.biometryEnabled,
+        onUnlock: args.onUnlock,
+      );
+    },
+  );
+}
+
+class LockRouteArgs {
+  const LockRouteArgs({this.key, this.biometryEnabled = false, this.onUnlock});
+
+  final Key? key;
+
+  final bool biometryEnabled;
+
+  final VoidCallback? onUnlock;
+
+  @override
+  String toString() {
+    return 'LockRouteArgs{key: $key, biometryEnabled: $biometryEnabled, onUnlock: $onUnlock}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LockRouteArgs) return false;
+    return key == other.key &&
+        biometryEnabled == other.biometryEnabled &&
+        onUnlock == other.onUnlock;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ biometryEnabled.hashCode ^ onUnlock.hashCode;
+}
+
+/// generated route for
 /// [SettingsScreen]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})

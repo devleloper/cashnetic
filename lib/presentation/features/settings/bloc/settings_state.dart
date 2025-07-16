@@ -20,6 +20,7 @@ class SettingsLoaded extends SettingsState {
   final String? passcode;
   final bool syncEnabled;
   final String language;
+  final bool biometryEnabled;
 
   const SettingsLoaded({
     required this.themeMode,
@@ -29,6 +30,7 @@ class SettingsLoaded extends SettingsState {
     this.passcode,
     required this.syncEnabled,
     required this.language,
+    this.biometryEnabled = false,
   });
 
   @override
@@ -40,6 +42,7 @@ class SettingsLoaded extends SettingsState {
     passcode,
     syncEnabled,
     language,
+    biometryEnabled,
   ];
 
   SettingsLoaded copyWith({
@@ -50,6 +53,7 @@ class SettingsLoaded extends SettingsState {
     String? passcode,
     bool? syncEnabled,
     String? language,
+    bool? biometryEnabled,
   }) {
     return SettingsLoaded(
       themeMode: themeMode ?? this.themeMode,
@@ -59,6 +63,7 @@ class SettingsLoaded extends SettingsState {
       passcode: passcode ?? this.passcode,
       syncEnabled: syncEnabled ?? this.syncEnabled,
       language: language ?? this.language,
+      biometryEnabled: biometryEnabled ?? this.biometryEnabled,
     );
   }
 }
