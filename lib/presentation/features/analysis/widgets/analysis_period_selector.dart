@@ -1,6 +1,9 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/analysis_event.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 
 class AnalysisPeriodSelector extends StatelessWidget {
   final DateTime periodStart;
@@ -18,32 +21,39 @@ class AnalysisPeriodSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      builder: (context, settingsState) {
+        Color primaryColor = Colors.green;
+        if (settingsState is SettingsLoaded) {
+          primaryColor = settingsState.primaryColor;
+        }
+        
+        return Column(
           children: [
-            Text(
-              S.of(context).periodStart,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shadowColor: Colors.transparent,
-                elevation: 0,
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  S.of(context).periodStart,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 8,
-                ),
-              ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shadowColor: Colors.transparent,
+                    elevation: 0,
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
+                  ),
               onPressed: () async {
                 final picked = await showDatePicker(
                   context: context,
@@ -82,7 +92,7 @@ class AnalysisPeriodSelector extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -116,6 +126,8 @@ class AnalysisPeriodSelector extends StatelessWidget {
           ],
         ),
       ],
+    );
+      },
     );
   }
 }

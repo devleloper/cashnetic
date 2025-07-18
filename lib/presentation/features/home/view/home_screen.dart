@@ -266,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 floatingActionButton:
                     (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
                     ? FloatingActionButton(
+                        heroTag: 'home_fab',
                         backgroundColor: primaryColor,
                         child: const Icon(Icons.add, color: Colors.white),
                         onPressed: () async {

@@ -20,6 +20,8 @@ import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 import 'package:cashnetic/presentation/theme/theme.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -134,6 +136,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
         return Scaffold(
           floatingActionButton: FloatingActionButton(
+            heroTag: 'account_fab',
             onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
             tooltip: 'Refresh',
             child: Icon(Icons.refresh, color: Colors.white),
@@ -151,20 +154,26 @@ class _AccountScreenState extends State<AccountScreen> {
                       final isSelected = selectedAccountIds.contains(acc.id);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(
-                            acc.name,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.onPrimary
-                                  : Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          selected: isSelected,
-                          selectedColor: Theme.of(context).colorScheme.primary,
-                          backgroundColor: sectionCardColor(context),
+                        child: BlocBuilder<SettingsBloc, SettingsState>(
+                          builder: (context, settingsState) {
+                            Color primaryColor = Colors.green;
+                            if (settingsState is SettingsLoaded) {
+                              primaryColor = settingsState.primaryColor;
+                            }
+                            return ChoiceChip(
+                              label: Text(
+                                acc.name,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Theme.of(context).textTheme.bodyMedium?.color,
+                                ),
+                              ),
+                              selected: isSelected,
+                              selectedColor: primaryColor,
+                              backgroundColor: sectionCardColor(context),
+                            );
+                          },
                         ),
                       );
                     }).toList(),
