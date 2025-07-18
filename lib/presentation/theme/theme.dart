@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 ThemeData lightThemeData({Color? primaryColor}) {
-  final color = primaryColor ?? const Color(0xFF4CAF50); // Зеленый по умолчанию
+  final color = primaryColor ?? Colors.green; // Зеленый по умолчанию
   
   return ThemeData(
     useMaterial3: true,
@@ -33,7 +33,7 @@ ThemeData lightThemeData({Color? primaryColor}) {
 }
 
 ThemeData darkThemeData({Color? primaryColor}) {
-  final color = primaryColor ?? const Color(0xFF4CAF50); // Зеленый по умолчанию
+  final color = primaryColor ?? Colors.green; // Зеленый по умолчанию
   
   return ThemeData(
     useMaterial3: true,

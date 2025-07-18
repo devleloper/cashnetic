@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return BlocBuilder<SettingsBloc, SettingsState>(
             builder: (context, settingsState) {
-              Color primaryColor = const Color(0xFF4CAF50); // Зеленый по умолчанию
+                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
               if (settingsState is SettingsLoaded) {
                 primaryColor = settingsState.primaryColor;
               }

@@ -178,7 +178,7 @@ class _CashneticAppState extends State<CashneticApp> {
               builder: (context, state) {
                 ThemeMode themeMode = ThemeMode.system;
                 String language = 'en';
-                Color primaryColor = const Color(0xFF4CAF50); // Зеленый по умолчанию
+                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
                 ThemeData initTheme;
                 if (state is SettingsLoaded) {
                   themeMode = state.themeMode;

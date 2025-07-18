@@ -13,6 +13,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   final ThemeRepository _themeRepository = ThemeRepository();
 
+  Color _limitColorBrightness(Color color) {
+    // Возвращаем цвет без изменений, так как используем стандартные Flutter цвета
+    return color;
+  }
+
   @override
   Future<ThemeMode> loadThemeMode() async {
     final themeString = await _themeRepository.loadThemeMode();
@@ -29,26 +34,33 @@ class SettingsRepositoryImpl implements SettingsRepository {
   @override
   Future<Color> loadPrimaryColor() async {
     final prefs = await SharedPreferences.getInstance();
-    final colorValue = prefs.getInt(_primaryColorKey) ?? 0xFF4CAF50; // Зеленый по умолчанию
-    return Color(colorValue);
+    final colorValue = prefs.getInt(_primaryColorKey) ?? Colors.green.value; // Зеленый по умолчанию
+    final color = Color(colorValue);
+    return _limitColorBrightness(color); // Применяем ограничение при загрузке
   }
 
   @override
   Future<void> savePrimaryColor(Color color) async {
+    final limitedColor = _limitColorBrightness(color); // Применяем ограничение при сохранении
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_primaryColorKey, color.value);
+    await prefs.setInt(_primaryColorKey, limitedColor.value);
   }
 
   @override
   Future<int> loadPrimaryColorValue() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_primaryColorKey) ?? 0xFF4CAF50; // Зеленый по умолчанию
+    final colorValue = prefs.getInt(_primaryColorKey) ?? Colors.green.value; // Зеленый по умолчанию
+    final color = Color(colorValue);
+    final limitedColor = _limitColorBrightness(color);
+    return limitedColor.value;
   }
 
   @override
   Future<void> savePrimaryColorValue(int colorValue) async {
+    final color = Color(colorValue);
+    final limitedColor = _limitColorBrightness(color);
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_primaryColorKey, colorValue);
+    await prefs.setInt(_primaryColorKey, limitedColor.value);
   }
 
   @override

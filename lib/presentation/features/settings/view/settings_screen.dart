@@ -134,6 +134,34 @@ class _SettingsScreenBody extends StatelessWidget {
     );
   }
 
+  Color _limitColorBrightness(Color color) {
+    // Ограничиваем яркость - G не больше 65
+    final red = color.red;
+    final green = color.green.clamp(0, 65); // Ограничиваем зеленый
+    final blue = color.blue;
+    
+    return Color.fromARGB(color.alpha, red, green, blue);
+  }
+
+  // Предустановленные цвета (не слишком светлые, не слишком темные)
+  static const List<Color> _presetColors = [
+    Colors.green, // Зеленый
+    Colors.blue, // Синий
+    Colors.purple, // Фиолетовый
+    Colors.orange, // Оранжевый
+    Colors.red, // Красный
+    Colors.teal, // Бирюзовый
+    Colors.indigo, // Индиго
+    Colors.pink, // Розовый
+    Colors.amber, // Янтарный
+    Colors.cyan, // Голубой
+    Colors.deepPurple, // Темно-фиолетовый
+    Colors.deepOrange, // Темно-оранжевый
+    Colors.lightBlue, // Светло-синий
+    Colors.lime, // Лаймовый
+    Colors.brown, // Коричневый
+  ];
+
   void _showColorPickerDialog(BuildContext context, Color currentColor) {
     Color selectedColor = currentColor;
     
@@ -142,26 +170,108 @@ class _SettingsScreenBody extends StatelessWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text('Выберите основной цвет'),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: selectedColor,
-              onColorChanged: (color) {
-                setState(() {
-                  selectedColor = color;
-                });
-              },
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: false,
-              displayThumbColor: true,
-              showLabel: true,
-              paletteType: PaletteType.hsvWithHue,
-              pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(20)),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Предустановленные цвета',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // Используем BlockPicker для выбора предустановленных цветов
+              BlockPicker(
+                pickerColor: selectedColor,
+                onColorChanged: (color) => setState(() => selectedColor = color),
+                availableColors: _presetColors,
+                layoutBuilder: (context, colors, child) {
+                  return Container(
+                    width: double.infinity,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ...colors.map((color) => child(color)),
+                        // Добавляем черный цвет отдельно
+                        GestureDetector(
+                          onTap: () => setState(() => selectedColor = Colors.black),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: selectedColor == Colors.black ? Colors.blue : Colors.grey,
+                                width: selectedColor == Colors.black ? 3 : 1,
+                              ),
+                            ),
+                            child: selectedColor == Colors.black
+                                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                itemBuilder: (color, isCurrentColor, onTap) {
+                  return GestureDetector(
+                    onTap: onTap,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isCurrentColor ? Colors.blue : Colors.grey,
+                          width: isCurrentColor ? 3 : 1,
+                        ),
+                      ),
+                      child: isCurrentColor
+                          ? const Icon(Icons.check, color: Colors.white, size: 20)
+                          : null,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // Показ выбранного цвета
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: selectedColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check, color: Colors.white, size: 24),
+                    SizedBox(width: 8),
+                    Text(
+                      'Выбранный цвет',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(UpdatePrimaryColor(Colors.green));
+                Navigator.pop(context);
+              },
+              child: const Text('Сброс'),
             ),
             TextButton(
               onPressed: () {

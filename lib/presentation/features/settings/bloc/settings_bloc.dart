@@ -18,6 +18,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   static const String _biometryKey = 'biometry_enabled';
 
+  Color _limitColorBrightness(Color color) {
+    // Возвращаем цвет без изменений, так как используем стандартные Flutter цвета
+    return color;
+  }
+
   SettingsBloc() : super(SettingsInitial()) {
     on<LoadSettings>(_onLoadSettings);
     on<UpdateThemeMode>(_onUpdateThemeMode);
@@ -92,8 +97,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     if (state is SettingsLoaded) {
       final currentState = state as SettingsLoaded;
       try {
-        await settingsRepository.savePrimaryColor(event.color);
-        emit(currentState.copyWith(primaryColor: event.color));
+        final limitedColor = _limitColorBrightness(event.color);
+        await settingsRepository.savePrimaryColor(limitedColor);
+        emit(currentState.copyWith(primaryColor: limitedColor));
       } catch (e) {
         emit(SettingsError('Failed to save primary color: $e'));
       }
