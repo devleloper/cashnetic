@@ -7,12 +7,14 @@ import 'package:cashnetic/di/di.dart';
 import '../repositories/settings_repository.dart';
 import '../repositories/pin_service.dart';
 import '../repositories/biometry_service.dart';
+import '../repositories/haptic_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final SettingsRepository settingsRepository = getIt<SettingsRepository>();
   final PinService pinService = PinService();
   final BiometryService biometryService = BiometryService();
+  final HapticService hapticService = HapticService();
 
   static const String _biometryKey = 'biometry_enabled';
 
@@ -30,6 +32,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<DeletePin>(_onDeletePin);
     on<AuthenticateBiometry>(_onAuthenticateBiometry);
     on<ToggleBiometry>(_onToggleBiometry);
+    on<UpdateHapticStrength>(_onUpdateHapticStrength);
+    on<LoadHapticStrength>(_onLoadHapticStrength);
   }
 
   Future<void> _onLoadSettings(
@@ -47,6 +51,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final language = await settingsRepository.loadLanguage();
       final prefs = await SharedPreferences.getInstance();
       final biometryEnabled = prefs.getBool(_biometryKey) ?? false;
+      final hapticStrength = await hapticService.getHapticStrength();
       emit(
         SettingsLoaded(
           themeMode: themeMode,
@@ -57,6 +62,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           syncEnabled: syncEnabled,
           language: language,
           biometryEnabled: biometryEnabled,
+          hapticStrength: hapticStrength,
         ),
       );
     } catch (e) {
@@ -236,6 +242,36 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final newValue = !currentState.biometryEnabled;
       await prefs.setBool(_biometryKey, newValue);
       emit(currentState.copyWith(biometryEnabled: newValue));
+    }
+  }
+
+  Future<void> _onUpdateHapticStrength(
+    UpdateHapticStrength event,
+    Emitter<SettingsState> emit,
+  ) async {
+    if (state is SettingsLoaded) {
+      final currentState = state as SettingsLoaded;
+      try {
+        await hapticService.setHapticStrength(event.strength);
+        emit(currentState.copyWith(hapticStrength: event.strength));
+      } catch (e) {
+        emit(SettingsError('Failed to save haptic strength: $e'));
+      }
+    }
+  }
+
+  Future<void> _onLoadHapticStrength(
+    LoadHapticStrength event,
+    Emitter<SettingsState> emit,
+  ) async {
+    if (state is SettingsLoaded) {
+      final currentState = state as SettingsLoaded;
+      try {
+        final hapticStrength = await hapticService.getHapticStrength();
+        emit(currentState.copyWith(hapticStrength: hapticStrength));
+      } catch (e) {
+        emit(SettingsError('Failed to load haptic strength: $e'));
+      }
     }
   }
 }

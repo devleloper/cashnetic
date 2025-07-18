@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import '../repositories/haptic_service.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();
@@ -91,3 +92,12 @@ class AuthenticateBiometry extends SettingsEvent {
 class ToggleBiometry extends SettingsEvent {
   const ToggleBiometry();
 }
+
+class UpdateHapticStrength extends SettingsEvent {
+  final HapticStrength strength;
+  const UpdateHapticStrength(this.strength);
+  @override
+  List<Object?> get props => [strength];
+}
+
+class LoadHapticStrength extends SettingsEvent {}

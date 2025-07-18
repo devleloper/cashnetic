@@ -23,6 +23,7 @@ import 'package:cashnetic/presentation/features/transactions/repositories/transa
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/settings/repositories/pin_service.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/presentation/features/settings/repositories/haptic_service.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -172,7 +173,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: GNav(
                           selectedIndex: tabsRouter.activeIndex,
-                          onTabChange: (index) {
+                          onTabChange: (index) async {
+                            // Добавляем хаптик фидбек при переключении табов
+                            final hapticService = HapticService();
+                            await hapticService.selection();
+                            
                             tabsRouter.setActiveIndex(index);
                             final accountState = context
                                 .read<AccountBloc>()
@@ -255,6 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.green,
                     child: const Icon(Icons.add, color: Colors.white),
                     onPressed: () async {
+                      // Добавляем хаптик фидбек
+                      final hapticService = HapticService();
+                      await hapticService.medium();
+                      
                       final isIncome = tabsRouter.activeIndex == 1;
                       await showModalBottomSheet(
                         context: context,

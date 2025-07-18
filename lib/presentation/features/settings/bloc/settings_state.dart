@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import '../repositories/haptic_service.dart';
 
 abstract class SettingsState extends Equatable {
   const SettingsState();
@@ -21,6 +22,7 @@ class SettingsLoaded extends SettingsState {
   final bool syncEnabled;
   final String language;
   final bool biometryEnabled;
+  final HapticStrength hapticStrength;
 
   const SettingsLoaded({
     required this.themeMode,
@@ -31,6 +33,7 @@ class SettingsLoaded extends SettingsState {
     required this.syncEnabled,
     required this.language,
     this.biometryEnabled = false,
+    this.hapticStrength = HapticStrength.medium,
   });
 
   @override
@@ -43,6 +46,7 @@ class SettingsLoaded extends SettingsState {
     syncEnabled,
     language,
     biometryEnabled,
+    hapticStrength,
   ];
 
   SettingsLoaded copyWith({
@@ -54,6 +58,7 @@ class SettingsLoaded extends SettingsState {
     bool? syncEnabled,
     String? language,
     bool? biometryEnabled,
+    HapticStrength? hapticStrength,
   }) {
     return SettingsLoaded(
       themeMode: themeMode ?? this.themeMode,
@@ -64,6 +69,7 @@ class SettingsLoaded extends SettingsState {
       syncEnabled: syncEnabled ?? this.syncEnabled,
       language: language ?? this.language,
       biometryEnabled: biometryEnabled ?? this.biometryEnabled,
+      hapticStrength: hapticStrength ?? this.hapticStrength,
     );
   }
 }

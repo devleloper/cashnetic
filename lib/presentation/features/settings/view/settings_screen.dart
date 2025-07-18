@@ -10,6 +10,7 @@ import '../bloc/settings_state.dart';
 import '../widgets/my_settings_list_tile.dart';
 import '../../pin/view/pin_screen.dart';
 import '../../pin/repositories/pin_repository.dart';
+import '../repositories/haptic_service.dart';
 
 @RoutePage()
 class SettingsScreen extends StatelessWidget {
@@ -41,6 +42,93 @@ class _SettingsScreenBody extends StatelessWidget {
             child: const Text('OK'),
           ),
         ],
+      ),
+    );
+  }
+
+  String _getHapticStrengthText(HapticStrength strength) {
+    switch (strength) {
+      case HapticStrength.off:
+        return 'Off';
+      case HapticStrength.light:
+        return 'Light';
+      case HapticStrength.medium:
+        return 'Medium';
+      case HapticStrength.heavy:
+        return 'Heavy';
+    }
+  }
+
+  void _showHapticStrengthDialog(BuildContext context, HapticStrength currentStrength) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Haptic Strength'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<HapticStrength>(
+              title: const Text('Off'),
+              value: HapticStrength.off,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим хаптик перед изменением настройки
+                  final hapticService = HapticService();
+                  await hapticService.light();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Light'),
+              value: HapticStrength.light,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим легкий хаптик
+                  final hapticService = HapticService();
+                  await hapticService.light();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Medium'),
+              value: HapticStrength.medium,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим средний хаптик
+                  final hapticService = HapticService();
+                  await hapticService.medium();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Heavy'),
+              value: HapticStrength.heavy,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим сильный хаптик
+                  final hapticService = HapticService();
+                  await hapticService.heavy();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -100,6 +188,14 @@ class _SettingsScreenBody extends StatelessWidget {
                   value: state.hapticsEnabled,
                   onChanged: (_) {
                     context.read<SettingsBloc>().add(const ToggleHaptics());
+                  },
+                ),
+                ListTile(
+                  title: Text('Haptic Strength'),
+                  subtitle: Text(_getHapticStrengthText(state.hapticStrength)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    _showHapticStrengthDialog(context, state.hapticStrength);
                   },
                 ),
                 ListTile(
