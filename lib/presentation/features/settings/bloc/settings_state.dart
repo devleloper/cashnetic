@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import '../repositories/haptic_service.dart';
+import '../services/haptic_service.dart';
 
 abstract class SettingsState extends Equatable {
   const SettingsState();
@@ -17,7 +17,7 @@ class SettingsLoaded extends SettingsState {
   final ThemeMode themeMode;
   final Color primaryColor;
   final bool soundsEnabled;
-  final bool hapticsEnabled;
+
   final String? passcode;
   final bool syncEnabled;
   final String language;
@@ -28,7 +28,6 @@ class SettingsLoaded extends SettingsState {
     required this.themeMode,
     required this.primaryColor,
     required this.soundsEnabled,
-    required this.hapticsEnabled,
     this.passcode,
     required this.syncEnabled,
     required this.language,
@@ -41,7 +40,6 @@ class SettingsLoaded extends SettingsState {
     themeMode,
     primaryColor,
     soundsEnabled,
-    hapticsEnabled,
     passcode,
     syncEnabled,
     language,
@@ -53,7 +51,6 @@ class SettingsLoaded extends SettingsState {
     ThemeMode? themeMode,
     Color? primaryColor,
     bool? soundsEnabled,
-    bool? hapticsEnabled,
     String? passcode,
     bool? syncEnabled,
     String? language,
@@ -64,7 +61,6 @@ class SettingsLoaded extends SettingsState {
       themeMode: themeMode ?? this.themeMode,
       primaryColor: primaryColor ?? this.primaryColor,
       soundsEnabled: soundsEnabled ?? this.soundsEnabled,
-      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       passcode: passcode ?? this.passcode,
       syncEnabled: syncEnabled ?? this.syncEnabled,
       language: language ?? this.language,

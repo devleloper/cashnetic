@@ -6,7 +6,7 @@ import 'package:cashnetic/data/repositories/theme_repository.dart';
 class SettingsRepositoryImpl implements SettingsRepository {
   static const String _primaryColorKey = 'primary_color';
   static const String _soundsKey = 'sounds_enabled';
-  static const String _hapticsKey = 'haptics_enabled';
+
   static const String _passcodeKey = 'passcode';
   static const String _syncKey = 'sync_enabled';
   static const String _languageKey = 'language';
@@ -75,17 +75,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await prefs.setBool(_soundsKey, enabled);
   }
 
-  @override
-  Future<bool> loadHapticsEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_hapticsKey) ?? true;
-  }
 
-  @override
-  Future<void> saveHapticsEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_hapticsKey, enabled);
-  }
 
   @override
   Future<String?> loadPasscode() async {

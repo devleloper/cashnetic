@@ -1,4 +1,5 @@
 // pin_screen.dart
+import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/pin_bloc.dart';
@@ -32,17 +33,17 @@ class _PinScreenState extends State<PinScreen> {
           } else if (state is PinSet && widget.mode != PinScreenMode.check) {
             // Показываем SnackBar, но не закрываем экран автоматически
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PIN set successfully')),
+               SnackBar(content: Text(S.of(context).pinSetSuccessfully)),
             );
           } else if (state is PinChecked) {
             if (state.isValid) {
               Navigator.pop(context, true);
             } else {
-              setState(() => _error = 'Invalid PIN');
+              setState(() => _error = S.of(context).invalidPin);
             }
           } else if (state is PinNotSet && widget.mode == PinScreenMode.edit) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PIN deleted')),
+               SnackBar(content: Text(S.of(context).pinDeleted)),
             );
           }
         },
@@ -75,7 +76,7 @@ class _PinScreenState extends State<PinScreen> {
                     if ((state is PinSet || (widget.mode == PinScreenMode.edit && state is! PinNotSet)) && !isLoading)
                       TextButton(
                         onPressed: () => context.read<PinBloc>().add(DeletePin()),
-                        child: const Text('Delete PIN'),
+                        child:  Text(S.of(context).deletePin),
                       ),
                   ],
                 ),
@@ -90,29 +91,29 @@ class _PinScreenState extends State<PinScreen> {
   String _getTitle() {
     switch (widget.mode) {
       case PinScreenMode.set:
-        return 'Set PIN';
+        return S.of(context).setPin;
       case PinScreenMode.edit:
-        return 'Edit PIN';
+        return S.of(context).editPin;
       case PinScreenMode.check:
-        return 'Enter PIN';
+        return S.of(context).enterPin;
     }
   }
 
   String _getButtonText() {
     switch (widget.mode) {
       case PinScreenMode.set:
-        return 'Set';
+        return S.of(context).set;
       case PinScreenMode.edit:
-        return 'Save';
+        return S.of(context).save;
       case PinScreenMode.check:
-        return 'Check';
+        return S.of(context).check;
     }
   }
 
   void _onAction(BuildContext context) {
     final pin = _controller.text.trim();
     if (pin.length != 4) {
-      setState(() => _error = 'PIN must be 4 digits');
+      setState(() => _error = S.of(context).pinMustBe4Digits);
       return;
     }
     final bloc = context.read<PinBloc>();

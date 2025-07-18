@@ -21,7 +21,7 @@ import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
 import 'presentation/widgets/widgets.dart';
 import 'presentation/features/account/bloc/account_event.dart';
-import 'presentation/features/settings/repositories/pin_service.dart';
+import 'presentation/features/settings/services/pin_service.dart';
 import 'presentation/features/pin/repositories/pin_repository.dart';
 
 enum SyncStatus { offline, syncing, online, error }

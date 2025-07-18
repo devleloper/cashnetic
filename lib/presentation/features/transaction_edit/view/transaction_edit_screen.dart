@@ -116,154 +116,171 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final isDeleting = state is TransactionEditDeleting;
     final isProcessing = isSaving || isDeleting;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 1000),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Шапка (fixed)
-          Container(
-            color: Theme.of(context).colorScheme.primary,
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.close,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                IconButton(
-                  icon: isSaving
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: Center(
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            width: double.infinity,
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Шапка
+                  Container(
+                    color: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                        )
-                      : Icon(
-                          Icons.check,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          onPressed: () => Navigator.pop(context),
                         ),
-                  onPressed: isProcessing
-                      ? null
-                      : () => _validateAndSave(context, state),
-                ),
-              ],
-            ),
-          ),
-          // Скроллируемый контент формы
-          Expanded(
-            child: SizedBox.expand(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    MyListTileRow(
-                      title: S.of(context).account,
-                      value:
-                          (state.account == null ||
-                              (state.account.name.trim().isEmpty))
-                          ? S.of(context).account
-                          : state.account.name,
-                      onTap: isProcessing
-                          ? () {}
-                          : () => _selectAccount(context, state.accounts),
-                    ),
-                    MyListTileRow(
-                      title: S.of(context).category,
-                      value: state.selectedCategory?.name ?? '',
-                      onTap: isProcessing
-                          ? () {}
-                          : () => _selectCategory(context, state.categories),
-                    ),
-                    MyListTileRow(
-                      title: S.of(context).amount,
-                      value: state.amount.isEmpty
-                          ? S.of(context).enter
-                          : state.amount,
-                      onTap: isProcessing
-                          ? () {}
-                          : () => _selectAmount(context, state.amount),
-                    ),
-                    MyListTileRow(
-                      title: S.of(context).date,
-                      value: dateStr,
-                      onTap: isProcessing
-                          ? () {}
-                          : () => _selectDate(context, state.selectedDate),
-                    ),
-                    MyListTileRow(
-                      title: S.of(context).time,
-                      value: timeStr,
-                      onTap: isProcessing
-                          ? () {}
-                          : () => _selectTime(context, state.selectedDate),
-                    ),
-                    const SizedBox(height: 16),
-                    TransactionCommentField(
-                      controller: _commentController,
-                      enabled: !isProcessing,
-                      onChanged: (comment) => context
-                          .read<TransactionEditBloc>()
-                          .add(TransactionEditCommentChanged(comment)),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: const Size.fromHeight(50),
-                          backgroundColor: Theme.of(context).colorScheme.error,
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        onPressed: isProcessing
-                            ? null
-                            : () => context.read<TransactionEditBloc>().add(
-                                TransactionEditDeleteTransaction(),
-                              ),
-                        child: isDeleting
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Theme.of(context).colorScheme.onError,
+                        IconButton(
+                          icon: isSaving
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.check,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                 ),
-                              )
-                            : Text(
-                                S.of(context).deleteAccount,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onError,
-                                ),
+                          onPressed: isProcessing
+                              ? null
+                              : () => _validateAndSave(context, state),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          MyListTileRow(
+                            title: S.of(context).account,
+                            value:
+                                (state.account == null ||
+                                    (state.account.name.trim().isEmpty))
+                                ? S.of(context).account
+                                : state.account.name,
+                            onTap: isProcessing
+                                ? () {}
+                                : () => _selectAccount(context, state.accounts),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).category,
+                            value: state.selectedCategory?.name ?? '',
+                            onTap: isProcessing
+                                ? () {}
+                                : () => _selectCategory(context, state.categories),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).amount,
+                            value: state.amount.isEmpty
+                                ? S.of(context).enter
+                                : '${state.amount} ₽',
+                            onTap: isProcessing
+                                ? () {}
+                                : () => _selectAmount(context, state.amount),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).date,
+                            value: dateStr,
+                            onTap: isProcessing
+                                ? () {}
+                                : () => _selectDate(context, state.selectedDate),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).time,
+                            value: timeStr,
+                            onTap: isProcessing
+                                ? () {}
+                                : () => _selectTime(context, state.selectedDate),
+                          ),
+                          const SizedBox(height: 16),
+                          TransactionCommentField(
+                            controller: _commentController,
+                            enabled: !isProcessing,
+                            onChanged: (comment) => context
+                                .read<TransactionEditBloc>()
+                                .add(TransactionEditCommentChanged(comment)),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                fixedSize: const Size.fromHeight(50),
+                                backgroundColor: Theme.of(context).colorScheme.error,
+                                elevation: 0,
+                                shadowColor: Colors.transparent,
                               ),
+                              onPressed: isProcessing
+                                  ? null
+                                  : () => context.read<TransactionEditBloc>().add(
+                                      TransactionEditDeleteTransaction(),
+                                    ),
+                              child: isDeleting
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Theme.of(context).colorScheme.onError,
+                                      ),
+                                    )
+                                  : Text(
+                                      S.of(context).deleteAccount,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onError,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

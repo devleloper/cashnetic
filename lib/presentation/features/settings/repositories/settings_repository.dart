@@ -13,8 +13,7 @@ abstract class SettingsRepository {
   Future<bool> loadSoundsEnabled();
   Future<void> saveSoundsEnabled(bool enabled);
 
-  Future<bool> loadHapticsEnabled();
-  Future<void> saveHapticsEnabled(bool enabled);
+
 
   Future<String?> loadPasscode();
   Future<void> savePasscode(String? passcode);

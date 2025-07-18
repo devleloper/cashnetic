@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import '../repositories/haptic_service.dart';
+import '../services/haptic_service.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();
@@ -36,9 +36,7 @@ class ToggleSounds extends SettingsEvent {
   const ToggleSounds();
 }
 
-class ToggleHaptics extends SettingsEvent {
-  const ToggleHaptics();
-}
+
 
 class UpdatePasscode extends SettingsEvent {
   final String? passcode;

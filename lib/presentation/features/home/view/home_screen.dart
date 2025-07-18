@@ -21,9 +21,9 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_event
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
-import 'package:cashnetic/presentation/features/settings/repositories/pin_service.dart';
+import 'package:cashnetic/presentation/features/settings/services/pin_service.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
-import 'package:cashnetic/presentation/features/settings/repositories/haptic_service.dart';
+import 'package:cashnetic/presentation/features/settings/services/haptic_service.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 

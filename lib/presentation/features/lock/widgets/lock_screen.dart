@@ -9,8 +9,8 @@ import 'package:auto_route/auto_route.dart';
 import '../../../../router/router.dart';
 import '../../../../main.dart';
 
-import '../../settings/repositories/pin_service.dart';
-import '../../settings/repositories/biometry_service.dart';
+import '../../settings/services/pin_service.dart';
+import '../../settings/services/biometry_service.dart';
 import 'package:local_auth/local_auth.dart';
 
 class LockScreen extends StatefulWidget implements AutoRouteWrapper {

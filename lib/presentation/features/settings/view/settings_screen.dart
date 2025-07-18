@@ -11,7 +11,7 @@ import '../bloc/settings_state.dart';
 import '../widgets/my_settings_list_tile.dart';
 import '../../pin/view/pin_screen.dart';
 import '../../pin/repositories/pin_repository.dart';
-import '../repositories/haptic_service.dart';
+import '../services/haptic_service.dart';
 
 @RoutePage()
 class SettingsScreen extends StatelessWidget {
@@ -47,16 +47,16 @@ class _SettingsScreenBody extends StatelessWidget {
     );
   }
 
-  String _getHapticStrengthText(HapticStrength strength) {
+  String _getHapticStrengthText(BuildContext context, HapticStrength strength) {
     switch (strength) {
       case HapticStrength.off:
-        return 'Off';
+        return S.of(context).off;
       case HapticStrength.light:
-        return 'Light';
+        return S.of(context).light;
       case HapticStrength.medium:
-        return 'Medium';
+        return S.of(context).medium;
       case HapticStrength.heavy:
-        return 'Heavy';
+        return S.of(context).heavy;
     }
   }
 
@@ -64,7 +64,7 @@ class _SettingsScreenBody extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Haptic Strength'),
+        title: Text(S.of(context).hapticStrength),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -341,16 +341,10 @@ class _SettingsScreenBody extends StatelessWidget {
                     context.read<SettingsBloc>().add(const ToggleSounds());
                   },
                 ),
-                SwitchListTile(
-                  title: Text(S.of(context).haptics),
-                  value: state.hapticsEnabled,
-                  onChanged: (_) {
-                    context.read<SettingsBloc>().add(const ToggleHaptics());
-                  },
-                ),
+
                 ListTile(
-                  title: Text('Haptic Strength'),
-                  subtitle: Text(_getHapticStrengthText(state.hapticStrength)),
+                  title: Text(S.of(context).hapticStrength),
+                  subtitle: Text(_getHapticStrengthText(context, state.hapticStrength)),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     _showHapticStrengthDialog(context, state.hapticStrength);

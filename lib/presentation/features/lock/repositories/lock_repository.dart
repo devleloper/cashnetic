@@ -1,5 +1,5 @@
-import '../../settings/repositories/pin_service.dart';
-import '../../settings/repositories/biometry_service.dart';
+import '../../settings/services/pin_service.dart';
+import '../../settings/services/biometry_service.dart';
 
 class LockRepository {
   final PinService pinService;

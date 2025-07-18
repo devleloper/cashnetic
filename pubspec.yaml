@@ -153,3 +153,5 @@ flutter_native_splash:
   ios: true
   android: true
   web: false
+flutter_intl:
+  enabled: true

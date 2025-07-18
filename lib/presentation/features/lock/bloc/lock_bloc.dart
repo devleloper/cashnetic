@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'lock_event.dart';
 import 'lock_state.dart';
-import '../../settings/repositories/pin_service.dart';
-import '../../settings/repositories/biometry_service.dart';
+import '../../settings/services/pin_service.dart';
+import '../../settings/services/biometry_service.dart';
 
 class LockBloc extends Bloc<LockEvent, LockState> {
   final PinService pinService;

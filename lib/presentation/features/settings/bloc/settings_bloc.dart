@@ -5,9 +5,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:cashnetic/di/di.dart';
 import '../repositories/settings_repository.dart';
-import '../repositories/pin_service.dart';
-import '../repositories/biometry_service.dart';
-import '../repositories/haptic_service.dart';
+import '../services/pin_service.dart';
+import '../services/biometry_service.dart';
+import '../services/haptic_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
@@ -28,7 +28,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<UpdateThemeMode>(_onUpdateThemeMode);
     on<UpdatePrimaryColor>(_onUpdatePrimaryColor);
     on<ToggleSounds>(_onToggleSounds);
-    on<ToggleHaptics>(_onToggleHaptics);
+
     on<UpdatePasscode>(_onUpdatePasscode);
     on<ToggleSync>(_onToggleSync);
     on<UpdateLanguage>(_onUpdateLanguage);
@@ -50,26 +50,25 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       final themeMode = await settingsRepository.loadThemeMode();
       final primaryColor = await settingsRepository.loadPrimaryColor();
       final soundsEnabled = await settingsRepository.loadSoundsEnabled();
-      final hapticsEnabled = await settingsRepository.loadHapticsEnabled();
+
       final passcode = await pinService.getPin();
       final syncEnabled = await settingsRepository.loadSyncEnabled();
       final language = await settingsRepository.loadLanguage();
       final prefs = await SharedPreferences.getInstance();
       final biometryEnabled = prefs.getBool(_biometryKey) ?? false;
       final hapticStrength = await hapticService.getHapticStrength();
-      emit(
-        SettingsLoaded(
-          themeMode: themeMode,
-          primaryColor: primaryColor,
-          soundsEnabled: soundsEnabled,
-          hapticsEnabled: hapticsEnabled,
-          passcode: passcode,
-          syncEnabled: syncEnabled,
-          language: language,
-          biometryEnabled: biometryEnabled,
-          hapticStrength: hapticStrength,
-        ),
-      );
+              emit(
+          SettingsLoaded(
+            themeMode: themeMode,
+            primaryColor: primaryColor,
+            soundsEnabled: soundsEnabled,
+            passcode: passcode,
+            syncEnabled: syncEnabled,
+            language: language,
+            biometryEnabled: biometryEnabled,
+            hapticStrength: hapticStrength,
+          ),
+        );
     } catch (e) {
       emit(SettingsError('Failed to load settings: $e'));
     }
@@ -122,21 +121,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 
-  Future<void> _onToggleHaptics(
-    ToggleHaptics event,
-    Emitter<SettingsState> emit,
-  ) async {
-    if (state is SettingsLoaded) {
-      final currentState = state as SettingsLoaded;
-      final newHapticsEnabled = !currentState.hapticsEnabled;
-      try {
-        await settingsRepository.saveHapticsEnabled(newHapticsEnabled);
-        emit(currentState.copyWith(hapticsEnabled: newHapticsEnabled));
-      } catch (e) {
-        emit(SettingsError('Failed to save haptics setting: $e'));
-      }
-    }
-  }
+
 
   Future<void> _onUpdatePasscode(
     UpdatePasscode event,
