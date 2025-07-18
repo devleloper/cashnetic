@@ -16,6 +16,7 @@ import 'package:cashnetic/presentation/features/account_add/repositories/account
 import 'package:cashnetic/presentation/features/account_edit/repositories/account_edit_repository.dart';
 import 'package:cashnetic/presentation/features/history/repositories/history_repository.dart';
 import 'package:cashnetic/presentation/features/analysis/repositories/analysis_repository.dart';
+import 'package:cashnetic/presentation/presentation.dart';
 import 'package:cashnetic/utils/category_utils.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cashnetic/data/api_client.dart';
@@ -94,7 +95,7 @@ void setupDependencies() {
     () => AnalysisRepositoryImpl(
       transactionRepository: getIt<TransactionsRepository>(),
       categoryRepository: getIt<CategoriesRepository>(),
-      sectionColors: sectionColors,
+      sectionColors: kCategoryColors,
     ),
   );
 }

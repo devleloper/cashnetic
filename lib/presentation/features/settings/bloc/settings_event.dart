@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import '../services/haptic_service.dart';
 
 abstract class SettingsEvent extends Equatable {
   const SettingsEvent();
@@ -25,21 +26,17 @@ class UpdateThemeMode extends SettingsEvent {
 }
 
 class UpdatePrimaryColor extends SettingsEvent {
-  final int colorValue;
-
-  const UpdatePrimaryColor(this.colorValue);
-
+  final Color color;
+  const UpdatePrimaryColor(this.color);
   @override
-  List<Object?> get props => [colorValue];
+  List<Object?> get props => [color];
 }
 
 class ToggleSounds extends SettingsEvent {
   const ToggleSounds();
 }
 
-class ToggleHaptics extends SettingsEvent {
-  const ToggleHaptics();
-}
+
 
 class UpdatePasscode extends SettingsEvent {
   final String? passcode;
@@ -62,3 +59,41 @@ class UpdateLanguage extends SettingsEvent {
   @override
   List<Object?> get props => [language];
 }
+
+class SetPin extends SettingsEvent {
+  final String pin;
+  const SetPin(this.pin);
+  @override
+  List<Object?> get props => [pin];
+}
+
+class CheckPin extends SettingsEvent {
+  final String pin;
+  const CheckPin(this.pin);
+  @override
+  List<Object?> get props => [pin];
+}
+
+class DeletePin extends SettingsEvent {
+  const DeletePin();
+}
+
+class AuthenticateBiometry extends SettingsEvent {
+  final String reason;
+  const AuthenticateBiometry({this.reason = 'Authenticate to access'});
+  @override
+  List<Object?> get props => [reason];
+}
+
+class ToggleBiometry extends SettingsEvent {
+  const ToggleBiometry();
+}
+
+class UpdateHapticStrength extends SettingsEvent {
+  final HapticStrength strength;
+  const UpdateHapticStrength(this.strength);
+  @override
+  List<Object?> get props => [strength];
+}
+
+class LoadHapticStrength extends SettingsEvent {}

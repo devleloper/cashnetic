@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:blur/blur.dart';
 
 import 'router/router.dart';
 import 'presentation/presentation.dart';
@@ -21,6 +21,8 @@ import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
 import 'presentation/widgets/widgets.dart';
 import 'presentation/features/account/bloc/account_event.dart';
+import 'presentation/features/settings/services/pin_service.dart';
+import 'presentation/features/pin/repositories/pin_repository.dart';
 
 enum SyncStatus { offline, syncing, online, error }
 
@@ -37,6 +39,8 @@ class SyncStatusNotifier extends ChangeNotifier {
   }
 }
 
+bool isAppUnlocked = false;
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -46,6 +50,54 @@ void main() async {
   await initializeDateFormatting('ru');
   setupDependencies();
   runApp(const CashneticApp());
+}
+
+class BlurOnPauseWrapper extends StatefulWidget {
+  final Widget child;
+  const BlurOnPauseWrapper({Key? key, required this.child}) : super(key: key);
+
+  @override
+  State<BlurOnPauseWrapper> createState() => _BlurOnPauseWrapperState();
+}
+
+class _BlurOnPauseWrapperState extends State<BlurOnPauseWrapper> with WidgetsBindingObserver {
+  bool _isBlurred = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _isBlurred = state == AppLifecycleState.paused || state == AppLifecycleState.inactive;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        widget.child,
+        if (_isBlurred)
+          Positioned.fill(
+            child: Blur(
+              blur: 24,
+              colorOpacity: 0.2,
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+      ],
+    );
+  }
 }
 
 class CashneticApp extends StatefulWidget {
@@ -108,41 +160,42 @@ class _CashneticAppState extends State<CashneticApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _syncStatusNotifier,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (context) => AccountBloc()),
-          BlocProvider(create: (context) => AnalysisBloc()),
-          BlocProvider(create: (context) => CategoriesBloc()),
-          BlocProvider(create: (context) => HistoryBloc()),
-          BlocProvider(
-            create: (context) => SettingsBloc()..add(const LoadSettings()),
-          ),
-        ],
-        child: BlocBuilder<SettingsBloc, SettingsState>(
-          builder: (context, state) {
-            ThemeMode themeMode = ThemeMode.system;
-            String language = 'en';
-            ThemeData initTheme;
-            if (state is SettingsLoaded) {
-              themeMode = state.themeMode;
-              language = state.language;
-            }
-            if (themeMode == ThemeMode.dark) {
-              initTheme = darkThemeData();
-            } else if (themeMode == ThemeMode.light) {
-              initTheme = lightThemeData();
-            } else {
-              final brightness =
-                  WidgetsBinding.instance.platformDispatcher.platformBrightness;
-              initTheme = brightness == Brightness.dark
-                  ? darkThemeData()
-                  : lightThemeData();
-            }
-            return ThemeProvider(
-              initTheme: initTheme,
-              builder: (context, _) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AccountBloc()),
+        BlocProvider(create: (context) => AnalysisBloc()),
+        BlocProvider(create: (context) => CategoriesBloc()),
+        BlocProvider(create: (context) => HistoryBloc()),
+        BlocProvider(
+          create: (context) => SettingsBloc()..add(const LoadSettings()),
+        ),
+      ],
+      child: ChangeNotifierProvider.value(
+        value: _syncStatusNotifier,
+        child: Builder(
+          builder: (context) {
+            return BlocBuilder<SettingsBloc, SettingsState>(
+              builder: (context, state) {
+                ThemeMode themeMode = ThemeMode.system;
+                String language = 'en';
+                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
+                ThemeData initTheme;
+                if (state is SettingsLoaded) {
+                  themeMode = state.themeMode;
+                  language = state.language;
+                  primaryColor = state.primaryColor;
+                }
+                if (themeMode == ThemeMode.dark) {
+                  initTheme = darkThemeData(primaryColor: primaryColor);
+                } else if (themeMode == ThemeMode.light) {
+                  initTheme = lightThemeData(primaryColor: primaryColor);
+                } else {
+                  final brightness =
+                      WidgetsBinding.instance.platformDispatcher.platformBrightness;
+                  initTheme = brightness == Brightness.dark
+                      ? darkThemeData(primaryColor: primaryColor)
+                      : lightThemeData(primaryColor: primaryColor);
+                }
                 return MaterialApp.router(
                   locale: Locale(language),
                   localizationsDelegates: const [
@@ -153,11 +206,9 @@ class _CashneticAppState extends State<CashneticApp> {
                   ],
                   supportedLocales: S.delegate.supportedLocales,
                   debugShowCheckedModeBanner: false,
-                  theme: lightThemeData(),
-                  darkTheme: darkThemeData(),
+                  theme: lightThemeData(primaryColor: primaryColor),
+                  darkTheme: darkThemeData(primaryColor: primaryColor),
                   themeMode: themeMode,
-                  routerConfig: _router.config(),
-
                   builder: (context, child) {
                     if (state is! SettingsLoaded) {
                       return Scaffold(
@@ -171,9 +222,11 @@ class _CashneticAppState extends State<CashneticApp> {
                         ),
                       );
                     }
-                    // Используем SnackBar-баннер для статуса синхронизации
-                    return Stack(children: [child!, const SyncStatusBanner()]);
+                    return BlurOnPauseWrapper(
+                      child: Stack(children: [child!, const SyncStatusBanner()]),
+                    );
                   },
+                  routerConfig: _router.config(),
                 );
               },
             );

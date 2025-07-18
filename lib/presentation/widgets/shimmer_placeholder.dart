@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 
 /// Shimmer placeholder for list loading
 class ShimmerListPlaceholder extends StatelessWidget {
@@ -16,18 +17,22 @@ class ShimmerListPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.builder(
       padding: padding,
       itemCount: itemCount,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
+          baseColor: baseColor,
+          highlightColor: highlightColor,
           child: Container(
             height: height,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: boxColor,
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -52,14 +57,18 @@ class ShimmerBoxPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: baseColor,
+      highlightColor: highlightColor,
       child: Container(
         height: height,
         width: width,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: boxColor,
           borderRadius: borderRadius ?? BorderRadius.circular(16),
         ),
       ),
@@ -80,6 +89,10 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.separated(
       padding: padding ?? const EdgeInsets.symmetric(vertical: 8),
       itemCount: itemCount,
@@ -87,11 +100,11 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
         child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
+          baseColor: baseColor,
+          highlightColor: highlightColor,
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.grey[200],
+              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
               radius: 22,
               child: Container(),
             ),
@@ -99,7 +112,7 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
               height: 14,
               width: 80,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: boxColor,
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -111,7 +124,7 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
                   height: 12,
                   width: 60,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: boxColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -120,7 +133,7 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
                   height: 10,
                   width: 48,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: boxColor,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -133,12 +146,12 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
                   height: 16,
                   width: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: boxColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.chevron_right, color: Colors.grey[300]),
+                Icon(Icons.chevron_right, color: baseColor),
               ],
             ),
           ),
@@ -161,6 +174,10 @@ class ShimmerCategoryListPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.separated(
       padding: padding ?? const EdgeInsets.symmetric(vertical: 8),
       itemCount: itemCount,
@@ -168,11 +185,11 @@ class ShimmerCategoryListPlaceholder extends StatelessWidget {
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
         child: Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
+          baseColor: baseColor,
+          highlightColor: highlightColor,
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.grey[200],
+              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
               radius: 22,
               child: Container(),
             ),
@@ -180,7 +197,7 @@ class ShimmerCategoryListPlaceholder extends StatelessWidget {
               height: 14,
               width: 80,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: boxColor,
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -189,11 +206,11 @@ class ShimmerCategoryListPlaceholder extends StatelessWidget {
               width: 60,
               margin: const EdgeInsets.only(top: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: boxColor,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
-            trailing: Icon(Icons.chevron_right, color: Colors.grey[300]),
+            trailing: Icon(Icons.chevron_right, color: baseColor),
           ),
         ),
       ),
@@ -207,17 +224,18 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Scaffold(
       floatingActionButton: Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
+        baseColor: baseColor,
+        highlightColor: highlightColor,
         child: Container(
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: boxColor, shape: BoxShape.circle),
         ),
       ),
       body: Column(
@@ -225,7 +243,7 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
           // Chips row
           Container(
             width: double.infinity,
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: List.generate(
@@ -233,13 +251,13 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                 (i) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 32,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
@@ -250,18 +268,18 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
           ),
           // Balance & currency block
           Container(
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             child: Column(
               children: [
                 ListTile(
                   leading: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -270,7 +288,7 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                     height: 14,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -281,25 +299,25 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                         height: 18,
                         width: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: boxColor,
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.visibility, color: Colors.grey[300]),
+                      Icon(Icons.visibility, color: baseColor),
                     ],
                   ),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -308,11 +326,11 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                     height: 14,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  trailing: Icon(Icons.chevron_right, color: Colors.grey[300]),
+                  trailing: Icon(Icons.chevron_right, color: baseColor),
                 ),
               ],
             ),
@@ -325,12 +343,12 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
               children: [
                 Expanded(
                   child: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(18),
                       ),
                     ),
@@ -338,13 +356,13 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
                   child: Container(
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -358,13 +376,13 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
                 child: Container(
                   width: double.infinity,
                   height: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: boxColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   alignment: Alignment.center,
@@ -372,7 +390,7 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
                     width: 120,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: baseColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -392,10 +410,14 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Column(
       children: [
         Container(
-          color: const Color(0xFFD9F3DB),
+          color: sectionBackgroundColor(context),
           padding: const EdgeInsets.only(
             top: 16,
             bottom: 8,
@@ -409,25 +431,25 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 16,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 32,
                       width: 110,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(32),
                       ),
                     ),
@@ -439,25 +461,25 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 16,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 32,
                       width: 110,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(32),
                       ),
                     ),
@@ -469,13 +491,13 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 32,
                       width: 180,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -487,25 +509,25 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 16,
                       width: 60,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
                   Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 16,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -528,11 +550,15 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: List.generate(
@@ -540,13 +566,13 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                 (i) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
+                    baseColor: baseColor,
+                    highlightColor: highlightColor,
                     child: Container(
                       height: 32,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: boxColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
@@ -559,22 +585,22 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
         SliverToBoxAdapter(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             child: Column(
               children: [
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 16, width: 100, color: Colors.white),
+                    Container(height: 16, width: 100, color: boxColor),
                     Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 32,
                         width: 110,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: boxColor,
                           borderRadius: BorderRadius.circular(32),
                         ),
                       ),
@@ -585,15 +611,15 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 16, width: 100, color: Colors.white),
+                    Container(height: 16, width: 100, color: boxColor),
                     Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 32,
                         width: 110,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: boxColor,
                           borderRadius: BorderRadius.circular(32),
                         ),
                       ),
@@ -604,8 +630,8 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 16, width: 60, color: Colors.white),
-                    Container(height: 16, width: 100, color: Colors.white),
+                    Container(height: 16, width: 60, color: boxColor),
+                    Container(height: 16, width: 100, color: boxColor),
                   ],
                 ),
               ],
@@ -617,13 +643,13 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
         SliverToBoxAdapter(
           child: Center(
             child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
+              baseColor: baseColor,
+              highlightColor: highlightColor,
               child: Container(
                 width: 180,
                 height: 180,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: boxColor,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -631,7 +657,7 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: baseColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -655,12 +681,12 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: baseColor,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Container(width: 40, height: 10, color: Colors.white),
+                      Container(width: 40, height: 10, color: boxColor),
                     ],
                   ),
                 ),
@@ -678,11 +704,13 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                 vertical: 2.0,
               ),
               child: Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.grey[200],
+                    backgroundColor: isDark
+                        ? Theme.of(context).colorScheme.surfaceVariant
+                        : Theme.of(context).colorScheme.surface,
                     radius: 22,
                     child: Container(),
                   ),
@@ -690,7 +718,7 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                     height: 14,
                     width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
@@ -699,7 +727,7 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                     width: 60,
                     margin: const EdgeInsets.only(top: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: boxColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

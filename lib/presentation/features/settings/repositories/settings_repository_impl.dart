@@ -6,12 +6,17 @@ import 'package:cashnetic/data/repositories/theme_repository.dart';
 class SettingsRepositoryImpl implements SettingsRepository {
   static const String _primaryColorKey = 'primary_color';
   static const String _soundsKey = 'sounds_enabled';
-  static const String _hapticsKey = 'haptics_enabled';
+
   static const String _passcodeKey = 'passcode';
   static const String _syncKey = 'sync_enabled';
   static const String _languageKey = 'language';
 
   final ThemeRepository _themeRepository = ThemeRepository();
+
+  Color _limitColorBrightness(Color color) {
+    // Возвращаем цвет без изменений, так как используем стандартные Flutter цвета
+    return color;
+  }
 
   @override
   Future<ThemeMode> loadThemeMode() async {
@@ -27,15 +32,35 @@ class SettingsRepositoryImpl implements SettingsRepository {
   }
 
   @override
-  Future<int> loadPrimaryColor() async {
+  Future<Color> loadPrimaryColor() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_primaryColorKey) ?? 0xFF2196F3;
+    final colorValue = prefs.getInt(_primaryColorKey) ?? Colors.green.value; // Зеленый по умолчанию
+    final color = Color(colorValue);
+    return _limitColorBrightness(color); // Применяем ограничение при загрузке
   }
 
   @override
-  Future<void> savePrimaryColor(int colorValue) async {
+  Future<void> savePrimaryColor(Color color) async {
+    final limitedColor = _limitColorBrightness(color); // Применяем ограничение при сохранении
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_primaryColorKey, colorValue);
+    await prefs.setInt(_primaryColorKey, limitedColor.value);
+  }
+
+  @override
+  Future<int> loadPrimaryColorValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    final colorValue = prefs.getInt(_primaryColorKey) ?? Colors.green.value; // Зеленый по умолчанию
+    final color = Color(colorValue);
+    final limitedColor = _limitColorBrightness(color);
+    return limitedColor.value;
+  }
+
+  @override
+  Future<void> savePrimaryColorValue(int colorValue) async {
+    final color = Color(colorValue);
+    final limitedColor = _limitColorBrightness(color);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_primaryColorKey, limitedColor.value);
   }
 
   @override
@@ -50,17 +75,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await prefs.setBool(_soundsKey, enabled);
   }
 
-  @override
-  Future<bool> loadHapticsEnabled() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_hapticsKey) ?? true;
-  }
 
-  @override
-  Future<void> saveHapticsEnabled(bool enabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_hapticsKey, enabled);
-  }
 
   @override
   Future<String?> loadPasscode() async {

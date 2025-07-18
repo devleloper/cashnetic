@@ -1,5 +1,9 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 import '../widgets/period_row.dart';
 
 class AnalysisHeaderSummary extends StatelessWidget {
@@ -41,29 +45,40 @@ class AnalysisHeaderSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Color(0xFFE6F4EA),
+      color: sectionBackgroundColor(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              spacing: 8,
-              children: availableYears.map((yr) {
-                final selected = selectedYears.contains(yr);
-                return FilterChip(
-                  elevation: 0,
-                  checkmarkColor: Colors.white,
-                  label: Text('$yr'),
-                  selected: selected,
-                  selectedColor: Colors.green,
-                  backgroundColor: Colors.white,
-                  labelStyle: TextStyle(
-                    color: selected ? Colors.white : Colors.black,
-                  ),
-                  onSelected: (val) => onYearSelected(yr, val),
+            BlocBuilder<SettingsBloc, SettingsState>(
+              builder: (context, settingsState) {
+                Color primaryColor = Colors.green;
+                if (settingsState is SettingsLoaded) {
+                  primaryColor = settingsState.primaryColor;
+                }
+                
+                return Wrap(
+                  spacing: 8,
+                  children: availableYears.map((yr) {
+                    final selected = selectedYears.contains(yr);
+                    return FilterChip(
+                      elevation: 0,
+                      checkmarkColor: Colors.white,
+                      label: Text('$yr'),
+                      selected: selected,
+                      selectedColor: primaryColor,
+                      backgroundColor: sectionCardColor(context),
+                      labelStyle: TextStyle(
+                        color: selected
+                            ? Colors.white
+                            : Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                      onSelected: (val) => onYearSelected(yr, val),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 8),
             PeriodRow(
@@ -80,13 +95,18 @@ class AnalysisHeaderSummary extends StatelessWidget {
               children: [
                 Text(
                   S.of(context).total,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                 ),
                 Text(
                   '${total.toStringAsFixed(0)} ₽',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ],
