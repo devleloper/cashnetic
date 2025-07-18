@@ -26,12 +26,10 @@ class UpdateThemeMode extends SettingsEvent {
 }
 
 class UpdatePrimaryColor extends SettingsEvent {
-  final int colorValue;
-
-  const UpdatePrimaryColor(this.colorValue);
-
+  final Color color;
+  const UpdatePrimaryColor(this.color);
   @override
-  List<Object?> get props => [colorValue];
+  List<Object?> get props => [color];
 }
 
 class ToggleSounds extends SettingsEvent {

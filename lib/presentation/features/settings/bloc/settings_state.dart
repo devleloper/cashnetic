@@ -15,7 +15,7 @@ class SettingsLoading extends SettingsState {}
 
 class SettingsLoaded extends SettingsState {
   final ThemeMode themeMode;
-  final int primaryColor;
+  final Color primaryColor;
   final bool soundsEnabled;
   final bool hapticsEnabled;
   final String? passcode;
@@ -51,7 +51,7 @@ class SettingsLoaded extends SettingsState {
 
   SettingsLoaded copyWith({
     ThemeMode? themeMode,
-    int? primaryColor,
+    Color? primaryColor,
     bool? soundsEnabled,
     bool? hapticsEnabled,
     String? passcode,

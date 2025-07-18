@@ -20,7 +20,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
     context.read<CategoriesBloc>().add(LoadCategories());
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.white),
+        leading: BackButton(),
         title: Text(category.name),
       ),
       body: BlocBuilder<CategoriesBloc, CategoriesState>(

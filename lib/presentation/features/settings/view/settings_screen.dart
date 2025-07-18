@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../../theme/theme.dart';
 import '../bloc/settings_bloc.dart';
@@ -133,6 +134,48 @@ class _SettingsScreenBody extends StatelessWidget {
     );
   }
 
+  void _showColorPickerDialog(BuildContext context, Color currentColor) {
+    Color selectedColor = currentColor;
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Выберите основной цвет'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: selectedColor,
+              onColorChanged: (color) {
+                setState(() {
+                  selectedColor = color;
+                });
+              },
+              pickerAreaHeightPercent: 0.8,
+              enableAlpha: false,
+              displayThumbColor: true,
+              showLabel: true,
+              paletteType: PaletteType.hsvWithHue,
+              pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(20)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(UpdatePrimaryColor(selectedColor));
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var darkTheme = darkThemeData();
@@ -168,12 +211,17 @@ class _SettingsScreenBody extends StatelessWidget {
                 const Divider(height: 1),
                 ListTile(
                   title: Text(S.of(context).primaryColor),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: state.primaryColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey, width: 1),
+                    ),
+                  ),
                   onTap: () {
-                    // TODO: Implement color picker
-                    context.read<SettingsBloc>().add(
-                      const UpdatePrimaryColor(0xFF2196F3),
-                    );
+                    _showColorPickerDialog(context, state.primaryColor);
                   },
                 ),
                 SwitchListTile(

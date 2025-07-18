@@ -81,11 +81,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 widget.type == AnalysisType.expense
                     ? S.of(context).expenseAnalysis
                     : S.of(context).incomeAnalysis,
-                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
               centerTitle: true,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              leading: BackButton(color: Colors.white),
+              leading: BackButton(),
             ),
             body: const ShimmerAnalysisScreenPlaceholder(),
           );
@@ -123,11 +121,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               widget.type == AnalysisType.expense
                   ? S.of(context).expenseAnalysis
                   : S.of(context).incomeAnalysis,
-              style: TextStyle(fontSize: 20, color: Colors.white),
             ),
             centerTitle: true,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            leading: BackButton(color: Colors.white),
+            leading: BackButton(),
           ),
           body: RefreshIndicator(
             onRefresh: () async {

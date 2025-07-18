@@ -160,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _buildAppBar(context, tabsRouter.activeIndex),
             body: child,
             bottomNavigationBar: Container(
-              color: Colors.green,
+              color: Theme.of(context).colorScheme.primary,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
               child: SafeArea(
                 child: LayoutBuilder(
@@ -215,9 +215,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               // case 4: // Settings — если нужно, добавить событие
                             }
                           },
-                          backgroundColor: Colors.green,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           tabBackgroundColor: Colors.white,
-                          activeColor: Colors.green,
+                          activeColor: Theme.of(context).colorScheme.primary,
                           color: Colors.white,
                           curve: Curves.easeInOut,
                           padding: const EdgeInsets.symmetric(
@@ -257,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
             floatingActionButton:
                 (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
                 ? FloatingActionButton(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     child: const Icon(Icons.add, color: Colors.white),
                     onPressed: () async {
                       // Добавляем хаптик фидбек
@@ -300,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).expenses),
           actions: [
             IconButton(
-              icon: const Icon(Icons.history, color: Colors.white),
+              icon: const Icon(Icons.history),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -316,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).income),
           actions: [
             IconButton(
-              icon: const Icon(Icons.history, color: Colors.white),
+              icon: const Icon(Icons.history),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -333,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).myAccounts),
           actions: [
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
+              icon: const Icon(Icons.edit),
               onPressed: () {
                 Navigator.of(
                   context,

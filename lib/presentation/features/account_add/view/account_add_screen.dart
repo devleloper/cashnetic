@@ -72,12 +72,12 @@ class _AccountAddScreenState extends State<AccountAddScreen> {
           appBar: AppBar(
             title: Text(S.of(context).createAccount),
             leading: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close),
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.check, color: Colors.white),
+                icon: const Icon(Icons.check),
                 onPressed: () {
                   setState(() => _autoValidate = true);
                   if (_formKey.currentState?.validate() ?? false) {

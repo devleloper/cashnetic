@@ -27,13 +27,26 @@ class SettingsRepositoryImpl implements SettingsRepository {
   }
 
   @override
-  Future<int> loadPrimaryColor() async {
+  Future<Color> loadPrimaryColor() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_primaryColorKey) ?? 0xFF2196F3;
+    final colorValue = prefs.getInt(_primaryColorKey) ?? 0xFF4CAF50; // Зеленый по умолчанию
+    return Color(colorValue);
   }
 
   @override
-  Future<void> savePrimaryColor(int colorValue) async {
+  Future<void> savePrimaryColor(Color color) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_primaryColorKey, color.value);
+  }
+
+  @override
+  Future<int> loadPrimaryColorValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_primaryColorKey) ?? 0xFF4CAF50; // Зеленый по умолчанию
+  }
+
+  @override
+  Future<void> savePrimaryColorValue(int colorValue) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_primaryColorKey, colorValue);
   }

@@ -220,7 +220,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 actions: [
                   IconButton(
                     key: historyIconKey,
-                    icon: const Icon(Icons.history, color: Colors.white),
+                    icon: const Icon(Icons.history),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -247,7 +247,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 actions: [
                   IconButton(
                     key: historyIconKey,
-                    icon: const Icon(Icons.history, color: Colors.white),
+                    icon: const Icon(Icons.history),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -301,7 +301,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               actions: [
                 IconButton(
                   key: historyIconKey,
-                  icon: const Icon(Icons.history, color: Colors.white),
+                  icon: const Icon(Icons.history),
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

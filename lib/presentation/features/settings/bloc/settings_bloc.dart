@@ -92,8 +92,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     if (state is SettingsLoaded) {
       final currentState = state as SettingsLoaded;
       try {
-        await settingsRepository.savePrimaryColor(event.colorValue);
-        emit(currentState.copyWith(primaryColor: event.colorValue));
+        await settingsRepository.savePrimaryColor(event.color);
+        emit(currentState.copyWith(primaryColor: event.color));
       } catch (e) {
         emit(SettingsError('Failed to save primary color: $e'));
       }

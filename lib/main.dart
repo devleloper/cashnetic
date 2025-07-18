@@ -178,21 +178,23 @@ class _CashneticAppState extends State<CashneticApp> {
               builder: (context, state) {
                 ThemeMode themeMode = ThemeMode.system;
                 String language = 'en';
+                Color primaryColor = const Color(0xFF4CAF50); // Зеленый по умолчанию
                 ThemeData initTheme;
                 if (state is SettingsLoaded) {
                   themeMode = state.themeMode;
                   language = state.language;
+                  primaryColor = state.primaryColor;
                 }
                 if (themeMode == ThemeMode.dark) {
-                  initTheme = darkThemeData();
+                  initTheme = darkThemeData(primaryColor: primaryColor);
                 } else if (themeMode == ThemeMode.light) {
-                  initTheme = lightThemeData();
+                  initTheme = lightThemeData(primaryColor: primaryColor);
                 } else {
                   final brightness =
                       WidgetsBinding.instance.platformDispatcher.platformBrightness;
                   initTheme = brightness == Brightness.dark
-                      ? darkThemeData()
-                      : lightThemeData();
+                      ? darkThemeData(primaryColor: primaryColor)
+                      : lightThemeData(primaryColor: primaryColor);
                 }
                 return MaterialApp.router(
                   locale: Locale(language),
@@ -204,8 +206,8 @@ class _CashneticAppState extends State<CashneticApp> {
                   ],
                   supportedLocales: S.delegate.supportedLocales,
                   debugShowCheckedModeBanner: false,
-                  theme: lightThemeData(),
-                  darkTheme: darkThemeData(),
+                  theme: lightThemeData(primaryColor: primaryColor),
+                  darkTheme: darkThemeData(primaryColor: primaryColor),
                   themeMode: themeMode,
                   builder: (context, child) {
                     if (state is! SettingsLoaded) {

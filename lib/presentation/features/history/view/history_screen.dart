@@ -121,18 +121,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                style: TextStyle(fontSize: 18, color: Colors.white),
                 widget.isIncome
                     ? S.of(context).incomeForTheMonth
                     : S.of(context).expensesForTheMonth,
               ),
               leading: IconButton(
-                icon: Icon(Icons.arrow_back, color: Colors.white),
+                icon: Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
                 IconButton(
-                  icon: Icon(Icons.calendar_month, color: Colors.white),
+                  icon: Icon(Icons.calendar_month),
                   onPressed: () async {
                     Navigator.push(
                       context,
@@ -206,12 +205,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       : S.of(context).expensesForTheMonth,
                 ),
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
-                    icon: Icon(Icons.calendar_month, color: Colors.white),
+                    icon: Icon(Icons.calendar_month),
                     onPressed: () async {
                       Navigator.push(
                         context,
