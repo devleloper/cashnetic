@@ -13,6 +13,8 @@ import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 import 'dart:async';
+import 'package:cashnetic/presentation/features/analysis/widgets/analysis_header_summary.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 
 class AnalysisScreen extends StatefulWidget {
   final AnalysisType type;
@@ -79,11 +81,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 widget.type == AnalysisType.expense
                     ? S.of(context).expenseAnalysis
                     : S.of(context).incomeAnalysis,
-                style: const TextStyle(fontSize: 20, color: Colors.white),
+                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
               centerTitle: true,
-              backgroundColor: Colors.green,
-              leading: const BackButton(color: Colors.white),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              leading: BackButton(color: Colors.white),
             ),
             body: const ShimmerAnalysisScreenPlaceholder(),
           );
@@ -121,11 +123,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               widget.type == AnalysisType.expense
                   ? S.of(context).expenseAnalysis
                   : S.of(context).incomeAnalysis,
-              style: const TextStyle(fontSize: 20, color: Colors.white),
+              style: TextStyle(fontSize: 20, color: Colors.white),
             ),
             centerTitle: true,
-            backgroundColor: Colors.green,
-            leading: const BackButton(color: Colors.white),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            leading: BackButton(color: Colors.white),
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -142,7 +144,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               slivers: [
                 SliverToBoxAdapter(
                   child: Container(
-                    color: Color(0xFFE6F4EA),
+                    color: sectionBackgroundColor(context),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -162,7 +164,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 SliverToBoxAdapter(
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    color: Color(0xFFE6F4EA),
+                    color: sectionBackgroundColor(context),
                     child: AnalysisPeriodSelector(
                       periodStart: result.periodStart,
                       periodEnd: result.periodEnd,
@@ -177,7 +179,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 ),
                 SliverToBoxAdapter(
                   child: Container(
-                    color: Color(0xFFE6F4EA),
+                    color: sectionBackgroundColor(context),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
@@ -197,7 +199,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     child: Center(
                       child: Text(
                         S.of(context).noDataForAnalysis,
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                       ),
                     ),
                   )
@@ -226,7 +231,7 @@ class _LegendHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.onPrimary,
       child: SizedBox(height: maxExtent, child: child),
     );
   }

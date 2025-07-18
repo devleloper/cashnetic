@@ -28,7 +28,7 @@ class AnalysisYearFilterChips extends StatelessWidget {
           label: Text('$yr'),
           selected: selected,
           selectedColor: Colors.green,
-          backgroundColor: lightColorFor('$yr'),
+          backgroundColor: lightColorFor(context, '$yr'),
           labelStyle: TextStyle(color: selected ? Colors.white : Colors.black),
           onSelected: (val) {
             final newYears = List<int>.from(selectedYears);

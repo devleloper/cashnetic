@@ -1,5 +1,6 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 
 class TransactionsTotalRow extends StatelessWidget {
   final double total;
@@ -7,8 +8,9 @@ class TransactionsTotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     return Container(
-      color: Color(0xFFE6F4EA),
+      color: sectionBackgroundColor(context),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -18,15 +20,15 @@ class TransactionsTotalRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: textColor,
             ),
           ),
           Text(
             '${total.toStringAsFixed(0)} ₽',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: textColor,
             ),
           ),
         ],

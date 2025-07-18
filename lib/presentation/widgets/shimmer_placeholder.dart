@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 
 /// Shimmer placeholder for list loading
 class ShimmerListPlaceholder extends StatelessWidget {
@@ -17,9 +18,9 @@ class ShimmerListPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.builder(
       padding: padding,
       itemCount: itemCount,
@@ -57,9 +58,9 @@ class ShimmerBoxPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Shimmer.fromColors(
       baseColor: baseColor,
       highlightColor: highlightColor,
@@ -89,9 +90,9 @@ class ShimmerTransactionListPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.separated(
       padding: padding ?? const EdgeInsets.symmetric(vertical: 8),
       itemCount: itemCount,
@@ -174,9 +175,9 @@ class ShimmerCategoryListPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return ListView.separated(
       padding: padding ?? const EdgeInsets.symmetric(vertical: 8),
       itemCount: itemCount,
@@ -224,9 +225,9 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Scaffold(
       floatingActionButton: Shimmer.fromColors(
         baseColor: baseColor,
@@ -242,7 +243,7 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
           // Chips row
           Container(
             width: double.infinity,
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: List.generate(
@@ -267,7 +268,7 @@ class ShimmerAccountScreenPlaceholder extends StatelessWidget {
           ),
           // Balance & currency block
           Container(
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             child: Column(
               children: [
                 ListTile(
@@ -410,13 +411,13 @@ class ShimmerHistoryScreenPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return Column(
       children: [
         Container(
-          color: const Color(0xFFD9F3DB),
+          color: sectionBackgroundColor(context),
           padding: const EdgeInsets.only(
             top: 16,
             bottom: 8,
@@ -550,14 +551,14 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final boxColor = isDark ? Colors.grey[900]! : Colors.white;
+    final baseColor = Theme.of(context).colorScheme.surfaceVariant;
+    final highlightColor = Theme.of(context).colorScheme.surface;
+    final boxColor = sectionBackgroundColor(context);
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: List.generate(
@@ -584,7 +585,7 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
         SliverToBoxAdapter(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            color: const Color(0xFFE6F4EA),
+            color: sectionBackgroundColor(context),
             child: Column(
               children: [
                 const SizedBox(height: 8),
@@ -708,8 +709,8 @@ class ShimmerAnalysisScreenPlaceholder extends StatelessWidget {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: isDark
-                        ? Colors.grey[800]
-                        : Colors.grey[200],
+                        ? Theme.of(context).colorScheme.surfaceVariant
+                        : Theme.of(context).colorScheme.surface,
                     radius: 22,
                     child: Container(),
                   ),

@@ -27,7 +27,7 @@ class CategoryListTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: CircleAvatar(
-        backgroundColor: lightColorFor(category.name),
+        backgroundColor: lightColorFor(context, category.name),
         child: Text(category.emoji, style: const TextStyle(fontSize: 18)),
       ),
       title: Text(category.name),

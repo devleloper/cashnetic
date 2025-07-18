@@ -54,7 +54,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                     isIncome: cat.isIncome,
                     color: cat.color,
                   ),
-                  bgColor: lightColorFor(cat.name),
+                  bgColor: lightColorFor(context, cat.name),
                   onTap: () async {
                     await showModalBottomSheet(
                       context: context,

@@ -19,6 +19,7 @@ import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 
 @RoutePage()
 class AccountScreen extends StatefulWidget {
@@ -135,13 +136,13 @@ class _AccountScreenState extends State<AccountScreen> {
           floatingActionButton: FloatingActionButton(
             onPressed: () => context.read<AccountBloc>().add(LoadAccount()),
             tooltip: 'Refresh',
-            child: const Icon(Icons.refresh, color: Colors.white),
+            child: Icon(Icons.refresh, color: Colors.white),
           ),
           body: Column(
             children: [
               Container(
                 width: double.infinity,
-                color: Color(0xFFE6F4EA),
+                color: sectionBackgroundColor(context),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -150,51 +151,20 @@ class _AccountScreenState extends State<AccountScreen> {
                       final isSelected = selectedAccountIds.contains(acc.id);
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                acc.name.trim().isEmpty
-                                    ? S.of(context).account
-                                    : acc.name,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                acc.moneyDetails?.currency ?? '',
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ],
+                        child: ChoiceChip(
+                          label: Text(
+                            acc.name,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
+                            ),
                           ),
                           selected: isSelected,
-                          selectedColor: Colors.green,
-                          backgroundColor: Colors.white,
-                          checkmarkColor: Colors.white,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          onSelected: (val) {
-                            final newSelected = List<int>.from(
-                              selectedAccountIds,
-                            );
-                            if (val) {
-                              newSelected.add(acc.id);
-                            } else {
-                              newSelected.remove(acc.id);
-                            }
-                            if (newSelected.isNotEmpty) {
-                              context.read<AccountBloc>().add(
-                                SelectAccounts(newSelected),
-                              );
-                            }
-                          },
+                          selectedColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: sectionCardColor(context),
                         ),
                       );
                     }).toList(),
@@ -202,7 +172,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               Container(
-                color: Color(0xFFE6F4EA),
+                color: sectionBackgroundColor(context),
                 child: Column(
                   children: [
                     OptionRow(
@@ -218,7 +188,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         _isBalanceHidden
                             ? Icons.visibility_off
                             : Icons.visibility,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
@@ -256,8 +226,14 @@ class _AccountScreenState extends State<AccountScreen> {
                           ? () => _showCurrencyPicker(context, account)
                           : null,
                       trailing: selectedCurrencies.length == 1
-                          ? const Icon(Icons.chevron_right, color: Colors.grey)
-                          : const Icon(Icons.block, color: Colors.grey),
+                          ? Icon(
+                              Icons.chevron_right,
+                              color: Theme.of(context).colorScheme.outline,
+                            )
+                          : Icon(
+                              Icons.block,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
                     ),
                   ],
                 ),
@@ -349,14 +325,14 @@ class _BalanceSpoiler extends StatelessWidget {
           ).format(loaded.computedBalance),
           config: TextSpoilerConfig(
             particleDensity: 2,
-            particleColor: Colors.green,
+            particleColor: Theme.of(context).colorScheme.primary,
             isEnabled: isHidden,
             enableFadeAnimation: true,
             enableGestureReveal: false,
-            textStyle: const TextStyle(
+            textStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -367,7 +343,7 @@ class _BalanceSpoiler extends StatelessWidget {
         child: SpoilerOverlay(
           config: WidgetSpoilerConfig(
             particleDensity: 2,
-            particleColor: Colors.green,
+            particleColor: Theme.of(context).colorScheme.primary,
             isEnabled: isHidden,
             enableFadeAnimation: true,
             enableGestureReveal: false,
@@ -391,10 +367,10 @@ class _BalanceSpoiler extends StatelessWidget {
                           })
                           .fold<double>(0, (a, b) => a + (b is num ? b : 0)),
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 )

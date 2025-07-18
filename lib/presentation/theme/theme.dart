@@ -164,3 +164,33 @@ ThemeData darkThemeData() {
     ),
   );
 }
+
+// Цвет фона секций (например, для хедеров, сумм, фильтров)
+const Color kSectionBgLight = Color(0xFFE6F4EA);
+const Color kSectionBgDark = Color(0xFF23262F);
+
+Color sectionBackgroundColor(BuildContext context) {
+  return Theme.of(context).brightness == Brightness.dark
+      ? kSectionBgDark
+      : kSectionBgLight;
+}
+
+Color sectionCardColor(BuildContext context) {
+  // Можно использовать для карточек внутри секций
+  return Theme.of(context).brightness == Brightness.dark
+      ? Color(0xFF181A20)
+      : Colors.white;
+}
+
+// Цвета для категорий (централизовано)
+const List<Color> kCategoryColors = [
+  Colors.green,
+  Colors.blue,
+  Colors.orange,
+  Colors.red,
+  Colors.purple,
+  Colors.teal,
+  Color(0xFFfdd835), // bright yellow
+  Color(0xFF8d6e63), // brown
+  Color(0xFF64b5f6), // blue
+];

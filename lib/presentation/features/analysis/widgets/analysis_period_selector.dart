@@ -17,6 +17,7 @@ class AnalysisPeriodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     return Column(
       children: [
         Row(
@@ -27,14 +28,14 @@ class AnalysisPeriodSelector extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Color(0xFF43C97B),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -74,14 +75,14 @@ class AnalysisPeriodSelector extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
                 elevation: 0,
-                backgroundColor: Color(0xFF43C97B),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
