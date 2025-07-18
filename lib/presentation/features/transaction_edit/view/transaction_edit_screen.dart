@@ -88,7 +88,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 topRight: Radius.circular(24),
               ),
               child: Container(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.primary,
                 width: double.infinity,
                 child: SafeArea(
                   top: false,
@@ -123,25 +123,22 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         children: [
           // Шапка (fixed)
           Container(
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-            ),
+            color: Theme.of(context).colorScheme.primary,
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(
+                    Icons.close,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -150,15 +147,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ),
                 IconButton(
                   icon: isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
-                      : const Icon(Icons.check, color: Colors.white),
+                      : Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                   onPressed: isProcessing
                       ? null
                       : () => _validateAndSave(context, state),
@@ -232,7 +232,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           fixedSize: const Size.fromHeight(50),
-                          backgroundColor: Colors.red,
+                          backgroundColor: Theme.of(context).colorScheme.error,
                           elevation: 0,
                           shadowColor: Colors.transparent,
                         ),
@@ -242,17 +242,19 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                                 TransactionEditDeleteTransaction(),
                               ),
                         child: isDeleting
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onError,
                                 ),
                               )
                             : Text(
                                 S.of(context).deleteAccount,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onError,
+                                ),
                               ),
                       ),
                     ),

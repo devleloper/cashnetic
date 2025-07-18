@@ -127,80 +127,147 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
         : S.of(context).addExpense;
     final isSaving = state is TransactionAddSaving;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: Center(
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          child: Container(
+            color: Theme.of(context).colorScheme.surface,
+            width: double.infinity,
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Шапка
+                  Container(
+                    color: Theme.of(context).colorScheme.primary,
+                    padding: const EdgeInsets.all(8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        IconButton(
+                          icon: isSaving
+                              ? SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.check,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                ),
+                          onPressed: isSaving
+                              ? null
+                              : () => _validateAndSave(context, state),
+                        ),
+                      ],
                     ),
-                  )
-                : const Icon(Icons.check, color: Colors.white),
-            onPressed: isSaving ? null : () => _validateAndSave(context, state),
-          ),
-        ],
-        title: Text(title),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          MyListTileRow(
-            title: S.of(context).account,
-            value:
-                (state.account == null || (state.account!.name.trim().isEmpty))
-                ? S.of(context).account
-                : state.account!.name,
-            onTap: isSaving
-                ? () {}
-                : () => _selectAccount(context, state.accounts, state.account),
-          ),
-          MyListTileRow(
-            title: S.of(context).category,
-            value: state.selectedCategory?.name ?? '',
-            onTap: isSaving
-                ? () {}
-                : () => _selectCategory(context, state.categories),
-          ),
-          MyListTileRow(
-            title: S.of(context).amount,
-            value: state.amount.isEmpty
-                ? S.of(context).enter
-                : '${state.amount} ₽',
-            onTap: isSaving
-                ? () {}
-                : () => _selectAmount(context, state.amount),
-          ),
-          MyListTileRow(
-            title: S.of(context).date,
-            value: dateStr,
-            onTap: isSaving
-                ? () {}
-                : () => _selectDate(context, state.selectedDate),
-          ),
-          MyListTileRow(
-            title: S.of(context).time,
-            value: timeStr,
-            onTap: isSaving
-                ? () {}
-                : () => _selectTime(context, state.selectedDate),
-          ),
-          const SizedBox(height: 16),
-          TransactionCommentField(
-            controller: _commentController,
-            enabled: !isSaving,
-            onChanged: (comment) => context.read<TransactionAddBloc>().add(
-              TransactionAddCommentChanged(comment),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          MyListTileRow(
+                            title: S.of(context).account,
+                            value:
+                                (state.account == null ||
+                                    (state.account!.name.trim().isEmpty))
+                                ? S.of(context).account
+                                : state.account!.name,
+                            onTap: isSaving
+                                ? () {}
+                                : () => _selectAccount(
+                                    context,
+                                    state.accounts,
+                                    state.account,
+                                  ),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).category,
+                            value: state.selectedCategory?.name ?? '',
+                            onTap: isSaving
+                                ? () {}
+                                : () => _selectCategory(
+                                    context,
+                                    state.categories,
+                                  ),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).amount,
+                            value: state.amount.isEmpty
+                                ? S.of(context).enter
+                                : '${state.amount} ₽',
+                            onTap: isSaving
+                                ? () {}
+                                : () => _selectAmount(context, state.amount),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).date,
+                            value: dateStr,
+                            onTap: isSaving
+                                ? () {}
+                                : () =>
+                                      _selectDate(context, state.selectedDate),
+                          ),
+                          MyListTileRow(
+                            title: S.of(context).time,
+                            value: timeStr,
+                            onTap: isSaving
+                                ? () {}
+                                : () =>
+                                      _selectTime(context, state.selectedDate),
+                          ),
+                          const SizedBox(height: 16),
+                          TransactionCommentField(
+                            controller: _commentController,
+                            enabled: !isSaving,
+                            onChanged: (comment) => context
+                                .read<TransactionAddBloc>()
+                                .add(TransactionAddCommentChanged(comment)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

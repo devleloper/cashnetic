@@ -22,6 +22,7 @@ import 'package:cashnetic/presentation/features/account/bloc/account_state.dart'
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/settings/repositories/pin_service.dart';
+import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -248,6 +249,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            floatingActionButton:
+                (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                ? FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    child: const Icon(Icons.add, color: Colors.white),
+                    onPressed: () async {
+                      final isIncome = tabsRouter.activeIndex == 1;
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          final mq = MediaQuery.of(context);
+                          final maxChildSize =
+                              (mq.size.height - mq.padding.top) /
+                              mq.size.height;
+                          return DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.4,
+                            maxChildSize: maxChildSize,
+                            expand: false,
+                            builder: (context, scrollController) =>
+                                TransactionAddScreen(isIncome: isIncome),
+                          );
+                        },
+                      );
+                    },
+                  )
+                : null,
           );
         },
       ),

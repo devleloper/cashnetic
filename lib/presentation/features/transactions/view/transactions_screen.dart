@@ -285,27 +285,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ],
                 ),
               ),
-              floatingActionButton: FloatingActionButton(
-                key: fabKey,
-                heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
-                backgroundColor: Colors.green,
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          TransactionAddScreen(isIncome: widget.isIncome),
-                    ),
-                  );
-                  context.read<TransactionsBloc>().add(
-                    TransactionsLoad(
-                      isIncome: widget.isIncome,
-                      accountId: accountId,
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add, size: 32, color: Colors.white),
-              ),
             );
           }
           if (state is! TransactionsLoaded) {
@@ -449,28 +428,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ),
                 ),
               ],
-            ),
-            floatingActionButton: FloatingActionButton(
-              key: fabKey,
-              heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
-              backgroundColor: Colors.green,
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        TransactionAddScreen(isIncome: widget.isIncome),
-                  ),
-                );
-                context.read<TransactionsBloc>().add(
-                  TransactionsLoad(
-                    isIncome: widget.isIncome,
-                    accountId: accountId,
-                  ),
-                );
-                // FlyTransactionChip animation is no longer used
-              },
-              child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),
           );
         },

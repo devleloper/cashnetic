@@ -17,11 +17,31 @@ class TransactionCommentField extends StatelessWidget {
     return TextField(
       decoration: InputDecoration(
         hintText: S.of(context).comment,
-        hintStyle: const TextStyle(color: Colors.grey),
-        border: OutlineInputBorder(),
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1.5,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1.5,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).colorScheme.surface,
       ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       maxLines: 3,
       enabled: enabled,
       controller: controller,
