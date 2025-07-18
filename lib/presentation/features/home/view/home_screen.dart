@@ -24,6 +24,8 @@ import 'package:cashnetic/presentation/features/categories/repositories/categori
 import 'package:cashnetic/presentation/features/settings/repositories/pin_service.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/settings/repositories/haptic_service.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -154,139 +156,148 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-          return Scaffold(
-            appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
-                ? null
-                : _buildAppBar(context, tabsRouter.activeIndex),
-            body: child,
-            bottomNavigationBar: Container(
-              color: Theme.of(context).colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
-              child: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: constraints.maxWidth,
-                        ),
-                        child: GNav(
-                          selectedIndex: tabsRouter.activeIndex,
-                          onTabChange: (index) async {
-                            // Добавляем хаптик фидбек при переключении табов
-                            final hapticService = HapticService();
-                            await hapticService.selection();
-                            
-                            tabsRouter.setActiveIndex(index);
-                            final accountState = context
-                                .read<AccountBloc>()
-                                .state;
-                            int accountId = -1;
-                            if (accountState is AccountLoaded &&
-                                accountState.accounts.isNotEmpty) {
-                              accountId = accountState.selectedAccountId;
-                            }
-                            switch (index) {
-                              case 0: // Expenses
-                                context.read<TransactionsBloc>().add(
-                                  TransactionsLoad(
-                                    isIncome: false,
-                                    accountId: accountId,
-                                  ),
-                                );
-                                break;
-                              case 1: // Incomes
-                                context.read<TransactionsBloc>().add(
-                                  TransactionsLoad(
-                                    isIncome: true,
-                                    accountId: accountId,
-                                  ),
-                                );
-                                break;
-                              case 2: // Account
-                                context.read<AccountBloc>().add(LoadAccount());
-                                break;
-                              case 3: // Categories
-                                context.read<CategoriesBloc>().add(
-                                  LoadCategories(),
-                                );
-                                break;
-                              // case 4: // Settings — если нужно, добавить событие
-                            }
-                          },
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          tabBackgroundColor: Colors.white,
-                          activeColor: Theme.of(context).colorScheme.primary,
-                          color: Colors.white,
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 18,
+          return BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, settingsState) {
+              Color primaryColor = const Color(0xFF4CAF50); // Зеленый по умолчанию
+              if (settingsState is SettingsLoaded) {
+                primaryColor = settingsState.primaryColor;
+              }
+
+              return Scaffold(
+                appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                    ? null
+                    : _buildAppBar(context, tabsRouter.activeIndex),
+                body: child,
+                bottomNavigationBar: Container(
+                  color: primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+                  child: SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: constraints.maxWidth,
+                            ),
+                            child: GNav(
+                              selectedIndex: tabsRouter.activeIndex,
+                              onTabChange: (index) async {
+                                // Добавляем хаптик фидбек при переключении табов
+                                final hapticService = HapticService();
+                                await hapticService.selection();
+                                
+                                tabsRouter.setActiveIndex(index);
+                                final accountState = context
+                                    .read<AccountBloc>()
+                                    .state;
+                                int accountId = -1;
+                                if (accountState is AccountLoaded &&
+                                    accountState.accounts.isNotEmpty) {
+                                  accountId = accountState.selectedAccountId;
+                                }
+                                switch (index) {
+                                  case 0: // Expenses
+                                    context.read<TransactionsBloc>().add(
+                                      TransactionsLoad(
+                                        isIncome: false,
+                                        accountId: accountId,
+                                      ),
+                                    );
+                                    break;
+                                  case 1: // Incomes
+                                    context.read<TransactionsBloc>().add(
+                                      TransactionsLoad(
+                                        isIncome: true,
+                                        accountId: accountId,
+                                      ),
+                                    );
+                                    break;
+                                  case 2: // Account
+                                    context.read<AccountBloc>().add(LoadAccount());
+                                    break;
+                                  case 3: // Categories
+                                    context.read<CategoriesBloc>().add(
+                                      LoadCategories(),
+                                    );
+                                    break;
+                                  // case 4: // Settings — если нужно, добавить событие
+                                }
+                              },
+                              backgroundColor: primaryColor,
+                              tabBackgroundColor: Colors.white,
+                              activeColor: primaryColor,
+                              color: Colors.white,
+                              curve: Curves.easeInOut,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 18,
+                              ),
+                              gap: 6,
+                              tabs: [
+                                GButton(
+                                  icon: Icons.bar_chart,
+                                  text: S.of(context).expenses,
+                                ),
+                                GButton(
+                                  icon: Icons.show_chart,
+                                  text: S.of(context).income,
+                                ),
+                                GButton(
+                                  icon: Icons.account_balance_wallet,
+                                  text: S.of(context).account,
+                                ),
+                                GButton(
+                                  icon: Icons.list_alt,
+                                  text: S.of(context).categories,
+                                ),
+                                GButton(
+                                  icon: Icons.settings,
+                                  text: S.of(context).settings,
+                                ),
+                              ],
+                            ),
                           ),
-                          gap: 6,
-                          tabs: [
-                            GButton(
-                              icon: Icons.bar_chart,
-                              text: S.of(context).expenses,
-                            ),
-                            GButton(
-                              icon: Icons.show_chart,
-                              text: S.of(context).income,
-                            ),
-                            GButton(
-                              icon: Icons.account_balance_wallet,
-                              text: S.of(context).account,
-                            ),
-                            GButton(
-                              icon: Icons.list_alt,
-                              text: S.of(context).categories,
-                            ),
-                            GButton(
-                              icon: Icons.settings,
-                              text: S.of(context).settings,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            floatingActionButton:
-                (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
-                ? FloatingActionButton(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(Icons.add, color: Colors.white),
-                    onPressed: () async {
-                      // Добавляем хаптик фидбек
-                      final hapticService = HapticService();
-                      await hapticService.medium();
-                      
-                      final isIncome = tabsRouter.activeIndex == 1;
-                      await showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) {
-                          final mq = MediaQuery.of(context);
-                          final maxChildSize =
-                              (mq.size.height - mq.padding.top) /
-                              mq.size.height;
-                          return DraggableScrollableSheet(
-                            initialChildSize: 0.85,
-                            minChildSize: 0.4,
-                            maxChildSize: maxChildSize,
-                            expand: false,
-                            builder: (context, scrollController) =>
-                                TransactionAddScreen(isIncome: isIncome),
+                floatingActionButton:
+                    (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                    ? FloatingActionButton(
+                        backgroundColor: primaryColor,
+                        child: const Icon(Icons.add, color: Colors.white),
+                        onPressed: () async {
+                          // Добавляем хаптик фидбек
+                          final hapticService = HapticService();
+                          await hapticService.medium();
+                          
+                          final isIncome = tabsRouter.activeIndex == 1;
+                          await showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) {
+                              final mq = MediaQuery.of(context);
+                              final maxChildSize =
+                                  (mq.size.height - mq.padding.top) /
+                                  mq.size.height;
+                              return DraggableScrollableSheet(
+                                initialChildSize: 0.85,
+                                minChildSize: 0.4,
+                                maxChildSize: maxChildSize,
+                                expand: false,
+                                builder: (context, scrollController) =>
+                                    TransactionAddScreen(isIncome: isIncome),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                  )
-                : null,
+                      )
+                    : null,
+              );
+            },
           );
         },
       ),
