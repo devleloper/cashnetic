@@ -1,4 +1,3 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
@@ -65,40 +64,14 @@ class _SettingsScreenBody extends StatelessWidget {
           if (state is SettingsLoaded) {
             return ListView(
               children: [
-                ThemeSwitcher(
-                  clipper: ThemeSwitcherCircleClipper(),
-                  builder: (context) {
-                    return SettingsSwitchListTile(
-                      switchKey: switchKey,
-                      title: Text(S.of(context).darkTheme),
-                      value:
-                          ThemeModelInheritedNotifier.of(
-                            context,
-                          ).theme.brightness ==
-                          Brightness.dark,
-                      onChanged: (isDark) {
-                        final theme = isDark ? darkTheme : lightTheme;
-                        final renderBox =
-                            switchKey.currentContext?.findRenderObject()
-                                as RenderBox?;
-                        final offset = renderBox != null
-                            ? renderBox.localToGlobal(
-                                Offset(
-                                  renderBox.size.width,
-                                  renderBox.size.height / 2,
-                                ),
-                              )
-                            : Offset.zero;
-                        ThemeSwitcher.of(
-                          context,
-                        ).changeTheme(theme: theme, offset: offset);
-                        final newMode = isDark
-                            ? ThemeMode.dark
-                            : ThemeMode.light;
-                        context.read<SettingsBloc>().add(
-                          UpdateThemeMode(newMode),
-                        );
-                      },
+                SwitchListTile(
+                  title: Text('Системная тема'),
+                  value: state.themeMode == ThemeMode.system,
+                  onChanged: (useSystem) {
+                    context.read<SettingsBloc>().add(
+                      UpdateThemeMode(
+                        useSystem ? ThemeMode.system : ThemeMode.light,
+                      ),
                     );
                   },
                 ),

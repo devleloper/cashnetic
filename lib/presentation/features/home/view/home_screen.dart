@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
 import 'package:cashnetic/data/api_client.dart';
@@ -153,107 +152,99 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-          return ThemeSwitchingArea(
-            child: Scaffold(
-              appBar:
-                  (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
-                  ? null
-                  : _buildAppBar(context, tabsRouter.activeIndex),
-              body: child,
-              bottomNavigationBar: Container(
-                color: Colors.green,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 20,
-                ),
-                child: SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: constraints.maxWidth,
-                          ),
-                          child: GNav(
-                            selectedIndex: tabsRouter.activeIndex,
-                            onTabChange: (index) {
-                              tabsRouter.setActiveIndex(index);
-                              final accountState = context
-                                  .read<AccountBloc>()
-                                  .state;
-                              int accountId = -1;
-                              if (accountState is AccountLoaded &&
-                                  accountState.accounts.isNotEmpty) {
-                                accountId = accountState.selectedAccountId;
-                              }
-                              switch (index) {
-                                case 0: // Expenses
-                                  context.read<TransactionsBloc>().add(
-                                    TransactionsLoad(
-                                      isIncome: false,
-                                      accountId: accountId,
-                                    ),
-                                  );
-                                  break;
-                                case 1: // Incomes
-                                  context.read<TransactionsBloc>().add(
-                                    TransactionsLoad(
-                                      isIncome: true,
-                                      accountId: accountId,
-                                    ),
-                                  );
-                                  break;
-                                case 2: // Account
-                                  context.read<AccountBloc>().add(
-                                    LoadAccount(),
-                                  );
-                                  break;
-                                case 3: // Categories
-                                  context.read<CategoriesBloc>().add(
-                                    LoadCategories(),
-                                  );
-                                  break;
-                                // case 4: // Settings — если нужно, добавить событие
-                              }
-                            },
-                            backgroundColor: Colors.green,
-                            tabBackgroundColor: Colors.white,
-                            activeColor: Colors.green,
-                            color: Colors.white,
-                            curve: Curves.easeInOut,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 18,
-                            ),
-                            gap: 6,
-                            tabs: [
-                              GButton(
-                                icon: Icons.bar_chart,
-                                text: S.of(context).expenses,
-                              ),
-                              GButton(
-                                icon: Icons.show_chart,
-                                text: S.of(context).income,
-                              ),
-                              GButton(
-                                icon: Icons.account_balance_wallet,
-                                text: S.of(context).account,
-                              ),
-                              GButton(
-                                icon: Icons.list_alt,
-                                text: S.of(context).categories,
-                              ),
-                              GButton(
-                                icon: Icons.settings,
-                                text: S.of(context).settings,
-                              ),
-                            ],
-                          ),
+          return Scaffold(
+            appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                ? null
+                : _buildAppBar(context, tabsRouter.activeIndex),
+            body: child,
+            bottomNavigationBar: Container(
+              color: Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
                         ),
-                      );
-                    },
-                  ),
+                        child: GNav(
+                          selectedIndex: tabsRouter.activeIndex,
+                          onTabChange: (index) {
+                            tabsRouter.setActiveIndex(index);
+                            final accountState = context
+                                .read<AccountBloc>()
+                                .state;
+                            int accountId = -1;
+                            if (accountState is AccountLoaded &&
+                                accountState.accounts.isNotEmpty) {
+                              accountId = accountState.selectedAccountId;
+                            }
+                            switch (index) {
+                              case 0: // Expenses
+                                context.read<TransactionsBloc>().add(
+                                  TransactionsLoad(
+                                    isIncome: false,
+                                    accountId: accountId,
+                                  ),
+                                );
+                                break;
+                              case 1: // Incomes
+                                context.read<TransactionsBloc>().add(
+                                  TransactionsLoad(
+                                    isIncome: true,
+                                    accountId: accountId,
+                                  ),
+                                );
+                                break;
+                              case 2: // Account
+                                context.read<AccountBloc>().add(LoadAccount());
+                                break;
+                              case 3: // Categories
+                                context.read<CategoriesBloc>().add(
+                                  LoadCategories(),
+                                );
+                                break;
+                              // case 4: // Settings — если нужно, добавить событие
+                            }
+                          },
+                          backgroundColor: Colors.green,
+                          tabBackgroundColor: Colors.white,
+                          activeColor: Colors.green,
+                          color: Colors.white,
+                          curve: Curves.easeInOut,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 18,
+                          ),
+                          gap: 6,
+                          tabs: [
+                            GButton(
+                              icon: Icons.bar_chart,
+                              text: S.of(context).expenses,
+                            ),
+                            GButton(
+                              icon: Icons.show_chart,
+                              text: S.of(context).income,
+                            ),
+                            GButton(
+                              icon: Icons.account_balance_wallet,
+                              text: S.of(context).account,
+                            ),
+                            GButton(
+                              icon: Icons.list_alt,
+                              text: S.of(context).categories,
+                            ),
+                            GButton(
+                              icon: Icons.settings,
+                              text: S.of(context).settings,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

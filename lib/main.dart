@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -144,41 +143,35 @@ class _CashneticAppState extends State<CashneticApp> {
                   ? darkThemeData()
                   : lightThemeData();
             }
-            return ThemeProvider(
-              initTheme: initTheme,
-              builder: (context, _) {
-                return MaterialApp.router(
-                  locale: Locale(language),
-                  localizationsDelegates: const [
-                    S.delegate,
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
-                  supportedLocales: S.delegate.supportedLocales,
-                  debugShowCheckedModeBanner: false,
-                  theme: lightThemeData(),
-                  darkTheme: darkThemeData(),
-                  themeMode: themeMode,
-                  routerConfig: _router.config(),
-
-                  builder: (context, child) {
-                    if (state is! SettingsLoaded) {
-                      return Scaffold(
-                        backgroundColor: const Color(0xFF4CAF50),
-                        body: Center(
-                          child: Image.asset(
-                            'assets/splash/logo.gif',
-                            width: 400,
-                            height: 400,
-                          ),
-                        ),
-                      );
-                    }
-                    // Используем SnackBar-баннер для статуса синхронизации
-                    return Stack(children: [child!, const SyncStatusBanner()]);
-                  },
-                );
+            return MaterialApp.router(
+              locale: Locale(language),
+              localizationsDelegates: const [
+                S.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: S.delegate.supportedLocales,
+              debugShowCheckedModeBanner: false,
+              theme: lightThemeData(),
+              darkTheme: darkThemeData(),
+              themeMode: themeMode,
+              routerConfig: _router.config(),
+              builder: (context, child) {
+                if (state is! SettingsLoaded) {
+                  return Scaffold(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    body: Center(
+                      child: Image.asset(
+                        'assets/splash/logo.gif',
+                        width: 400,
+                        height: 400,
+                      ),
+                    ),
+                  );
+                }
+                // Используем SnackBar-баннер для статуса синхронизации
+                return Stack(children: [child!, const SyncStatusBanner()]);
               },
             );
           },
