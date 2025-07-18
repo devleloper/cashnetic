@@ -9,6 +9,7 @@ import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
 import '../widgets/my_settings_list_tile.dart';
 import '../../pin/view/pin_screen.dart';
+import '../../pin/repositories/pin_repository.dart';
 
 @RoutePage()
 class SettingsScreen extends StatelessWidget {
@@ -103,14 +104,24 @@ class _SettingsScreenBody extends StatelessWidget {
                 ),
                 ListTile(
                   title: Text(S.of(context).passcode),
-                  subtitle: Text(
-                    (state.passcode != null && state.passcode!.isNotEmpty)
-                        ? S.of(context).set
-                        : S.of(context).notSet,
+                  subtitle: FutureBuilder<String?>(
+                    future: PinRepositoryImpl().getPin(),
+                    builder: (context, snapshot) {
+                      final pin = snapshot.data;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox.shrink();
+                      }
+                      if (pin != null && pin.isNotEmpty) {
+                        return Text('Edit');
+                      } else {
+                        return Text(S.of(context).notSet);
+                      }
+                    },
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
-                    final mode = (state.passcode != null && state.passcode!.isNotEmpty)
+                    final pin = await PinRepositoryImpl().getPin();
+                    final mode = (pin != null && pin.isNotEmpty)
                         ? PinScreenMode.edit
                         : PinScreenMode.set;
                     final result = await Navigator.push(
@@ -120,7 +131,7 @@ class _SettingsScreenBody extends StatelessWidget {
                       ),
                     );
                     if (result == true) {
-                      context.read<SettingsBloc>().add(const LoadSettings());
+                      // setState не нужен, BlocConsumer обновит
                     }
                   },
                 ),
