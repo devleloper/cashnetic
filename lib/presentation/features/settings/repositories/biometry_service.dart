@@ -7,6 +7,14 @@ class BiometryService {
     return await _auth.canCheckBiometrics && await _auth.isDeviceSupported();
   }
 
+  Future<List<BiometricType>> getAvailableBiometrics() async {
+    try {
+      return await _auth.getAvailableBiometrics();
+    } catch (e) {
+      return <BiometricType>[];
+    }
+  }
+
   Future<bool> authenticate({String reason = 'Authenticate to access'}) async {
     try {
       return await _auth.authenticate(

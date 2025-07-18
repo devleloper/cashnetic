@@ -11,6 +11,7 @@ import '../../../../main.dart';
 
 import '../../settings/repositories/pin_service.dart';
 import '../../settings/repositories/biometry_service.dart';
+import 'package:local_auth/local_auth.dart';
 
 class LockScreen extends StatefulWidget implements AutoRouteWrapper {
   final bool biometryEnabled;
@@ -37,13 +38,29 @@ class LockScreen extends StatefulWidget implements AutoRouteWrapper {
 class _LockScreenState extends State<LockScreen> {
   final TextEditingController _controller = TextEditingController();
   String? _error;
+  BiometricType? _biometryType;
 
   @override
   void initState() {
     super.initState();
     context.read<LockBloc>().add(LoadLock());
     if (widget.biometryEnabled) {
+      _detectBiometryType();
       context.read<LockBloc>().add(const AuthenticateBiometry());
+    }
+  }
+
+  Future<void> _detectBiometryType() async {
+    final service = BiometryService();
+    final types = await service.getAvailableBiometrics();
+    if (types.contains(BiometricType.face)) {
+      setState(() => _biometryType = BiometricType.face);
+    } else if (types.contains(BiometricType.fingerprint)) {
+      setState(() => _biometryType = BiometricType.fingerprint);
+    } else if (types.contains(BiometricType.iris)) {
+      setState(() => _biometryType = BiometricType.iris);
+    } else {
+      setState(() => _biometryType = null);
     }
   }
 
@@ -95,14 +112,15 @@ class _LockScreenState extends State<LockScreen> {
                         ? const CircularProgressIndicator()
                         : const Text('Unlock'),
                   ),
-                  if (showBiometry)
-                    BiometryButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => context.read<LockBloc>().add(
-                              const AuthenticateBiometry(),
-                            ),
-                    ),
+                  SizedBox(height: 16),
+                  BiometryButton(
+                    onPressed: isLoading
+                        ? null
+                        : () => context.read<LockBloc>().add(
+                            const AuthenticateBiometry(),
+                          ),
+                    biometryType: _biometryType,
+                  ),
                 ],
               ),
             ),
