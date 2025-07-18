@@ -39,7 +39,6 @@ class SyncStatusNotifier extends ChangeNotifier {
   }
 }
 
-// Глобальный флаг для отслеживания разблокировки приложения
 bool isAppUnlocked = false;
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -221,7 +220,6 @@ class _CashneticAppState extends State<CashneticApp> {
                         ),
                       );
                     }
-                    // Используем SnackBar-баннер для статуса синхронизации
                     return BlurOnPauseWrapper(
                       child: Stack(children: [child!, const SyncStatusBanner()]),
                     );
