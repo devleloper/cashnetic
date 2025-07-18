@@ -8,6 +8,7 @@ import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
 import '../widgets/my_settings_list_tile.dart';
+import '../../pin/view/pin_screen.dart';
 
 @RoutePage()
 class SettingsScreen extends StatelessWidget {
@@ -108,9 +109,19 @@ class _SettingsScreenBody extends StatelessWidget {
                         : S.of(context).notSet,
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Implement passcode setup
-                    _showPasscodeDialog(context, state.passcode);
+                  onTap: () async {
+                    final mode = (state.passcode != null && state.passcode!.isNotEmpty)
+                        ? PinScreenMode.edit
+                        : PinScreenMode.set;
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PinScreen(mode: mode),
+                      ),
+                    );
+                    if (result == true) {
+                      context.read<SettingsBloc>().add(const LoadSettings());
+                    }
                   },
                 ),
                 SwitchListTile(
@@ -219,53 +230,6 @@ class _SettingsScreenBody extends StatelessWidget {
 
           return Center(child: Text(S.of(context).unknownState));
         },
-      ),
-    );
-  }
-
-  void _showPasscodeDialog(BuildContext context, String? currentPasscode) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          currentPasscode != null
-              ? S.of(context).changePasscode
-              : S.of(context).setPasscode,
-        ),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: S.of(context).enterPasscode,
-            hintText: S.of(context).digits,
-          ),
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.of(context).cancel),
-          ),
-          if (currentPasscode != null && currentPasscode.isNotEmpty)
-            TextButton(
-              onPressed: () {
-                context.read<SettingsBloc>().add(const DeletePin());
-                Navigator.pop(context);
-              },
-              child: Text('Delete'),
-            ),
-          TextButton(
-            onPressed: () {
-              final passcode = controller.text.trim();
-              if (passcode.isNotEmpty) {
-                context.read<SettingsBloc>().add(UpdatePasscode(passcode));
-              }
-              Navigator.pop(context);
-            },
-            child: Text(S.of(context).save),
-          ),
-        ],
       ),
     );
   }
