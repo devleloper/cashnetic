@@ -384,7 +384,7 @@ class _SettingsScreenBody extends StatelessWidget {
                   },
                 ),
                 SwitchListTile(
-                  title: Text('Biometrics'),
+                  title: Text(S.of(context).biometrics),
                   value: state.biometryEnabled,
                   onChanged: (_) {
                     context.read<SettingsBloc>().add(const ToggleBiometry());
