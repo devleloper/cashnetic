@@ -98,5 +98,20 @@
   "selectLanguage": "Выберите язык",
   "incomeToday": "Доход за сегодня",
   "expensesToday": "Расходы за сегодня",
-  "accountNameRequired": "Введите название счёта"
+  "accountNameRequired": "Введите название счёта",
+  "hapticStrength": "Сила вибрации",
+  "medium": "Средняя",
+  "off": "Выкл",
+  "light": "Лёгкая",
+  "heavy": "Сильная",
+  "biometrics": "Биометрия",
+  "setPin": "Установить PIN",
+  "editPin": "Изменить PIN",
+  "enterPin": "Введите PIN",
+  "check": "Проверить",
+  "pinMustBe4Digits": "PIN должен содержать 4 цифры",
+  "deletePin": "Удалить PIN",
+  "pinSetSuccessfully": "PIN успешно установлен",
+  "invalidPin": "Неверный PIN",
+  "pinDeleted": "PIN удалён"
 }

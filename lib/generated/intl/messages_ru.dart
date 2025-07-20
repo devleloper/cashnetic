@@ -27,6 +27,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "about": MessageLookupByLibrary.simpleMessage("О приложении"),
     "account": MessageLookupByLibrary.simpleMessage("Счёт"),
     "accountName": MessageLookupByLibrary.simpleMessage("Название счёта"),
+    "accountNameRequired": MessageLookupByLibrary.simpleMessage(
+      "Введите название счёта",
+    ),
     "addExpense": MessageLookupByLibrary.simpleMessage("Добавить расход"),
     "addIncome": MessageLookupByLibrary.simpleMessage("Добавить доход"),
     "amount": MessageLookupByLibrary.simpleMessage("Сумма"),
@@ -36,6 +39,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "april": MessageLookupByLibrary.simpleMessage("Апрель"),
     "august": MessageLookupByLibrary.simpleMessage("Август"),
     "balance": MessageLookupByLibrary.simpleMessage("Баланс"),
+    "biometrics": MessageLookupByLibrary.simpleMessage("Биометрия"),
     "byAmountAsc": MessageLookupByLibrary.simpleMessage(
       "По сумме (возрастание)",
     ),
@@ -53,6 +57,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "changePasscode": MessageLookupByLibrary.simpleMessage(
       "Изменить пароль‑код",
     ),
+    "check": MessageLookupByLibrary.simpleMessage("Проверить"),
     "comment": MessageLookupByLibrary.simpleMessage("Комментарий"),
     "create": MessageLookupByLibrary.simpleMessage("Создать"),
     "createAccount": MessageLookupByLibrary.simpleMessage("Создать счёт"),
@@ -62,6 +67,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "date": MessageLookupByLibrary.simpleMessage("Дата"),
     "december": MessageLookupByLibrary.simpleMessage("Декабрь"),
     "deleteAccount": MessageLookupByLibrary.simpleMessage("Удалить счёт?"),
+    "deletePin": MessageLookupByLibrary.simpleMessage("Удалить PIN"),
     "developerDevletBoltaevnversion100nnthankYouForUsingCashnetic":
         MessageLookupByLibrary.simpleMessage(
           "Разработчик: Devlet Boltaev. Версия: 1.0.0. Спасибо за использование Cashnetic!",
@@ -69,6 +75,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "digits": MessageLookupByLibrary.simpleMessage("4–6 цифр"),
     "dollar": MessageLookupByLibrary.simpleMessage("\\\$ Доллар"),
     "editAccounts": MessageLookupByLibrary.simpleMessage("Редактировать счета"),
+    "editPin": MessageLookupByLibrary.simpleMessage("Изменить PIN"),
     "emoji": MessageLookupByLibrary.simpleMessage("Эмодзи"),
     "english": MessageLookupByLibrary.simpleMessage("Английский"),
     "enter": MessageLookupByLibrary.simpleMessage("Ввести"),
@@ -76,6 +83,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "enterAmount": MessageLookupByLibrary.simpleMessage("Введите сумму"),
     "enterName": MessageLookupByLibrary.simpleMessage("Введите название"),
     "enterPasscode": MessageLookupByLibrary.simpleMessage("Введите пароль‑код"),
+    "enterPin": MessageLookupByLibrary.simpleMessage("Введите PIN"),
     "euro": MessageLookupByLibrary.simpleMessage("€ Евро"),
     "expense": MessageLookupByLibrary.simpleMessage("Расход"),
     "expenseAnalysis": MessageLookupByLibrary.simpleMessage("Анализ расходов"),
@@ -88,18 +96,23 @@ class MessageLookup extends MessageLookupByLibrary {
     "formInitializationError": MessageLookupByLibrary.simpleMessage(
       "Ошибка инициализации формы",
     ),
+    "hapticStrength": MessageLookupByLibrary.simpleMessage("Сила вибрации"),
     "haptics": MessageLookupByLibrary.simpleMessage("Вибрация"),
+    "heavy": MessageLookupByLibrary.simpleMessage("Сильная"),
     "income": MessageLookupByLibrary.simpleMessage("Доход"),
     "incomeAnalysis": MessageLookupByLibrary.simpleMessage("Анализ доходов"),
     "incomeForTheMonth": MessageLookupByLibrary.simpleMessage("Доход за месяц"),
     "incomeToday": MessageLookupByLibrary.simpleMessage("Доход за сегодня"),
+    "invalidPin": MessageLookupByLibrary.simpleMessage("Неверный PIN"),
     "january": MessageLookupByLibrary.simpleMessage("Январь"),
     "july": MessageLookupByLibrary.simpleMessage("Июль"),
     "june": MessageLookupByLibrary.simpleMessage("Июнь"),
     "language": MessageLookupByLibrary.simpleMessage("Язык"),
+    "light": MessageLookupByLibrary.simpleMessage("Лёгкая"),
     "mainAccount": MessageLookupByLibrary.simpleMessage("Основной счёт"),
     "march": MessageLookupByLibrary.simpleMessage("Март"),
     "may": MessageLookupByLibrary.simpleMessage("Май"),
+    "medium": MessageLookupByLibrary.simpleMessage("Средняя"),
     "moveAllTransactionsToAnotherAccount": MessageLookupByLibrary.simpleMessage(
       "Перенести все транзакции на другой счёт?",
     ),
@@ -133,12 +146,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "notSet": MessageLookupByLibrary.simpleMessage("Не задано"),
     "november": MessageLookupByLibrary.simpleMessage("Ноябрь"),
     "october": MessageLookupByLibrary.simpleMessage("Октябрь"),
+    "off": MessageLookupByLibrary.simpleMessage("Выкл"),
     "onlyANumber": MessageLookupByLibrary.simpleMessage(
       "Допустимо только число",
     ),
     "passcode": MessageLookupByLibrary.simpleMessage("Пароль‑код"),
     "periodEnd": MessageLookupByLibrary.simpleMessage("Период: конец"),
     "periodStart": MessageLookupByLibrary.simpleMessage("Период: начало"),
+    "pinDeleted": MessageLookupByLibrary.simpleMessage("PIN удалён"),
+    "pinMustBe4Digits": MessageLookupByLibrary.simpleMessage(
+      "PIN должен содержать 4 цифры",
+    ),
+    "pinSetSuccessfully": MessageLookupByLibrary.simpleMessage(
+      "PIN успешно установлен",
+    ),
     "primaryColor": MessageLookupByLibrary.simpleMessage("Основной цвет"),
     "retry": MessageLookupByLibrary.simpleMessage("Повторить"),
     "russian": MessageLookupByLibrary.simpleMessage("Русский"),
@@ -158,6 +179,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "setPasscode": MessageLookupByLibrary.simpleMessage(
       "Установить пароль‑код",
     ),
+    "setPin": MessageLookupByLibrary.simpleMessage("Установить PIN"),
     "settings": MessageLookupByLibrary.simpleMessage("Настройки"),
     "sounds": MessageLookupByLibrary.simpleMessage("Звуки"),
     "sync": MessageLookupByLibrary.simpleMessage("Синхронизация"),

@@ -6,7 +6,9 @@ class AnalysisCategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If inside slivers — use Column
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color;
+    final subTextColor = Theme.of(context).textTheme.bodyMedium?.color;
+
     return Column(
       children: List.generate(data.length, (i) {
         final c = data[i];
@@ -17,9 +19,15 @@ class AnalysisCategoryList extends StatelessWidget {
                 backgroundColor: c.color.withOpacity(0.2),
                 child: Text(c.categoryIcon),
               ),
-              title: Text(c.categoryTitle),
-              subtitle: Text('${c.percent.toStringAsFixed(0)}%'),
-              trailing: Text('${c.amount.toStringAsFixed(0)} ₽'),
+              title: Text(c.categoryTitle, style: TextStyle(color: textColor)),
+              subtitle: Text(
+                '${c.percent.toStringAsFixed(0)}%',
+                style: TextStyle(color: subTextColor),
+              ),
+              trailing: Text(
+                '${c.amount.toStringAsFixed(0)} ₽',
+                style: TextStyle(color: textColor),
+              ),
             ),
             if (i < data.length - 1) const Divider(height: 1),
           ],

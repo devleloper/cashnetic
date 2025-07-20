@@ -1,14 +1,17 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../../theme/theme.dart';
 import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
 import '../widgets/my_settings_list_tile.dart';
+import '../../pin/view/pin_screen.dart';
+import '../../pin/repositories/pin_repository.dart';
+import '../services/haptic_service.dart';
 
 @RoutePage()
 class SettingsScreen extends StatelessWidget {
@@ -44,6 +47,245 @@ class _SettingsScreenBody extends StatelessWidget {
     );
   }
 
+  String _getHapticStrengthText(BuildContext context, HapticStrength strength) {
+    switch (strength) {
+      case HapticStrength.off:
+        return S.of(context).off;
+      case HapticStrength.light:
+        return S.of(context).light;
+      case HapticStrength.medium:
+        return S.of(context).medium;
+      case HapticStrength.heavy:
+        return S.of(context).heavy;
+    }
+  }
+
+  void _showHapticStrengthDialog(BuildContext context, HapticStrength currentStrength) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(S.of(context).hapticStrength),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<HapticStrength>(
+              title: const Text('Off'),
+              value: HapticStrength.off,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим хаптик перед изменением настройки
+                  final hapticService = HapticService();
+                  await hapticService.light();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Light'),
+              value: HapticStrength.light,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим легкий хаптик
+                  final hapticService = HapticService();
+                  await hapticService.light();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Medium'),
+              value: HapticStrength.medium,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим средний хаптик
+                  final hapticService = HapticService();
+                  await hapticService.medium();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile<HapticStrength>(
+              title: const Text('Heavy'),
+              value: HapticStrength.heavy,
+              groupValue: currentStrength,
+              onChanged: (value) async {
+                if (value != null) {
+                  // Воспроизводим сильный хаптик
+                  final hapticService = HapticService();
+                  await hapticService.heavy();
+                  
+                  context.read<SettingsBloc>().add(UpdateHapticStrength(value));
+                }
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _limitColorBrightness(Color color) {
+    // Ограничиваем яркость - G не больше 65
+    final red = color.red;
+    final green = color.green.clamp(0, 65); // Ограничиваем зеленый
+    final blue = color.blue;
+    
+    return Color.fromARGB(color.alpha, red, green, blue);
+  }
+
+  // Предустановленные цвета (не слишком светлые, не слишком темные)
+  static const List<Color> _presetColors = [
+    Colors.green, // Зеленый
+    Colors.blue, // Синий
+    Colors.purple, // Фиолетовый
+    Colors.orange, // Оранжевый
+    Colors.red, // Красный
+    Colors.teal, // Бирюзовый
+    Colors.indigo, // Индиго
+    Colors.pink, // Розовый
+    Colors.amber, // Янтарный
+    Colors.cyan, // Голубой
+    Colors.deepPurple, // Темно-фиолетовый
+    Colors.deepOrange, // Темно-оранжевый
+    Colors.lightBlue, // Светло-синий
+    Colors.lime, // Лаймовый
+    Colors.brown, // Коричневый
+  ];
+
+  void _showColorPickerDialog(BuildContext context, Color currentColor) {
+    Color selectedColor = currentColor;
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Выберите основной цвет'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Предустановленные цвета',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // Используем BlockPicker для выбора предустановленных цветов
+              BlockPicker(
+                pickerColor: selectedColor,
+                onColorChanged: (color) => setState(() => selectedColor = color),
+                availableColors: _presetColors,
+                layoutBuilder: (context, colors, child) {
+                  return Container(
+                    width: double.infinity,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ...colors.map((color) => child(color)),
+                        // Добавляем черный цвет отдельно
+                        GestureDetector(
+                          onTap: () => setState(() => selectedColor = Colors.black),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: selectedColor == Colors.black ? Colors.blue : Colors.grey,
+                                width: selectedColor == Colors.black ? 3 : 1,
+                              ),
+                            ),
+                            child: selectedColor == Colors.black
+                                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                itemBuilder: (color, isCurrentColor, onTap) {
+                  return GestureDetector(
+                    onTap: onTap,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isCurrentColor ? Colors.blue : Colors.grey,
+                          width: isCurrentColor ? 3 : 1,
+                        ),
+                      ),
+                      child: isCurrentColor
+                          ? const Icon(Icons.check, color: Colors.white, size: 20)
+                          : null,
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // Показ выбранного цвета
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: selectedColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check, color: Colors.white, size: 24),
+                    SizedBox(width: 8),
+                    Text(
+                      'Выбранный цвет',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(UpdatePrimaryColor(Colors.green));
+                Navigator.pop(context);
+              },
+              child: const Text('Сброс'),
+            ),
+            TextButton(
+              onPressed: () {
+                context.read<SettingsBloc>().add(UpdatePrimaryColor(selectedColor));
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var darkTheme = darkThemeData();
@@ -65,52 +307,31 @@ class _SettingsScreenBody extends StatelessWidget {
           if (state is SettingsLoaded) {
             return ListView(
               children: [
-                ThemeSwitcher(
-                  clipper: ThemeSwitcherCircleClipper(),
-                  builder: (context) {
-                    return SettingsSwitchListTile(
-                      switchKey: switchKey,
-                      title: Text(S.of(context).darkTheme),
-                      value:
-                          ThemeModelInheritedNotifier.of(
-                            context,
-                          ).theme.brightness ==
-                          Brightness.dark,
-                      onChanged: (isDark) {
-                        final theme = isDark ? darkTheme : lightTheme;
-                        final renderBox =
-                            switchKey.currentContext?.findRenderObject()
-                                as RenderBox?;
-                        final offset = renderBox != null
-                            ? renderBox.localToGlobal(
-                                Offset(
-                                  renderBox.size.width,
-                                  renderBox.size.height / 2,
-                                ),
-                              )
-                            : Offset.zero;
-                        ThemeSwitcher.of(
-                          context,
-                        ).changeTheme(theme: theme, offset: offset);
-                        final newMode = isDark
-                            ? ThemeMode.dark
-                            : ThemeMode.light;
-                        context.read<SettingsBloc>().add(
-                          UpdateThemeMode(newMode),
-                        );
-                      },
+                SwitchListTile(
+                  title: Text('Системная тема'),
+                  value: state.themeMode == ThemeMode.system,
+                  onChanged: (useSystem) {
+                    context.read<SettingsBloc>().add(
+                      UpdateThemeMode(
+                        useSystem ? ThemeMode.system : ThemeMode.light,
+                      ),
                     );
                   },
                 ),
                 const Divider(height: 1),
                 ListTile(
                   title: Text(S.of(context).primaryColor),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: state.primaryColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey, width: 1),
+                    ),
+                  ),
                   onTap: () {
-                    // TODO: Implement color picker
-                    context.read<SettingsBloc>().add(
-                      const UpdatePrimaryColor(0xFF2196F3),
-                    );
+                    _showColorPickerDialog(context, state.primaryColor);
                   },
                 ),
                 SwitchListTile(
@@ -120,24 +341,53 @@ class _SettingsScreenBody extends StatelessWidget {
                     context.read<SettingsBloc>().add(const ToggleSounds());
                   },
                 ),
-                SwitchListTile(
-                  title: Text(S.of(context).haptics),
-                  value: state.hapticsEnabled,
-                  onChanged: (_) {
-                    context.read<SettingsBloc>().add(const ToggleHaptics());
+
+                ListTile(
+                  title: Text(S.of(context).hapticStrength),
+                  subtitle: Text(_getHapticStrengthText(context, state.hapticStrength)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    _showHapticStrengthDialog(context, state.hapticStrength);
                   },
                 ),
                 ListTile(
                   title: Text(S.of(context).passcode),
-                  subtitle: Text(
-                    state.passcode != null
-                        ? S.of(context).set
-                        : S.of(context).notSet,
+                  subtitle: FutureBuilder<String?>(
+                    future: PinRepositoryImpl().getPin(),
+                    builder: (context, snapshot) {
+                      final pin = snapshot.data;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const SizedBox.shrink();
+                      }
+                      if (pin != null && pin.isNotEmpty) {
+                        return Text('Edit');
+                      } else {
+                        return Text(S.of(context).notSet);
+                      }
+                    },
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Implement passcode setup
-                    _showPasscodeDialog(context, state.passcode);
+                  onTap: () async {
+                    final pin = await PinRepositoryImpl().getPin();
+                    final mode = (pin != null && pin.isNotEmpty)
+                        ? PinScreenMode.edit
+                        : PinScreenMode.set;
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PinScreen(mode: mode),
+                      ),
+                    );
+                    if (result == true) {
+                      // setState не нужен, BlocConsumer обновит
+                    }
+                  },
+                ),
+                SwitchListTile(
+                  title: Text(S.of(context).biometrics),
+                  value: state.biometryEnabled,
+                  onChanged: (_) {
+                    context.read<SettingsBloc>().add(const ToggleBiometry());
                   },
                 ),
                 const Divider(height: 1),
@@ -239,45 +489,6 @@ class _SettingsScreenBody extends StatelessWidget {
 
           return Center(child: Text(S.of(context).unknownState));
         },
-      ),
-    );
-  }
-
-  void _showPasscodeDialog(BuildContext context, String? currentPasscode) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          currentPasscode != null
-              ? S.of(context).changePasscode
-              : S.of(context).setPasscode,
-        ),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: S.of(context).enterPasscode,
-            hintText: S.of(context).digits,
-          ),
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(S.of(context).cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              final passcode = controller.text.trim();
-              if (passcode.isNotEmpty) {
-                context.read<SettingsBloc>().add(UpdatePasscode(passcode));
-              }
-              Navigator.pop(context);
-            },
-            child: Text(S.of(context).save),
-          ),
-        ],
       ),
     );
   }

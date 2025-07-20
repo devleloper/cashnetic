@@ -19,6 +19,7 @@ import '../widgets/history_sort_dropdown.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
 import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
+import 'package:cashnetic/presentation/theme/theme.dart';
 import 'dart:async';
 
 class HistoryScreen extends StatefulWidget {
@@ -120,18 +121,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                style: const TextStyle(fontSize: 18, color: Colors.grey),
                 widget.isIncome
                     ? S.of(context).incomeForTheMonth
                     : S.of(context).expensesForTheMonth,
               ),
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.calendar_month, color: Colors.white),
+                  icon: Icon(Icons.calendar_month),
                   onPressed: () async {
                     Navigator.push(
                       context,
@@ -205,12 +205,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       : S.of(context).expensesForTheMonth,
                 ),
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.calendar_month, color: Colors.white),
+                    icon: Icon(Icons.calendar_month),
                     onPressed: () async {
                       Navigator.push(
                         context,
@@ -240,7 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               body: Column(
                 children: [
                   Container(
-                    color: const Color(0xFFD9F3DB),
+                    color: sectionBackgroundColor(context),
                     padding: const EdgeInsets.only(
                       top: 16,
                       bottom: 8,
@@ -258,14 +258,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                               ),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Color(0xFF43C97B),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
@@ -278,8 +282,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   _pickDate(context, true, state.from),
                               child: Text(
                                 '${state.from.day.toString().padLeft(2, '0')}.${state.from.month.toString().padLeft(2, '0')}.${state.from.year}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
@@ -296,14 +302,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                               ),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 shadowColor: Colors.transparent,
                                 elevation: 0,
-                                backgroundColor: Color(0xFF43C97B),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(32),
                                 ),
@@ -316,8 +326,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   _pickDate(context, false, state.to),
                               child: Text(
                                 '${state.to.day.toString().padLeft(2, '0')}.${state.to.month.toString().padLeft(2, '0')}.${state.to.year}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
@@ -350,7 +362,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                               ),
                             ),
                             Text(

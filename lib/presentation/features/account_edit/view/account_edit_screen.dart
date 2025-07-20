@@ -103,12 +103,12 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
               appBar: AppBar(
                 title: Text(S.of(context).editAccounts),
                 leading: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.check, color: Colors.white),
+                    icon: const Icon(Icons.check),
                     onPressed: () async {
                       if (_formKey.currentState?.validate() ?? false) {
                         final accountBloc = context.read<AccountBloc>();

@@ -40,20 +40,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   final Key fabKey = UniqueKey();
   SyncStatus? _lastSyncStatus;
   Completer<void>? _refreshCompleter;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     if (_lastSyncStatus == syncStatusNotifier.status) return;
     _lastSyncStatus = syncStatusNotifier.status;
     if (syncStatusNotifier.status == SyncStatus.online) {
@@ -70,11 +72,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
@@ -222,7 +220,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 actions: [
                   IconButton(
                     key: historyIconKey,
-                    icon: const Icon(Icons.history, color: Colors.white),
+                    icon: const Icon(Icons.history),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -249,7 +247,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 actions: [
                   IconButton(
                     key: historyIconKey,
-                    icon: const Icon(Icons.history, color: Colors.white),
+                    icon: const Icon(Icons.history),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -287,27 +285,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ],
                 ),
               ),
-              floatingActionButton: FloatingActionButton(
-                key: fabKey,
-                heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
-                backgroundColor: Colors.green,
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          TransactionAddScreen(isIncome: widget.isIncome),
-                    ),
-                  );
-                  context.read<TransactionsBloc>().add(
-                    TransactionsLoad(
-                      isIncome: widget.isIncome,
-                      accountId: accountId,
-                    ),
-                  );
-                },
-                child: const Icon(Icons.add, size: 32, color: Colors.white),
-              ),
             );
           }
           if (state is! TransactionsLoaded) {
@@ -324,7 +301,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               actions: [
                 IconButton(
                   key: historyIconKey,
-                  icon: const Icon(Icons.history, color: Colors.white),
+                  icon: const Icon(Icons.history),
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -451,28 +428,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ),
                 ),
               ],
-            ),
-            floatingActionButton: FloatingActionButton(
-              key: fabKey,
-              heroTag: widget.isIncome ? 'income_fab' : 'expense_fab',
-              backgroundColor: Colors.green,
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        TransactionAddScreen(isIncome: widget.isIncome),
-                  ),
-                );
-                context.read<TransactionsBloc>().add(
-                  TransactionsLoad(
-                    isIncome: widget.isIncome,
-                    accountId: accountId,
-                  ),
-                );
-                // FlyTransactionChip animation is no longer used
-              },
-              child: const Icon(Icons.add, size: 32, color: Colors.white),
             ),
           );
         },

@@ -67,7 +67,7 @@ class HistoryListView extends StatelessWidget {
               ', emoji=' +
               (cat?.emoji ?? '❓'),
         );
-        final bgColor = lightColorFor(cat?.name ?? '—');
+        final bgColor = lightColorFor(context, cat?.name ?? '—');
         return HistoryListItem(
           transaction: e,
           category:

@@ -783,6 +783,106 @@ class S {
       args: [],
     );
   }
+
+  /// `Enter account name`
+  String get accountNameRequired {
+    return Intl.message(
+      'Enter account name',
+      name: 'accountNameRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Haptic Strength`
+  String get hapticStrength {
+    return Intl.message(
+      'Haptic Strength',
+      name: 'hapticStrength',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Medium`
+  String get medium {
+    return Intl.message('Medium', name: 'medium', desc: '', args: []);
+  }
+
+  /// `Off`
+  String get off {
+    return Intl.message('Off', name: 'off', desc: '', args: []);
+  }
+
+  /// `Light`
+  String get light {
+    return Intl.message('Light', name: 'light', desc: '', args: []);
+  }
+
+  /// `Heavy`
+  String get heavy {
+    return Intl.message('Heavy', name: 'heavy', desc: '', args: []);
+  }
+
+  /// `Biometrics`
+  String get biometrics {
+    return Intl.message('Biometrics', name: 'biometrics', desc: '', args: []);
+  }
+
+  /// `Set PIN`
+  String get setPin {
+    return Intl.message('Set PIN', name: 'setPin', desc: '', args: []);
+  }
+
+  /// `Edit PIN`
+  String get editPin {
+    return Intl.message('Edit PIN', name: 'editPin', desc: '', args: []);
+  }
+
+  /// `Enter PIN`
+  String get enterPin {
+    return Intl.message('Enter PIN', name: 'enterPin', desc: '', args: []);
+  }
+
+  /// `Check`
+  String get check {
+    return Intl.message('Check', name: 'check', desc: '', args: []);
+  }
+
+  /// `PIN must be 4 digits`
+  String get pinMustBe4Digits {
+    return Intl.message(
+      'PIN must be 4 digits',
+      name: 'pinMustBe4Digits',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete PIN`
+  String get deletePin {
+    return Intl.message('Delete PIN', name: 'deletePin', desc: '', args: []);
+  }
+
+  /// `PIN set successfully`
+  String get pinSetSuccessfully {
+    return Intl.message(
+      'PIN set successfully',
+      name: 'pinSetSuccessfully',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid PIN`
+  String get invalidPin {
+    return Intl.message('Invalid PIN', name: 'invalidPin', desc: '', args: []);
+  }
+
+  /// `PIN deleted`
+  String get pinDeleted {
+    return Intl.message('PIN deleted', name: 'pinDeleted', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

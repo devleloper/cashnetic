@@ -20,7 +20,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
     context.read<CategoriesBloc>().add(LoadCategories());
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.white),
+        leading: BackButton(),
         title: Text(category.name),
       ),
       body: BlocBuilder<CategoriesBloc, CategoriesState>(
@@ -54,7 +54,7 @@ class TransactionListByCategoryScreen extends StatelessWidget {
                     isIncome: cat.isIncome,
                     color: cat.color,
                   ),
-                  bgColor: lightColorFor(cat.name),
+                  bgColor: lightColorFor(context, cat.name),
                   onTap: () async {
                     await showModalBottomSheet(
                       context: context,

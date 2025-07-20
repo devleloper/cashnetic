@@ -49,7 +49,7 @@ class CategorySelectSheet extends StatelessWidget {
               ...filteredCategories.map(
                 (cat) => ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: lightColorFor(cat.name),
+                    backgroundColor: lightColorFor(context, cat.name),
                     child: Text(
                       cat.emoji,
                       style: const TextStyle(fontSize: 20),

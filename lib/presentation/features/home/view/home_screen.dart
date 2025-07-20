@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
 import 'package:cashnetic/data/api_client.dart';
@@ -22,6 +21,11 @@ import 'package:cashnetic/presentation/features/categories/bloc/categories_event
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
+import 'package:cashnetic/presentation/features/settings/services/pin_service.dart';
+import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
+import 'package:cashnetic/presentation/features/settings/services/haptic_service.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
+import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -33,35 +37,35 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   SyncStatus? _lastStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void initState() {
     super.initState();
+    _checkPinAndRedirect();
     _testApiGetAccounts();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     final status = syncStatusNotifier.status;
     if (_lastStatus == status) return;
     _lastStatus = status;
@@ -110,6 +114,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _checkPinAndRedirect() async {
+    if (isAppUnlocked) return;
+    final pin = await PinService().getPin();
+    if (pin != null && pin.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.router.replace(LockRoute());
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -142,110 +156,149 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
-          return ThemeSwitchingArea(
-            child: Scaffold(
-              appBar:
-                  (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
-                  ? null
-                  : _buildAppBar(context, tabsRouter.activeIndex),
-              body: child,
-              bottomNavigationBar: Container(
-                color: Colors.green,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 20,
-                ),
-                child: SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: constraints.maxWidth,
-                          ),
-                          child: GNav(
-                            selectedIndex: tabsRouter.activeIndex,
-                            onTabChange: (index) {
-                              tabsRouter.setActiveIndex(index);
-                              final accountState = context
-                                  .read<AccountBloc>()
-                                  .state;
-                              int accountId = -1;
-                              if (accountState is AccountLoaded &&
-                                  accountState.accounts.isNotEmpty) {
-                                accountId = accountState.selectedAccountId;
-                              }
-                              switch (index) {
-                                case 0: // Expenses
-                                  context.read<TransactionsBloc>().add(
-                                    TransactionsLoad(
-                                      isIncome: false,
-                                      accountId: accountId,
-                                    ),
-                                  );
-                                  break;
-                                case 1: // Incomes
-                                  context.read<TransactionsBloc>().add(
-                                    TransactionsLoad(
-                                      isIncome: true,
-                                      accountId: accountId,
-                                    ),
-                                  );
-                                  break;
-                                case 2: // Account
-                                  context.read<AccountBloc>().add(
-                                    LoadAccount(),
-                                  );
-                                  break;
-                                case 3: // Categories
-                                  context.read<CategoriesBloc>().add(
-                                    LoadCategories(),
-                                  );
-                                  break;
-                                // case 4: // Settings — если нужно, добавить событие
-                              }
-                            },
-                            backgroundColor: Colors.green,
-                            tabBackgroundColor: Colors.white,
-                            activeColor: Colors.green,
-                            color: Colors.white,
-                            curve: Curves.easeInOut,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 18,
+          return BlocBuilder<SettingsBloc, SettingsState>(
+            builder: (context, settingsState) {
+                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
+              if (settingsState is SettingsLoaded) {
+                primaryColor = settingsState.primaryColor;
+              }
+
+              return Scaffold(
+                appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                    ? null
+                    : _buildAppBar(context, tabsRouter.activeIndex),
+                body: child,
+                bottomNavigationBar: Container(
+                  color: primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+                  child: SafeArea(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: constraints.maxWidth,
                             ),
-                            gap: 6,
-                            tabs: [
-                              GButton(
-                                icon: Icons.bar_chart,
-                                text: S.of(context).expenses,
+                            child: GNav(
+                              selectedIndex: tabsRouter.activeIndex,
+                              onTabChange: (index) async {
+                                // Добавляем хаптик фидбек при переключении табов
+                                final hapticService = HapticService();
+                                await hapticService.selection();
+                                
+                                tabsRouter.setActiveIndex(index);
+                                final accountState = context
+                                    .read<AccountBloc>()
+                                    .state;
+                                int accountId = -1;
+                                if (accountState is AccountLoaded &&
+                                    accountState.accounts.isNotEmpty) {
+                                  accountId = accountState.selectedAccountId;
+                                }
+                                switch (index) {
+                                  case 0: // Expenses
+                                    context.read<TransactionsBloc>().add(
+                                      TransactionsLoad(
+                                        isIncome: false,
+                                        accountId: accountId,
+                                      ),
+                                    );
+                                    break;
+                                  case 1: // Incomes
+                                    context.read<TransactionsBloc>().add(
+                                      TransactionsLoad(
+                                        isIncome: true,
+                                        accountId: accountId,
+                                      ),
+                                    );
+                                    break;
+                                  case 2: // Account
+                                    context.read<AccountBloc>().add(LoadAccount());
+                                    break;
+                                  case 3: // Categories
+                                    context.read<CategoriesBloc>().add(
+                                      LoadCategories(),
+                                    );
+                                    break;
+                                  // case 4: // Settings — если нужно, добавить событие
+                                }
+                              },
+                              backgroundColor: primaryColor,
+                              tabBackgroundColor: Colors.white,
+                              activeColor: primaryColor,
+                              color: Colors.white,
+                              curve: Curves.easeInOut,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 18,
                               ),
-                              GButton(
-                                icon: Icons.show_chart,
-                                text: S.of(context).income,
-                              ),
-                              GButton(
-                                icon: Icons.account_balance_wallet,
-                                text: S.of(context).account,
-                              ),
-                              GButton(
-                                icon: Icons.list_alt,
-                                text: S.of(context).categories,
-                              ),
-                              GButton(
-                                icon: Icons.settings,
-                                text: S.of(context).settings,
-                              ),
-                            ],
+                              gap: 6,
+                              tabs: [
+                                GButton(
+                                  icon: Icons.bar_chart,
+                                  text: S.of(context).expenses,
+                                ),
+                                GButton(
+                                  icon: Icons.show_chart,
+                                  text: S.of(context).income,
+                                ),
+                                GButton(
+                                  icon: Icons.account_balance_wallet,
+                                  text: S.of(context).account,
+                                ),
+                                GButton(
+                                  icon: Icons.list_alt,
+                                  text: S.of(context).categories,
+                                ),
+                                GButton(
+                                  icon: Icons.settings,
+                                  text: S.of(context).settings,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ),
+                floatingActionButton:
+                    (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
+                    ? FloatingActionButton(
+                        heroTag: 'home_fab',
+                        backgroundColor: primaryColor,
+                        child: const Icon(Icons.add, color: Colors.white),
+                        onPressed: () async {
+                          // Добавляем хаптик фидбек
+                          final hapticService = HapticService();
+                          await hapticService.medium();
+                          
+                          final isIncome = tabsRouter.activeIndex == 1;
+                          await showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) {
+                              final mq = MediaQuery.of(context);
+                              final maxChildSize =
+                                  (mq.size.height - mq.padding.top) /
+                                  mq.size.height;
+                              return DraggableScrollableSheet(
+                                initialChildSize: 0.85,
+                                minChildSize: 0.4,
+                                maxChildSize: maxChildSize,
+                                expand: false,
+                                builder: (context, scrollController) =>
+                                    TransactionAddScreen(isIncome: isIncome),
+                              );
+                            },
+                          );
+                        },
+                      )
+                    : null,
+              );
+            },
           );
         },
       ),
@@ -259,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).expenses),
           actions: [
             IconButton(
-              icon: const Icon(Icons.history, color: Colors.white),
+              icon: const Icon(Icons.history),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -275,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).income),
           actions: [
             IconButton(
-              icon: const Icon(Icons.history, color: Colors.white),
+              icon: const Icon(Icons.history),
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -292,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(S.of(context).myAccounts),
           actions: [
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
+              icon: const Icon(Icons.edit),
               onPressed: () {
                 Navigator.of(
                   context,
@@ -329,30 +382,28 @@ class _SyncStatusListener extends StatefulWidget {
 
 class _SyncStatusListenerState extends State<_SyncStatusListener> {
   SyncStatus? _lastStatus;
+  SyncStatusNotifier? _syncStatusNotifier;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(context);
-    syncStatusNotifier.removeListener(_onSyncStatusChanged); // just in case
-    syncStatusNotifier.addListener(_onSyncStatusChanged);
+    final notifier = Provider.of<SyncStatusNotifier>(context);
+    if (_syncStatusNotifier != notifier) {
+      _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
+      _syncStatusNotifier = notifier;
+      _syncStatusNotifier?.addListener(_onSyncStatusChanged);
+    }
   }
 
   @override
   void dispose() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
-    syncStatusNotifier.removeListener(_onSyncStatusChanged);
+    _syncStatusNotifier?.removeListener(_onSyncStatusChanged);
     super.dispose();
   }
 
   void _onSyncStatusChanged() {
-    final syncStatusNotifier = Provider.of<SyncStatusNotifier>(
-      context,
-      listen: false,
-    );
+    final syncStatusNotifier = _syncStatusNotifier;
+    if (syncStatusNotifier == null) return;
     final status = syncStatusNotifier.status;
     if (_lastStatus == status) return;
     _lastStatus = status;

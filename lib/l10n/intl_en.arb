@@ -98,5 +98,20 @@
   "selectLanguage": "Select Language",
   "incomeToday": "Income today",
   "expensesToday": "Expenses today",
-  "accountNameRequired": "Enter account name"
+  "accountNameRequired": "Enter account name",
+  "hapticStrength": "Haptic Strength",
+  "medium": "Medium",
+  "off": "Off",
+  "light": "Light",
+  "heavy": "Heavy",
+  "biometrics": "Biometrics",
+  "setPin": "Set PIN",
+  "editPin": "Edit PIN",
+  "enterPin": "Enter PIN",
+  "check": "Check",
+  "pinMustBe4Digits": "PIN must be 4 digits",
+  "deletePin": "Delete PIN",
+  "pinSetSuccessfully": "PIN set successfully",
+  "invalidPin": "Invalid PIN",
+  "pinDeleted": "PIN deleted"
 }
