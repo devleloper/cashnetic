@@ -410,7 +410,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               ],
             ),
             floatingActionButton: FloatingActionButton(
-              heroTag: 'transactions_fab',
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: const Icon(Icons.add, color: Colors.white),
               onPressed: () async {
