@@ -222,40 +222,7 @@ class DriftTransactionRepository {
   Future<Either<Failure, List<domain.Transaction>>> getAllTransactions() async {
     try {
       final local = await dbInstance.getAllTransactions();
-      try {
-        final response = await apiClient.getTransactions();
-        final remoteTransactions = (response.data as List)
-            .map((json) => TransactionDTO.fromJson(json))
-            .map(
-              (dto) => db.Transaction(
-                id: dto.id,
-                accountId: dto.accountId,
-                categoryId: dto.categoryId,
-                amount: double.tryParse(dto.amount) ?? 0.0,
-                timestamp: DateTime.parse(dto.transactionDate),
-                comment: dto.comment,
-                createdAt: DateTime.parse(dto.createdAt),
-                updatedAt: DateTime.parse(dto.updatedAt),
-              ),
-            )
-            .toList();
-        // 1. Find local unsynced transactions (clientId != null && id == null or id not in remote)
-        final remoteIds = remoteTransactions.map((t) => t.id).toSet();
-        final unsynced = local
-            .where((t) => t.id == null || !remoteIds.contains(t.id))
-            .toList();
-        // 2. Insert server transactions (insertOnConflictUpdate)
-        for (final tx in remoteTransactions) {
-          await dbInstance
-              .into(dbInstance.transactions)
-              .insertOnConflictUpdate(tx);
-        }
-        // 3. Return merged list
-        final all = await dbInstance.getAllTransactions();
-        return Right(all.map((t) => t.toDomain()).toList());
-      } catch (_) {
         return Right(local.map((e) => e.toDomain()).toList());
-      }
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
@@ -302,82 +269,15 @@ class DriftTransactionRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    try {
-      debugPrint(
-        '[fetchTransactionsFromApiByPeriod] FORCED accountId=1, original= [33m$accountId [0m',
-      );
-      final response = await apiClient.dio.get(
-        '/transactions/account/1/period',
-        queryParameters: {
-          'startDate': startDate.toIso8601String().substring(0, 10),
-          'endDate': endDate.toIso8601String().substring(0, 10),
-        },
-      );
-      final data = response.data as List;
-      final remoteTransactions = <domain.Transaction>[];
-      for (final json in data) {
-        final dto = TransactionResponseDTO.fromJson(json);
-        final domainOrFailure = dto.toDomain();
-        domainOrFailure.fold(
-          (failure) => debugPrint(
-            '[fetchTransactionsFromApiByPeriod] Parse error:  [31m$failure [0m',
-          ),
-          (domainTx) async {
-            // Save to DB
-            final dbTx = db.Transaction(
-              id: domainTx.id,
-              accountId: domainTx.accountId,
-              categoryId: domainTx.categoryId,
-              amount: domainTx.amount,
-              timestamp: domainTx.timestamp,
-              comment: domainTx.comment,
-              createdAt: domainTx.timeInterval.createdAt,
-              updatedAt: domainTx.timeInterval.updatedAt,
-            );
-            await dbInstance.insertOrReplaceTransaction(dbTx);
-            remoteTransactions.add(domainTx);
-          },
-        );
-      }
-      return Right(remoteTransactions);
-    } catch (e) {
-      return Left(RepositoryFailure(e.toString()));
-    }
+    // API отключен, всегда возвращаем пустой список
+    return Right([]);
   }
 
   Future<Either<Failure, domain.Transaction>> fetchTransactionFromApiById(
     int id,
   ) async {
-    try {
-      final response = await apiClient.getTransaction(id.toString());
-      final data = response.data;
-      final dto = TransactionDTO.fromJson(data);
-      final tx = db.Transaction(
-        id: dto.id,
-        accountId: dto.accountId,
-        categoryId: dto.categoryId,
-        amount: double.tryParse(dto.amount) ?? 0.0,
-        timestamp: DateTime.parse(dto.transactionDate),
-        comment: dto.comment,
-        createdAt: DateTime.parse(dto.createdAt),
-        updatedAt: DateTime.parse(dto.updatedAt),
-      );
-      await dbInstance.insertTransaction(
-        db.TransactionsCompanion(
-          id: Value(tx.id),
-          accountId: Value(tx.accountId),
-          categoryId: Value(tx.categoryId),
-          amount: Value(tx.amount),
-          timestamp: Value(tx.timestamp),
-          comment: Value(tx.comment ?? ''),
-          createdAt: Value(tx.createdAt),
-          updatedAt: Value(tx.updatedAt),
-        ),
-      );
-      return Right(tx.toDomain());
-    } catch (e) {
-      return Left(RepositoryFailure(e.toString()));
-    }
+    // API отключен, всегда возвращаем ошибку
+    return Left(RepositoryFailure('API is disabled'));
   }
 
   Future<Either<Failure, List<domain.Transaction>>>
@@ -386,24 +286,7 @@ class DriftTransactionRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    try {
-      final futures = accountIds.map(
-        (accountId) =>
-            fetchTransactionsFromApiByPeriod(accountId, startDate, endDate),
-      );
-      final results = await Future.wait(futures);
-      final allTransactions = <domain.Transaction>[];
-      for (final result in results) {
-        result.fold(
-          (failure) => debugPrint(
-            '[fetchAllTransactionsByPeriod] Error:  [31m$failure [0m',
-          ),
-          (txs) => allTransactions.addAll(txs),
-        );
-      }
-      return Right(allTransactions);
-    } catch (e) {
-      return Left(RepositoryFailure(e.toString()));
-    }
+    // API отключен, всегда возвращаем пустой список
+    return Right([]);
   }
 }

@@ -26,6 +26,7 @@ import 'package:cashnetic/presentation/features/transaction_add/view/transaction
 import 'package:cashnetic/presentation/features/settings/services/haptic_service.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
+import 'package:cashnetic/domain/constants/constants.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -273,7 +274,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           // Добавляем хаптик фидбек
                           final hapticService = HapticService();
                           await hapticService.medium();
-                          
                           final isIncome = tabsRouter.activeIndex == 1;
                           await showModalBottomSheet(
                             context: context,
@@ -293,6 +293,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                     TransactionAddScreen(isIncome: isIncome),
                               );
                             },
+                          );
+                          // После закрытия экрана добавления — обновить список
+                          context.read<TransactionsBloc>().add(
+                            TransactionsLoad(
+                              isIncome: isIncome,
+                              accountId: context.read<AccountBloc>().state is AccountLoaded
+                                  ? (context.read<AccountBloc>().state as AccountLoaded).selectedAccountId
+                                  : ALL_ACCOUNTS_ID,
+                            ),
                           );
                         },
                       )

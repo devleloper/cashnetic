@@ -197,6 +197,9 @@ class SyncManager {
     debugPrint('[SyncManager] Starting fullSync: fetch all from API');
     try {
       // Accounts
+      // API отключен — пропускаем загрузку счетов с сервера
+      // RESTORE: чтобы снова включить API, раскомментируйте код ниже
+      /*
       final lastAccountRev = await dbInstance.getLastRevision('account');
       debugPrint('[SyncManager] Fetching accounts since: $lastAccountRev');
       final accountsResp = await api.getAccounts(since: lastAccountRev);
@@ -204,7 +207,7 @@ class SyncManager {
         for (final json in accountsResp.data) {
           if (json['deleted'] == true) {
             debugPrint(
-              '[SyncManager] Deleting account id=${json['id']} (server-deleted)',
+              '[SyncManager] Deleting account id= {json['id']} (server-deleted)',
             );
             await dbInstance.deleteAccount(json['id']);
             continue;
@@ -232,7 +235,11 @@ class SyncManager {
           await dbInstance.setLastRevision('account', latest['updatedAt']);
         }
       }
+      */
       // Categories
+      // API отключен — пропускаем загрузку категорий с сервера
+      // RESTORE: чтобы снова включить API, раскомментируйте код ниже
+      /*
       final lastCatRev = await dbInstance.getLastRevision('category');
       debugPrint('[SyncManager] Fetching categories since: $lastCatRev');
       final categoriesResp = await api.getCategories(since: lastCatRev);
@@ -266,6 +273,7 @@ class SyncManager {
           await dbInstance.setLastRevision('category', latest['updatedAt']);
         }
       }
+      */
       // Transactions
       final lastTxRev = await dbInstance.getLastRevision('transaction');
       debugPrint('[SyncManager] Fetching transactions since: $lastTxRev');

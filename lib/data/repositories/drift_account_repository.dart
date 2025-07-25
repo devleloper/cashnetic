@@ -28,7 +28,9 @@ class DriftAccountRepository {
     try {
       // 1. Get local accounts
       final local = await dbInstance.getAllAccounts();
-      // 2. Try to update from server
+      // 2. API отключен — всегда возвращаем только локальные данные
+      // RESTORE: чтобы снова включить API, раскомментируйте код ниже
+      /*
       try {
         final response = await apiClient.getAccounts();
         final remoteAccounts = (response.data as List)
@@ -81,6 +83,8 @@ class DriftAccountRepository {
         // 6. If error — return local data
         return Right(local.map((e) => e.toDomain()).toList());
       }
+      */
+      return Right(local.map((e) => e.toDomain()).toList());
     } catch (e) {
       return Left(RepositoryFailure(e.toString()));
     }
