@@ -172,6 +172,11 @@ class _AccountScreenState extends State<AccountScreen> {
                               selected: isSelected,
                               selectedColor: primaryColor,
                               backgroundColor: sectionCardColor(context),
+                              onSelected: (selected) {
+                                if (selected) {
+                                  context.read<AccountBloc>().add(SelectAccount(acc.id));
+                                }
+                              },
                             );
                           },
                         ),
