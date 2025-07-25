@@ -2,97 +2,147 @@
 
 # 💸 Cashnetic
 
-Cashnetic is a financial mobile app built with Flutter that helps users track expenses, income, account balances, and manage financial articles. The application is designed with modular architecture, reactive state management, and code generation to ensure scalability and maintainability.
+Cashnetic is a modern, modular finance management app built with Flutter. It empowers users to track expenses, manage accounts, analyze spending, and customize their experience with advanced settings and beautiful UI. The app is designed for scalability, maintainability, and a delightful user experience.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-%5E3.22.2-blue" />
   <img src="https://img.shields.io/badge/Dart-%5E3.8.1-blue" />
   <img src="https://img.shields.io/badge/auto_route-%5E10.1.0%2B1-green" />
-  <img src="https://img.shields.io/badge/Flutter%20Dev-Ready-%23FFB300" />
+  <img src="https://img.shields.io/badge/Material%203-Ready-%2300BFAE" />
+  <img src="https://img.shields.io/badge/Localization-EN%7CRU%7CDE-%234CAF50" />
 </p>
+
+---
+
+## 🚀 Overview
+
+**Cashnetic** is a feature-rich personal finance app with a focus on:
+
+- **Modular architecture**: Each feature (PIN, accounts, transactions, analytics, settings, etc.) is isolated for easy scaling and testing.
+- **State management**: Powered by BLoC for predictable, testable business logic.
+- **Dependency injection**: GetIt for clean, decoupled code.
+- **Advanced navigation**: AutoRoute for strongly-typed, nested, and tabbed navigation.
+- **Persistent storage**: SharedPreferences and flutter_secure_storage for user data and settings.
+- **Localization**: English, Russian, and German with ARB files and intl.
+- **Material 3 UI**: Dynamic theming, color picker, and adaptive design.
+- **Custom charts**: Visualize your finances with beautiful bar and pie charts.
+- **Security**: PIN code and biometric support.
+- **Performance**: Heavy analytics run in isolates for a smooth UI.
 
 ---
 
 ## ✨ Features
 
 - 📊 Track and visualize expenses and income
-- 🏦 Manage account balances and currency
-- 📂 Organize financial articles (categories)
+- 🏦 Manage multiple accounts and balances
+- 📂 Organize transactions by categories
 - 🔄 Tabbed navigation with persistent state
-- 🧭 Advanced routing with `auto_route`
-- ⚙️ Settings and customization
-- 🧪 Mock repositories for data handling
-- 🖼️ Custom charts using `fl_chart`
+- 🧭 Advanced routing with AutoRoute
+- 🔒 PIN code and biometric protection
+- 🎨 Dynamic theming with preset color picker
+- 🌐 Multi-language support (EN, RU, DE)
+- ⚙️ Settings: theme, color, language, haptic feedback strength
+- 🖼️ Custom charts (bar, pie) for analytics
+- 🧪 Mock repositories for testing
+- 🪄 Blur effect on multitasking
+- 🤏 Haptic feedback with configurable strength
+- 🧩 Modular, testable architecture
 
 ---
 
 ## 🧱 Architecture
 
-The app uses a **feature-first modular architecture**:
+The app follows a **feature-first modular architecture**:
 
-
-### 📁 Key Concepts
-
-- **Routing**: `auto_route` for strongly-typed nested and tabbed navigation
-- **State Management**: `provider` + `view_models` for scoped state
-- **Serialization**: `freezed` + `json_serializable` for robust immutable models
-- **Charting**: `fl_chart` to render custom visual data
-- **Storage**: `shared_preferences` for persisting user settings
-- **Navigation Bar**: `google_nav_bar` for modern tab UI
+- `lib/presentation/features/` — Each feature (accounts, analysis, pin, settings, etc.) contains its own BLoC, repository, services, widgets, and screens.
+- `lib/data/` — Data layer: repositories, models, mappers, API, database.
+- `lib/domain/` — Domain layer: entities, value objects, enums, forms, failures.
+- `lib/utils/` — Utilities for analytics, color, formatting, etc.
+- `lib/l10n/` — Localization (ARB files for EN, RU, DE).
+- `lib/generated/` — Generated files (localization, routes).
+- `lib/router/` — Navigation (AutoRoute).
+- `lib/di/` — Dependency injection (GetIt).
+- `lib/core/` — Core services (e.g., app lifecycle).
 
 ---
 
 ## 🔧 Dependencies
 
 ```yaml
-dependencies:
-  provider: ^6.1.5
-  intl: ^0.20.2
-  shared_preferences: ^2.5.3
-  json_annotation: ^4.9.0
-  freezed_annotation: ^3.0.0
-  fl_chart: ^1.0.0
-  google_nav_bar: ^5.0.7
-  auto_route: ^10.1.0+1
+# Main
+flutter_bloc: ^8.x
+get_it: ^7.x
+auto_route: ^10.1.0+1
+shared_preferences: ^2.5.3
+flutter_secure_storage: ^9.x
+intl: ^0.20.2
+freezed_annotation: ^3.0.0
+json_annotation: ^4.9.0
+fl_chart: ^1.0.0
+google_nav_bar: ^5.0.7
+flutter_colorpicker: ^1.0.3
+pinput: ^3.0.1
 
-dev_dependencies:
-  freezed: ^3.0.6
-  json_serializable: ^6.9.5
-  build_runner: ^2.4.15
-  auto_route_generator: ^10.2.3
+# Dev
+freezed: ^3.0.6
+json_serializable: ^6.9.5
+build_runner: ^2.4.15
+auto_route_generator: ^10.2.3
 ```
 
+---
 
 ## 📂 Data Layer
 
-The `lib/data/` directory contains mock implementations and models for data access and transformation:
+- **Repositories**: Abstract and concrete implementations for accounts, transactions, categories, analytics, PIN, settings, etc.
+- **Models**: Immutable data classes (freezed, json_serializable).
+- **Mappers**: Transform API/database data to domain models.
+- **Mock repositories**: For development and testing.
 
-- **`mock_transactions_repository.dart`** – simulates transaction data for development and testing.
-- **`analysis_compute.dart`** (located in `lib/utils/`) – processes and transforms transaction data into structures suitable for visualization, such as bar chart models.
+---
 
-All domain models are defined in `lib/models/`, and are generated using:
+## 📊 Analytics & Charts
 
-- `freezed` – for immutable data classes with union support
-- `json_serializable` – for automatic JSON serialization/deserialization
+- **Bar and pie charts**: Visualize spending and income by category, period, and account.
+- **Dynamic color palette**: Charts and chips adapt to the selected theme color.
+- **Performance**: Heavy analytics run in isolates (see `lib/utils/analysis_compute.dart`).
 
-## 📊 Chart Analytics
+---
 
-The app visualizes spending data using bar and pie charts via the [`fl_chart`](https://pub.dev/packages/fl_chart) package.
+## 🌍 Localization
 
-- **`ExpensesScreen`** and **`IncomeScreen`** aggregate and display daily financial activity using bar charts.
-- **`AnalysisScreen`** showcases a pie chart distribution of expenses per category.
+- **Languages**: English, Russian, German
+- **ARB files**: Located in `lib/l10n/`
+- **Generated localization**: `lib/generated/`
+- **Easy language switching** in settings
 
-Chart sections are color-coded using a consistent palette defined in the `AnalysisViewModel`. Category-to-icon and category-to-color mappings are handled via the utility file `category_utils.dart`.
+---
 
-## 🧵 Isolates & Performance
+## 🛡️ Security
 
-To ensure the UI remains responsive during data-intensive operations, we use Dart's `compute()` function — a built-in way to offload heavy work to a separate isolate.
+- **PIN code**: Secure app access with PIN (BLoC, repository, secure storage)
+- **Biometric**: Optional biometric unlock (if supported)
 
-The isolate is used in:
+---
 
-**📁 lib/utils/analysis_compute.dart**
+## 🎨 UI & UX
 
-This file contains the `computeAnalysisIsolate` function, which receives a list of transactions and generates summarized data for analytics, such as category percentages and total amounts.
+- **Material 3**: Modern, adaptive design
+- **Dynamic theming**: Preset color picker, theme reset
+- **Blur effect**: App is blurred when multitasking
+- **Haptic feedback**: Configurable strength for key actions
+- **Consistent, unified UI**: Transaction add/edit screens, chips, headers, and period selectors adapt to theme
 
+---
 
-Built with ❤️ using Flutter
+## 🚦 Quick Start
+
+```sh
+flutter pub get
+flutter pub run build_runner build --delete-conflicting-outputs
+flutter run
+```
+
+---
+
+## ❤️ Built with Flutter
