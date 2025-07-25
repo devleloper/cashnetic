@@ -176,33 +176,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (accountState is AccountLoaded && accountState.accounts.isNotEmpty) {
       accountId = accountState.selectedAccountId;
     }
-    return BlocProvider(
-      create: (context) => TransactionsBloc(
-        transactionRepository: getIt<TransactionsRepository>(),
-        categoryRepository: getIt<CategoriesRepository>(),
-      )..add(TransactionsLoad(isIncome: widget.isIncome, accountId: accountId)),
-      child: BlocConsumer<TransactionsBloc, TransactionsState>(
-        listener: (context, state) {
-          if (state is TransactionsError) {
-            // If there is an error and no local data, show an error dialog after build
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Warning'),
-                  content: const Text('API data fetch is unavailable. To use this feature, switch to the dev-0.6.7-refactoring branch.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            });
-          }
-        },
-        builder: (context, state) {
+    return BlocConsumer<TransactionsBloc, TransactionsState>(
+      listener: (context, state) {
+        if (state is TransactionsError) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Warning'),
+                content: const Text('API data fetch is unavailable. To use this feature, switch to the dev-0.6.7-refactoring branch.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          });
+        }
+      },
+      builder: (context, state) {
           // RefreshIndicator: complete only on Loaded/Error
           if (_refreshCompleter != null &&
               (state is TransactionsLoaded || state is TransactionsError)) {
@@ -450,7 +444,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             ),
           );
         },
-      ),
-    );
+      );
+    
   }
 }
