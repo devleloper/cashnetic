@@ -176,6 +176,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               selected: isSelected,
                               selectedColor: primaryColor,
                               backgroundColor: sectionCardColor(context),
+                              checkmarkColor: Colors.white, // Добавляем белый цвет галочки
                               onSelected: (selected) {
                                 if (selected) {
                                   context.read<AccountBloc>().add(SelectAccount(acc.id));
