@@ -355,14 +355,11 @@ class _TransactionAddScreenState extends State<TransactionAddScreen> {
     List<Category> categories,
   ) async {
     final bloc = context.read<TransactionAddBloc>();
-    final filteredCategories = categories
-        .where((c) => c.isIncome == widget.isIncome)
-        .toList();
 
     final res = await showModalBottomSheet<Category>(
       context: context,
       builder: (c) => CategorySelectSheet(
-        categories: filteredCategories,
+        categories: categories, // Передаем все категории, фильтрация будет в CategorySelectSheet
         isIncome: widget.isIncome,
         onSelect: (category) => Navigator.pop(c, category),
         onCreateCategory: () => _showCustomCategoryDialog(context, bloc),

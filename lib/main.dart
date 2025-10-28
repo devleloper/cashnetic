@@ -49,15 +49,6 @@ void main() async {
   
   // Инициализация тестовых данных
   final db = appDatabaseSingleton;
-  // Добавить тестовый счёт, если нет ни одного
-  final accounts = await db.getAllAccounts();
-  if (accounts.isEmpty) {
-    await db.insertAccount(AccountsCompanion(
-      name: Value('Test Account'),
-      currency: Value('₽'),
-      balance: Value(1000.0),
-    ));
-  }
   // Добавить тестовые категории, если нет ни одной
   final categories = await db.getAllCategories();
   if (categories.isEmpty) {
