@@ -67,9 +67,14 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     }
     // Если нет транзакций, показываем пустой список (не ошибку)
     final total = filteredTxs.fold<double>(0, (sum, t) => sum + t.amount);
+    
+    // Сортируем транзакции по дате (новые сначала)
+    final sortedTxs = [...filteredTxs];
+    sortedTxs.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    
     emit(
       TransactionsLoaded(
-        transactions: filteredTxs,
+        transactions: sortedTxs,
         categories: filteredCats,
         total: total,
         startDate: start,
