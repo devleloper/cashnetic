@@ -14,7 +14,7 @@ import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftCategoryRepository {
   final db.AppDatabase dbInstance;
-  final ApiClient apiClient;
+  final ApiClient? apiClient;
 
   DriftCategoryRepository(this.dbInstance, this.apiClient);
 
@@ -117,6 +117,9 @@ class DriftCategoryRepository {
     try {
       // Get local categories
       final local = await dbInstance.getAllCategories();
+      // API отключен — всегда возвращаем только локальные данные
+      // RESTORE: чтобы снова включить API, раскомментируйте код ниже
+      /*
       try {
         // Try to load from server
         final response = await apiClient.getCategories();
@@ -163,19 +166,16 @@ class DriftCategoryRepository {
         }
         debugPrint('[DriftCategoryRepository] EXIT getAllCategories (remote)');
         return Right(remoteCategories.map((c) => c.toDomain()).toList());
-      } catch (_) {
-        // If server is unavailable and there are no local categories — add defaults
+      */
+      // Если сервер недоступен и локальных категорий нет — добавляем дефолтные
         if (local.isEmpty) {
           await _initDefaultCategories();
           final withDefaults = await dbInstance.getAllCategories();
-          debugPrint(
-            '[DriftCategoryRepository] EXIT getAllCategories (defaults)',
-          );
+        debugPrint('[DriftCategoryRepository] EXIT getAllCategories (defaults)');
           return Right(withDefaults.map((e) => e.toDomain()).toList());
         }
         debugPrint('[DriftCategoryRepository] EXIT getAllCategories (local)');
         return Right(local.map((e) => e.toDomain()).toList());
-      }
     } catch (e) {
       debugPrint(
         '[DriftCategoryRepository] ERROR in getAllCategories:  [31m${e.toString()} [0m',

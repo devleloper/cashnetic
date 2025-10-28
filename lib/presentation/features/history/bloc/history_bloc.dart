@@ -89,18 +89,28 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       page: _page,
       pageSize: _pageSize,
     );
-    // Lazy loading (pagination)
-    final start = _page * _pageSize;
-    final end = (_page + 1) * _pageSize;
-    final pageItems = txs;
+    
+    // Получаем все транзакции для подсчета общего количества и периода
+    final allTxs = await historyRepository.getTransactionsByPeriod(
+      from: _from,
+      to: _to,
+      type: _type,
+      sort: _sort,
+      page: 0,
+      pageSize: 10000, // Большое число для получения всех
+    );
+    
     if (reset) {
-      _allLoaded = pageItems;
+      _allLoaded = txs;
     } else {
-      _allLoaded.addAll(pageItems);
+      _allLoaded.addAll(txs);
     }
-    _hasMore = end < (_allLoaded.length + pageItems.length);
-    final total = historyRepository.getTotal(_allLoaded);
-    final periodStrings = historyRepository.getPeriodStrings(_allLoaded);
+    
+    // Проверяем, есть ли еще данные для загрузки
+    _hasMore = txs.length == _pageSize;
+    
+    final total = historyRepository.getTotal(allTxs);
+    final periodStrings = historyRepository.getPeriodStrings(allTxs);
     emit(
       HistoryLoaded(
         transactions: _allLoaded,

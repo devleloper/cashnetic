@@ -1,10 +1,10 @@
 import 'package:cashnetic/generated/l10n.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:blur/blur.dart';
 
@@ -15,14 +15,11 @@ import 'presentation/features/analysis/bloc/analysis_bloc.dart';
 import 'presentation/features/categories/bloc/categories_bloc.dart';
 import 'presentation/features/history/bloc/history_bloc.dart';
 import 'di/di.dart';
-import 'package:cashnetic/data/sync_manager.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import 'package:worker_manager/worker_manager.dart';
-import 'presentation/widgets/widgets.dart';
 import 'presentation/features/account/bloc/account_event.dart';
-import 'presentation/features/settings/services/pin_service.dart';
-import 'presentation/features/pin/repositories/pin_repository.dart';
+import 'package:drift/drift.dart';
+import 'package:cashnetic/data/database.dart';
 
 enum SyncStatus { offline, syncing, online, error }
 
@@ -49,6 +46,49 @@ void main() async {
   await workerManager.init();
   await initializeDateFormatting('ru');
   setupDependencies();
+  
+  // Инициализация тестовых данных
+  final db = appDatabaseSingleton;
+  // Добавить тестовый счёт, если нет ни одного
+  final accounts = await db.getAllAccounts();
+  if (accounts.isEmpty) {
+    await db.insertAccount(AccountsCompanion(
+      name: Value('Test Account'),
+      currency: Value('₽'),
+      balance: Value(1000.0),
+    ));
+  }
+  // Добавить тестовые категории, если нет ни одной
+  final categories = await db.getAllCategories();
+  if (categories.isEmpty) {
+    // Добавляем категории расходов
+    await db.insertCategory(CategoriesCompanion(
+      name: Value('Продукты'),
+      emoji: Value('🛒'),
+      isIncome: Value(false),
+      color: Value('#4CAF50'),
+    ));
+    await db.insertCategory(CategoriesCompanion(
+      name: Value('Транспорт'),
+      emoji: Value('🚗'),
+      isIncome: Value(false),
+      color: Value('#FF9800'),
+    ));
+    // Добавляем категории доходов
+    await db.insertCategory(CategoriesCompanion(
+      name: Value('Зарплата'),
+      emoji: Value('💰'),
+      isIncome: Value(true),
+      color: Value('#2196F3'),
+    ));
+    await db.insertCategory(CategoriesCompanion(
+      name: Value('Подарки'),
+      emoji: Value('🎁'),
+      isIncome: Value(true),
+      color: Value('#9C27B0'),
+    ));
+  }
+  
   runApp(const CashneticApp());
 }
 
@@ -109,50 +149,27 @@ class CashneticApp extends StatefulWidget {
 
 class _CashneticAppState extends State<CashneticApp> {
   final _router = AppRouter();
-  late final StreamSubscription<List<ConnectivityResult>>
-  _connectivitySubscription;
   final SyncStatusNotifier _syncStatusNotifier = SyncStatusNotifier();
 
   @override
   void initState() {
     super.initState();
-    // Automatically start sync on app launch
+    // API отключен - работаем только офлайн
     Future.microtask(() => _runSync());
-    // Listen for connectivity changes
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
-      List<ConnectivityResult> results,
-    ) {
-      if (results.any((r) => r != ConnectivityResult.none)) {
-        _runSync();
-      } else {
-        _syncStatusNotifier.setStatus(SyncStatus.offline);
-      }
-    });
   }
 
   Future<void> _runSync() async {
-    _syncStatusNotifier.setStatus(SyncStatus.syncing);
-    try {
-      await getIt<SyncManager>().sync();
-      _syncStatusNotifier.setStatus(SyncStatus.online);
-      // After going online, perform a full sync with the API
-      await getIt<SyncManager>().fullSync();
-      // Dispatch LoadAccount to update account screen with fresh data
-      final context = navigatorKey.currentContext;
-      if (context != null) {
-        context.read<AccountBloc>().add(LoadAccount());
-      }
-    } catch (e) {
-      _syncStatusNotifier.setStatus(
-        SyncStatus.error,
-        errorMessage: e.toString(),
-      );
+    // API полностью отключен - работаем только офлайн
+    _syncStatusNotifier.setStatus(SyncStatus.offline);
+    // Dispatch LoadAccount to update account screen with local data
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      context.read<AccountBloc>().add(LoadAccount());
     }
   }
 
   @override
   void dispose() {
-    _connectivitySubscription.cancel();
     _syncStatusNotifier.dispose();
     workerManager.dispose(); // Explicitly dispose all worker isolates
     super.dispose();
@@ -178,23 +195,11 @@ class _CashneticAppState extends State<CashneticApp> {
               builder: (context, state) {
                 ThemeMode themeMode = ThemeMode.system;
                 String language = 'en';
-                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
-                ThemeData initTheme;
+                Color primaryColor = Colors.green; // Зеленый по умолчанию
                 if (state is SettingsLoaded) {
                   themeMode = state.themeMode;
                   language = state.language;
                   primaryColor = state.primaryColor;
-                }
-                if (themeMode == ThemeMode.dark) {
-                  initTheme = darkThemeData(primaryColor: primaryColor);
-                } else if (themeMode == ThemeMode.light) {
-                  initTheme = lightThemeData(primaryColor: primaryColor);
-                } else {
-                  final brightness =
-                      WidgetsBinding.instance.platformDispatcher.platformBrightness;
-                  initTheme = brightness == Brightness.dark
-                      ? darkThemeData(primaryColor: primaryColor)
-                      : lightThemeData(primaryColor: primaryColor);
                 }
                 return MaterialApp.router(
                   locale: Locale(language),
@@ -210,6 +215,17 @@ class _CashneticAppState extends State<CashneticApp> {
                   darkTheme: darkThemeData(primaryColor: primaryColor),
                   themeMode: themeMode,
                   builder: (context, child) {
+                    // Устанавливаем системную навигацию с текущим цветом
+                    SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
+                      statusBarColor: Colors.transparent,
+                      statusBarIconBrightness: Brightness.light,
+                      statusBarBrightness: Brightness.light,
+                      systemNavigationBarColor: primaryColor,
+                      systemNavigationBarIconBrightness: Brightness.light,
+                      systemNavigationBarDividerColor: primaryColor,
+                    );
+                    SystemChrome.setSystemUIOverlayStyle(overlayStyle);
+                    
                     if (state is! SettingsLoaded) {
                       return Scaffold(
                         backgroundColor: const Color(0xFF4CAF50),

@@ -47,7 +47,9 @@ AnalysisResult computeAnalysisIsolate(AnalysisInput input) {
   int idx = 0;
   final data = entries.map((entry) {
     final percent = (total == 0) ? 0 : (entry.value / total) * 100;
-    final color = Color(colorValues[idx % colorValues.length]);
+    final color = colorValues.isNotEmpty 
+        ? Color(colorValues[idx % colorValues.length])
+        : Colors.grey;
     idx++;
 
     return CategoryChartData(

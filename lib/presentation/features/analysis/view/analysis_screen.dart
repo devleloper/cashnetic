@@ -85,7 +85,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               centerTitle: true,
               leading: BackButton(),
             ),
-            body: const ShimmerAnalysisScreenPlaceholder(),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
         if (state is AnalysisError) {

@@ -5,8 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/transactions_bloc.dart';
 import '../bloc/transactions_event.dart';
 import '../bloc/transactions_state.dart';
-import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
-import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
@@ -18,12 +16,9 @@ import 'package:cashnetic/utils/category_utils.dart';
 import 'package:cashnetic/presentation/features/transactions/widgets/transactions_fly_chip.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_bloc.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
-import 'package:cashnetic/di/di.dart';
-import 'package:cashnetic/presentation/theme/light_color_for.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/main.dart';
-import 'package:cashnetic/presentation/widgets/shimmer_placeholder.dart';
 import 'dart:async';
 
 @RoutePage()
@@ -176,40 +171,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (accountState is AccountLoaded && accountState.accounts.isNotEmpty) {
       accountId = accountState.selectedAccountId;
     }
-    return BlocProvider(
-      create: (context) => TransactionsBloc(
-        transactionRepository: getIt<TransactionsRepository>(),
-        categoryRepository: getIt<CategoriesRepository>(),
-      )..add(TransactionsLoad(isIncome: widget.isIncome, accountId: accountId)),
-      child: BlocConsumer<TransactionsBloc, TransactionsState>(
-        listener: (context, state) {
-          if (state is TransactionsError) {
-            // If there is an error and no local data, show an error dialog after build
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Error'),
-                  content: const Text('Failed to load data.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
-            });
-          }
-        },
-        builder: (context, state) {
+    return BlocConsumer<TransactionsBloc, TransactionsState>(
+      listener: (context, state) {
+        // API отключен - убираем предупреждения
+        if (state is TransactionsError) {
+          // Просто логируем ошибку, не показываем диалог
+          debugPrint('Transactions error: ${state.message}');
+        }
+      },
+      builder: (context, state) {
           // RefreshIndicator: complete only on Loaded/Error
           if (_refreshCompleter != null &&
               (state is TransactionsLoaded || state is TransactionsError)) {
             _refreshCompleter?.complete();
             _refreshCompleter = null;
           }
-          if (state is TransactionsLoading) {
+          if (state is TransactionsInitial || state is TransactionsLoading) {
             return Scaffold(
               appBar: AppBar(
                 title: Text(
@@ -232,7 +209,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ),
                 ],
               ),
-              body: const ShimmerTransactionListPlaceholder(),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
             );
           }
           if (state is TransactionsError) {
@@ -275,9 +254,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   children: [
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.5,
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Failed to fetch data',
+                          'No transactions.',
                           style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
                       ),
@@ -345,35 +324,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       return _refreshCompleter!.future;
                     },
                     child: transactions.isEmpty
-                        ? RefreshIndicator(
-                            onRefresh: () async {
-                              _refreshCompleter = Completer<void>();
-                              context.read<TransactionsBloc>().add(
-                                TransactionsLoad(
-                                  isIncome: widget.isIncome,
-                                  accountId: accountId,
-                                ),
-                              );
-                              return _refreshCompleter!.future;
-                            },
-                            child: ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: [
-                                SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.5,
-                                  child: Center(
-                                    child: Text(
-                                      S.of(context).noDataForAnalysis,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.5,
+                                child: Center(
+                                  child: Text(
+                                    'No transactions.',
+                                    style: TextStyle(fontSize: 18, color: Colors.grey),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           )
                         : TransactionsListView(
                             transactions: transactions,
@@ -396,7 +359,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                 currency = acc.moneyDetails.currency;
                               }
                               // Open transaction edit screen as modal
-                              await showModalBottomSheet(
+                              final result = await showModalBottomSheet(
                                 context: context,
                                 isScrollControlled: true,
                                 backgroundColor: Colors.transparent,
@@ -417,21 +380,56 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   );
                                 },
                               );
-                              context.read<TransactionsBloc>().add(
-                                TransactionsLoad(
-                                  isIncome: widget.isIncome,
-                                  accountId: accountId,
-                                ),
-                              );
+                              if (result == true) {
+                                context.read<TransactionsBloc>().add(
+                                  TransactionsLoad(
+                                    isIncome: widget.isIncome,
+                                    accountId: accountId,
+                                  ),
+                                );
+                              }
                             },
                           ),
                   ),
                 ),
               ],
             ),
+            floatingActionButton: FloatingActionButton(
+              heroTag: 'transactions_fab_${widget.isIncome ? 'income' : 'expense'}',
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: const Icon(Icons.add, color: Colors.white),
+              onPressed: () async {
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) {
+                    final mq = MediaQuery.of(context);
+                    final maxChildSize =
+                        (mq.size.height - mq.padding.top) / mq.size.height;
+                    return DraggableScrollableSheet(
+                      initialChildSize: 0.85,
+                      minChildSize: 0.4,
+                      maxChildSize: maxChildSize,
+                      expand: false,
+                      builder: (context, scrollController) =>
+                          TransactionAddScreen(isIncome: widget.isIncome),
+                    );
+                  },
+                );
+                if (result == true) {
+                  context.read<TransactionsBloc>().add(
+                    TransactionsLoad(
+                      isIncome: widget.isIncome,
+                      accountId: accountId,
+                    ),
+                  );
+                }
+              },
+            ),
           );
         },
-      ),
-    );
+      );
+    
   }
 }

@@ -1,12 +1,9 @@
 // history_repository.dart
-import 'package:dartz/dartz.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
 import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
-import 'package:cashnetic/domain/failures/failure.dart';
 import '../bloc/history_event.dart';
-import '../bloc/history_state.dart';
 
 abstract interface class HistoryRepository {
   Future<List<Transaction>> getTransactionsByPeriod({
@@ -39,12 +36,14 @@ class HistoryRepositoryImpl implements HistoryRepository {
     required int page,
     required int pageSize,
   }) async {
+    // Получаем все транзакции за период
     final (txs, _) = await transactionRepository.getTransactions(
       from: from,
       to: to,
     );
     final cats = await categoryRepository.getCategories();
-    // Фильтруем по типу
+    
+    // Фильтруем по типу (доходы/расходы)
     var filtered = txs.where((t) {
       final cat = cats.isNotEmpty
           ? cats.firstWhere(
@@ -62,7 +61,8 @@ class HistoryRepositoryImpl implements HistoryRepository {
           ? cat.isIncome == false
           : cat.isIncome == true;
     }).toList();
-    // Сортировка
+    
+    // Применяем сортировку
     switch (sort) {
       case HistorySort.dateDesc:
         filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -82,9 +82,12 @@ class HistoryRepositoryImpl implements HistoryRepository {
         );
         break;
     }
-    // Пагинация
+    
+    // Применяем пагинацию ПОСЛЕ сортировки
     final start = page * pageSize;
-    final end = (page + 1) * pageSize;
+    if (start >= filtered.length) {
+      return []; // Нет данных для этой страницы
+    }
     return filtered.skip(start).take(pageSize).toList();
   }
 

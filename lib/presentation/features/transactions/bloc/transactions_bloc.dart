@@ -15,7 +15,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
   TransactionsBloc({
     required this.transactionRepository,
     required this.categoryRepository,
-  }) : super(TransactionsLoading()) {
+  }) : super(TransactionsInitial()) {
     on<TransactionsLoad>(_onLoad);
     on<TransactionsChangeSort>(_onChangeSort);
     on<TransactionsChangePeriod>(_onChangePeriod);
@@ -65,15 +65,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       emit(TransactionsError('Failed to load data'));
       return;
     }
-    // If there are no transactions at all, emit error
-    if (filteredTxs.isEmpty) {
-      debugPrint(
-        '[TransactionsBloc] Emitting TransactionsError: filteredTxs.isEmpty=true',
-      );
-      emit(TransactionsError('No data available'));
-      return;
-    }
-    // If there are no transactions, still show the UI (empty list)
+    // Если нет транзакций, показываем пустой список (не ошибку)
     final total = filteredTxs.fold<double>(0, (sum, t) => sum + t.amount);
     emit(
       TransactionsLoaded(

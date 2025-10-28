@@ -158,7 +158,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ],
             ),
-            body: const ShimmerHistoryScreenPlaceholder(),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
         if (state is HistoryError) {

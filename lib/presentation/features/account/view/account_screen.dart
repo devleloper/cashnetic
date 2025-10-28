@@ -119,7 +119,11 @@ class _AccountScreenState extends State<AccountScreen> {
           _refreshCompleter = null;
         }
         if (state is AccountLoading) {
-          return const ShimmerAccountScreenPlaceholder();
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
         if (state is AccountError) {
           return Scaffold(body: Center(child: Text(state.message)));
@@ -172,6 +176,11 @@ class _AccountScreenState extends State<AccountScreen> {
                               selected: isSelected,
                               selectedColor: primaryColor,
                               backgroundColor: sectionCardColor(context),
+                              onSelected: (selected) {
+                                if (selected) {
+                                  context.read<AccountBloc>().add(SelectAccount(acc.id));
+                                }
+                              },
                             );
                           },
                         ),
