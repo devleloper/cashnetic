@@ -4,8 +4,8 @@ import 'transaction_add_event.dart';
 import 'transaction_add_state.dart';
 import 'package:cashnetic/di/di.dart';
 import '../repositories/transaction_add_repository.dart';
-import 'package:cashnetic/domain/entities/category.dart';
-import 'package:cashnetic/domain/entities/account.dart';
+import 'package:cashnetic/domain/entities/forms/category_form.dart';
+import 'package:cashnetic/data/repositories/drift_category_repository.dart';
 import 'package:flutter/material.dart';
 
 class TransactionAddBloc
@@ -239,20 +239,35 @@ class TransactionAddBloc
     final current = state as TransactionAddLoaded;
     emit(TransactionAddLoading());
     try {
+      // Создаем категорию через репозиторий
+      final categoryForm = CategoryForm(
+        name: event.name,
+        emoji: event.emoji,
+        isIncome: event.isIncome,
+        color: event.color,
+      );
+      
+      // Получаем репозиторий категорий напрямую
+      final categoryRepo = getIt<DriftCategoryRepository>();
+      final createResult = await categoryRepo.createCategory(categoryForm);
+      
+      if (createResult.isLeft()) {
+        emit(TransactionAddError('Failed to create category'));
+        return;
+      }
+      
+      final createdCategory = createResult.getOrElse(() => throw Exception('No category'));
+      
+      // Обновляем список категорий
       final categories = await repository.getCategories();
       final filtered = categories
           .where((cat) => cat.isIncome == event.isIncome)
           .toList();
-      final selected = filtered.isNotEmpty
-          ? filtered.firstWhere(
-              (c) => c.name == event.name && c.emoji == event.emoji,
-              orElse: () => filtered.last,
-            )
-          : throw Exception('No category found');
+      
       emit(
         TransactionAddLoaded(
           categories: filtered,
-          selectedCategory: selected,
+          selectedCategory: createdCategory, // Используем созданную категорию
           selectedDate: current.selectedDate,
           account: current.account,
           amount: current.amount,

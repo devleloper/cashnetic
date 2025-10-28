@@ -3,6 +3,7 @@ import 'settings_event.dart';
 import 'settings_state.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cashnetic/di/di.dart';
 import '../repositories/settings_repository.dart';
 import '../services/pin_service.dart';
@@ -21,6 +22,18 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   Color _limitColorBrightness(Color color) {
     // Возвращаем цвет без изменений, так как используем стандартные Flutter цвета
     return color;
+  }
+
+  void _updateSystemNavigationColor(Color color) {
+    SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: color,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: color,
+    );
+    SystemChrome.setSystemUIOverlayStyle(overlayStyle);
   }
 
   SettingsBloc() : super(SettingsInitial()) {
@@ -90,7 +103,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   }
 
   Future<void> _onUpdatePrimaryColor(
-    UpdatePrimaryColor event,
+UpdatePrimaryColor event,
     Emitter<SettingsState> emit,
   ) async {
     if (state is SettingsLoaded) {
@@ -98,6 +111,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       try {
         final limitedColor = _limitColorBrightness(event.color);
         await settingsRepository.savePrimaryColor(limitedColor);
+        // Обновляем системную навигацию сразу
+        _updateSystemNavigationColor(limitedColor);
         emit(currentState.copyWith(primaryColor: limitedColor));
       } catch (e) {
         emit(SettingsError('Failed to save primary color: $e'));
