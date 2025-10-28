@@ -71,59 +71,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     super.dispose();
   }
 
-  void _animateTransactionToHistory(
-    BuildContext context,
-    Transaction tx,
-    GlobalKey historyIconKey,
-  ) async {
-    final overlay = Overlay.of(context);
-
-    final fabBox = context.findRenderObject() as RenderBox?;
-    Offset fabOffset = Offset.zero;
-    try {
-      fabOffset =
-          fabBox?.localToGlobal(fabBox.size.center(Offset.zero)) ?? Offset.zero;
-    } catch (_) {}
-
-    final historyBox =
-        historyIconKey.currentContext?.findRenderObject() as RenderBox?;
-    Offset historyOffset = Offset.zero;
-    try {
-      if (historyBox != null) {
-        final position = historyBox.localToGlobal(Offset.zero);
-        final size = historyBox.size;
-        final double relativeOffsetX = size.width * 2.7;
-        historyOffset =
-            position +
-            Offset(size.width / 2 + relativeOffsetX, size.height / 2);
-      }
-    } catch (_) {}
-
-    if (fabOffset == Offset.zero || historyOffset == Offset.zero) return;
-    String emoji = '💸';
-    String categoryName = S.of(context).expense;
-    Color bgColor = Color(0xFFE6F4EA);
-    try {
-      emoji = _getCategoryEmoji(context, tx.categoryId ?? 0);
-      categoryName = _getCategoryName(context, tx.categoryId ?? 0);
-      bgColor = colorFor(categoryName).withOpacity(0.2);
-    } catch (_) {}
-    if (emoji.isEmpty) emoji = '💸';
-
-    final entry = OverlayEntry(
-      builder: (context) {
-        return TransactionsFlyChip(
-          start: fabOffset,
-          end: historyOffset,
-          emoji: emoji,
-          bgColor: bgColor,
-        );
-      },
-    );
-    overlay.insert(entry);
-    await Future.delayed(const Duration(milliseconds: 1700));
-    entry.remove();
-  }
 
   String _getCategoryEmoji(BuildContext context, int categoryId) {
     final state = BlocProvider.of<TransactionsBloc>(context).state;
