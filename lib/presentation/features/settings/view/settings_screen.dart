@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import '../../../theme/theme.dart';
 import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
@@ -24,8 +23,7 @@ class SettingsScreen extends StatelessWidget {
 }
 
 class _SettingsScreenBody extends StatelessWidget {
-  _SettingsScreenBody({super.key});
-  final GlobalKey switchKey = GlobalKey();
+  _SettingsScreenBody();
 
   void _showAboutDialog(BuildContext context) {
     showDialog(
@@ -134,14 +132,6 @@ class _SettingsScreenBody extends StatelessWidget {
     );
   }
 
-  Color _limitColorBrightness(Color color) {
-    // Ограничиваем яркость - G не больше 65
-    final red = color.red;
-    final green = color.green.clamp(0, 65); // Ограничиваем зеленый
-    final blue = color.blue;
-    
-    return Color.fromARGB(color.alpha, red, green, blue);
-  }
 
   // Предустановленные цвета (не слишком светлые, не слишком темные)
   static const List<Color> _presetColors = [
@@ -288,8 +278,6 @@ class _SettingsScreenBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var darkTheme = darkThemeData();
-    var lightTheme = lightThemeData();
     return Scaffold(
       body: BlocConsumer<SettingsBloc, SettingsState>(
         listener: (context, state) {
@@ -334,14 +322,6 @@ class _SettingsScreenBody extends StatelessWidget {
                     _showColorPickerDialog(context, state.primaryColor);
                   },
                 ),
-                SwitchListTile(
-                  title: Text(S.of(context).sounds),
-                  value: state.soundsEnabled,
-                  onChanged: (_) {
-                    context.read<SettingsBloc>().add(const ToggleSounds());
-                  },
-                ),
-
                 ListTile(
                   title: Text(S.of(context).hapticStrength),
                   subtitle: Text(_getHapticStrengthText(context, state.hapticStrength)),
@@ -388,14 +368,6 @@ class _SettingsScreenBody extends StatelessWidget {
                   value: state.biometryEnabled,
                   onChanged: (_) {
                     context.read<SettingsBloc>().add(const ToggleBiometry());
-                  },
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  title: Text(S.of(context).sync),
-                  value: state.syncEnabled,
-                  onChanged: (_) {
-                    context.read<SettingsBloc>().add(const ToggleSync());
                   },
                 ),
                 ListTile(
