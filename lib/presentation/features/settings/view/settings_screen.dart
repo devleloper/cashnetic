@@ -181,25 +181,6 @@ class _SettingsScreenBody extends StatelessWidget {
                       runSpacing: 8,
                       children: [
                         ...colors.map((color) => child(color)),
-                        // Добавляем черный цвет отдельно
-                        GestureDetector(
-                          onTap: () => setState(() => selectedColor = Colors.black),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: selectedColor == Colors.black ? Colors.blue : Colors.grey,
-                                width: selectedColor == Colors.black ? 3 : 1,
-                              ),
-                            ),
-                            child: selectedColor == Colors.black
-                                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                                : null,
-                          ),
-                        ),
                       ],
                     ),
                   );
