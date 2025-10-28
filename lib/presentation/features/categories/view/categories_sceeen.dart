@@ -92,7 +92,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           _refreshCompleter = null;
         }
         if (state is CategoriesLoading) {
-          return const Scaffold(body: ShimmerCategoryListPlaceholder());
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
         if (state is CategoriesError) {
           return Scaffold(body: Center(child: Text(state.message)));

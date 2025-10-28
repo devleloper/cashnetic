@@ -1,5 +1,4 @@
 // analysis_repository.dart
-import 'package:dartz/dartz.dart';
 import 'package:cashnetic/domain/entities/transaction.dart';
 import 'package:cashnetic/domain/entities/category.dart';
 import 'package:cashnetic/presentation/features/analysis/bloc/analysis_state.dart';
@@ -122,7 +121,9 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
           categoryIcon: cat.emoji,
           amount: amount,
           percent: percent.toDouble(),
-          color: sectionColors[colorIdx % sectionColors.length],
+          color: sectionColors.isNotEmpty 
+              ? sectionColors[colorIdx % sectionColors.length]
+              : Colors.grey,
           lastTransactionDate: lastDate,
         ),
       );
@@ -213,7 +214,9 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
           categoryIcon: cat.emoji,
           amount: amount,
           percent: percent.toDouble(),
-          color: sectionColors[colorIdx % sectionColors.length],
+          color: sectionColors.isNotEmpty 
+              ? sectionColors[colorIdx % sectionColors.length]
+              : Colors.grey,
           lastTransactionDate: lastDate,
         ),
       );
@@ -290,7 +293,9 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
           categoryIcon: cat.emoji,
           amount: amount,
           percent: percent.toDouble(),
-          color: sectionColors[colorIdx % sectionColors.length],
+          color: sectionColors.isNotEmpty 
+              ? sectionColors[colorIdx % sectionColors.length]
+              : Colors.grey,
           lastTransactionDate: lastDate,
         ),
       );

@@ -20,7 +20,7 @@ import 'package:cashnetic/utils/diff_utils.dart';
 
 class DriftAccountRepository {
   final db.AppDatabase dbInstance;
-  final ApiClient apiClient;
+  final ApiClient? apiClient;
 
   DriftAccountRepository(this.dbInstance, this.apiClient);
 

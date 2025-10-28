@@ -16,24 +16,19 @@ import 'package:cashnetic/presentation/features/account_add/repositories/account
 import 'package:cashnetic/presentation/features/account_edit/repositories/account_edit_repository.dart';
 import 'package:cashnetic/presentation/features/history/repositories/history_repository.dart';
 import 'package:cashnetic/presentation/features/analysis/repositories/analysis_repository.dart';
-import 'package:cashnetic/presentation/presentation.dart';
-import 'package:cashnetic/utils/category_utils.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:cashnetic/data/api_client.dart';
-import 'package:cashnetic/data/sync_manager.dart';
 
 final getIt = GetIt.instance;
 
 void setupDependencies() {
   getIt.registerLazySingleton<AppDatabase>(() => AppDatabase());
 
-  // Register ApiClient
-  getIt.registerLazySingleton<ApiClient>(() => ApiClient());
-
-  // Register SyncManager
-  getIt.registerLazySingleton<SyncManager>(
-    () => SyncManager(getIt<AppDatabase>(), getIt<ApiClient>()),
-  );
+  // API отключен - не регистрируем ApiClient и SyncManager
+  // getIt.registerLazySingleton<ApiClient>(() => ApiClient());
+  // getIt.registerLazySingleton<SyncManager>(
+  //   () => SyncManager(getIt<AppDatabase>(), getIt<ApiClient>()),
+  // );
 
   getIt.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(
@@ -66,14 +61,14 @@ void setupDependencies() {
   );
 
   getIt.registerLazySingleton<DriftAccountRepository>(
-    () => DriftAccountRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
+    () => DriftAccountRepository(getIt<AppDatabase>(), null),
   );
 
   getIt.registerLazySingleton<DriftTransactionRepository>(
-    () => DriftTransactionRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
+    () => DriftTransactionRepository(getIt<AppDatabase>(), null),
   );
   getIt.registerLazySingleton<DriftCategoryRepository>(
-    () => DriftCategoryRepository(getIt<AppDatabase>(), getIt<ApiClient>()),
+    () => DriftCategoryRepository(getIt<AppDatabase>(), null),
   );
 
   getIt.registerLazySingleton<AccountAddRepository>(
@@ -95,7 +90,16 @@ void setupDependencies() {
     () => AnalysisRepositoryImpl(
       transactionRepository: getIt<TransactionsRepository>(),
       categoryRepository: getIt<CategoriesRepository>(),
-      sectionColors: kCategoryColors,
+      sectionColors: const [
+        Color(0xFF4CAF50), // Зеленый
+        Color(0xFF2196F3), // Синий
+        Color(0xFFFF9800), // Оранжевый
+        Color(0xFF9C27B0), // Фиолетовый
+        Color(0xFFF44336), // Красный
+        Color(0xFF00BCD4), // Голубой
+        Color(0xFFFFEB3B), // Желтый
+        Color(0xFF795548), // Коричневый
+      ],
     ),
   );
 }

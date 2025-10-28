@@ -9,9 +9,6 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:cashnetic/router/router.dart';
 import 'package:cashnetic/presentation/features/history/view/history_screen.dart';
 import 'package:cashnetic/presentation/features/account_edit/view/account_edit_screen.dart';
-import 'package:cashnetic/data/api_client.dart';
-import 'package:cashnetic/di/di.dart';
-import 'dart:developer';
 import 'package:cashnetic/main.dart';
 import 'package:provider/provider.dart';
 import 'package:cashnetic/presentation/features/transactions/bloc/transactions_bloc.dart';
@@ -19,14 +16,15 @@ import 'package:cashnetic/presentation/features/transactions/bloc/transactions_e
 import 'package:cashnetic/presentation/features/categories/bloc/categories_bloc.dart';
 import 'package:cashnetic/presentation/features/categories/bloc/categories_event.dart';
 import 'package:cashnetic/presentation/features/account/bloc/account_state.dart';
-import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
-import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
 import 'package:cashnetic/presentation/features/settings/services/pin_service.dart';
 import 'package:cashnetic/presentation/features/transaction_add/view/transaction_add_screen.dart';
 import 'package:cashnetic/presentation/features/settings/services/haptic_service.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_bloc.dart';
 import 'package:cashnetic/presentation/features/settings/bloc/settings_state.dart';
 import 'package:cashnetic/domain/constants/constants.dart';
+import 'package:cashnetic/presentation/features/transactions/repositories/transactions_repository.dart';
+import 'package:cashnetic/presentation/features/categories/repositories/categories_repository.dart';
+import 'package:cashnetic/di/di.dart';
 
 @RoutePage()
 class HomeScreen extends StatefulWidget {
@@ -105,14 +103,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _testApiGetAccounts() async {
-    try {
-      final apiClient = getIt<ApiClient>();
-      final response = await apiClient.getAccounts();
-      log('API accounts: \n\t\n\t\n');
-      log(response.data.toString());
-    } catch (e, st) {
-      log('API error: $e', stackTrace: st);
-    }
+    // API отключен - не делаем тестовые запросы
+    debugPrint('API calls disabled - working offline only');
   }
 
   Future<void> _checkPinAndRedirect() async {
@@ -133,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
           create: (context) => TransactionsBloc(
             transactionRepository: getIt<TransactionsRepository>(),
             categoryRepository: getIt<CategoriesRepository>(),
-          ),
+          )..add(TransactionsLoad(isIncome: false, accountId: ALL_ACCOUNTS_ID)),
         ),
         BlocProvider<CategoriesBloc>(create: (context) => CategoriesBloc()),
       ],
@@ -147,22 +139,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         builder: (context, child) {
           final tabsRouter = AutoTabsRouter.of(context);
-          SystemUiOverlayStyle overlayStyle = const SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.light,
-            systemNavigationBarColor: Colors.green,
-            systemNavigationBarIconBrightness: Brightness.light,
-            systemNavigationBarDividerColor: Colors.green,
-          );
-          SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
           return BlocBuilder<SettingsBloc, SettingsState>(
             builder: (context, settingsState) {
-                                        Color primaryColor = Colors.green; // Зеленый по умолчанию
+              Color primaryColor = Colors.green; // Зеленый по умолчанию
               if (settingsState is SettingsLoaded) {
                 primaryColor = settingsState.primaryColor;
               }
+              
+              // Обновляем системную навигацию с текущим цветом
+              SystemUiOverlayStyle overlayStyle = SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.light,
+                statusBarBrightness: Brightness.light,
+                systemNavigationBarColor: primaryColor,
+                systemNavigationBarIconBrightness: Brightness.light,
+                systemNavigationBarDividerColor: primaryColor,
+              );
+              SystemChrome.setSystemUIOverlayStyle(overlayStyle);
 
               return Scaffold(
                 appBar: (tabsRouter.activeIndex == 0 || tabsRouter.activeIndex == 1)
@@ -199,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }
                                 switch (index) {
                                   case 0: // Expenses
+                                    // Загружаем расходы
                                     context.read<TransactionsBloc>().add(
                                       TransactionsLoad(
                                         isIncome: false,
@@ -207,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                     break;
                                   case 1: // Incomes
+                                    // Загружаем доходы
                                     context.read<TransactionsBloc>().add(
                                       TransactionsLoad(
                                         isIncome: true,
